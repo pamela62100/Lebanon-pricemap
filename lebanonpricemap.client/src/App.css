@@ -461,3 +461,59 @@ body {
     font-size: 0.95rem;
     margin: 0;
 }
+/* HOW IT WORKS */
+
+.how-section {
+    width: 100%;
+    padding: 100px 20px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    background: rgba(7,18,36,0.55);
+}
+
+.how-grid {
+    max-width: 1050px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 24px;
+}
+
+.how-card {
+    background: rgba(35,48,75,0.88);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 18px;
+    padding: 30px;
+    transition: 0.2s ease;
+    min-height: 200px;
+}
+
+    .how-card:hover {
+        transform: translateY(-3px);
+        border-color: rgba(44,169,255,0.45);
+    }
+
+.how-step {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    background: #2ca9ff;
+    color: #081427;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 16px;
+}
+
+.how-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 14px;
+    color: #f5f7fb;
+}
+
+.how-card p {
+    color: #b9c7da;
+    line-height: 1.7;
+    font-size: 1rem;
+}
