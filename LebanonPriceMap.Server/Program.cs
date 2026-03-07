@@ -3,6 +3,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+// health checks for readiness/liveness
+builder.Services.AddHealthChecks();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
@@ -22,6 +24,10 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// health check endpoints
+app.MapHealthChecks("/health/live");
+app.MapHealthChecks("/health/ready");
 
 app.MapFallbackToFile("/index.html");
 

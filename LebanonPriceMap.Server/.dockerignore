@@ -1,0 +1,10 @@
+bin/
+obj/
+.vs/
+.vscode/
+.git/
+*test*/
+*.user
+*.suo
+*.cache
+*/project.assets.json
