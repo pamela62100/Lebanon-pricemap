@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 function CTASection() {
     return (
         <section className="cta-section">
@@ -9,7 +7,7 @@ function CTASection() {
                     Join thousands of Lebanese citizens helping each other find fair
                     prices across the country.
                 </p>
-                <Link to="/map" className="primary-btn">Open PriceMap</Link>
+                <button className="primary-btn">Open PriceMap</button>
             </div>
         </section>
     );

@@ -13,8 +13,8 @@ function HeroSection() {
             </p>
 
             <div className="hero-buttons">
-                <Link to="/map" className="primary-btn">Explore Map</Link>
-                <Link to="/map" className="secondary-btn">View Prices</Link>
+                <button className="primary-btn">Explore Map</button>
+                <button className="secondary-btn">View Prices</button>
             </div>
 
             <div className="stats">
