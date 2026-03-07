@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom';
-
 function Navbar() {
     return (
         <header className="navbar">
@@ -8,7 +6,7 @@ function Navbar() {
                 <span className="logo-text">PriceMap Lebanon</span>
             </div>
 
-            <Link to="/map" className="launch-btn">Open App</Link>
+            <button className="launch-btn">Open App</button>
         </header>
     );
 }
