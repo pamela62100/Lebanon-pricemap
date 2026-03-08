@@ -1,109 +1,148 @@
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import type { PriceEntry } from '@/types';
-import { cn, formatLBP, timeAgo, isOlderThan } from '@/lib/utils';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { TrustBadge } from '@/components/ui/TrustBadge';
+import { formatLBP, timeAgo, cn } from '@/lib/utils';
+import { useExchangeRateStore } from '@/store/useExchangeRateStore';
+import { useCartStore } from '@/store/useCartStore';
+import { useLocationStore } from '@/store/useLocationStore';
+import { useToastStore } from '@/store/useToastStore';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
+import { distanceKm, formatDistance } from '@/lib/distanceUtils';
 
 interface PriceResultCardProps {
   entry: PriceEntry;
-  index?: number;
-  onReport?: (id: string) => void;
-  onFeedback?: (id: string, positive: boolean) => void;
+  index: number;
 }
 
-export function PriceResultCard({ entry, index = 0, onReport, onFeedback }: PriceResultCardProps) {
+const PriceResultCardBase = ({ entry, index }: PriceResultCardProps) => {
   const navigate = useNavigate();
-  const isOld = isOlderThan(entry.createdAt, 48);
+  const { rateLbpPerUsd } = useExchangeRateStore();
+  const { lat, lng } = useLocationStore();
+  const addItem = useCartStore(s => s.addItem);
+  const addToast = useToastStore(s => s.addToast);
+  const { open } = useRouteDialog();
+
+  const usdPrice = (entry.priceLbp / rateLbpPerUsd).toFixed(2);
+  const storeRate = entry.store?.internalRateLbp ?? rateLbpPerUsd;
+  const rateDiff = storeRate - rateLbpPerUsd;
+  const isRateFair = Math.abs(rateDiff) < 500;
+
+  const showsFridge = entry.product?.category === 'Dairy' || entry.product?.category === 'Meat';
+  const powerStatus = entry.store?.powerStatus ?? 'stable';
+
+  const distance = lat && lng && entry.store?.latitude && entry.store?.longitude
+    ? distanceKm(lat, lng, entry.store.latitude, entry.store.longitude)
+    : null;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addItem(entry.productId);
+    addToast(`${entry.product?.name ?? 'Item'} added ✓`, 'success');
+  };
+
+  const storeInitials = entry.store?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05, duration: 0.25 }}
+      transition={{ delay: index * 0.05 }}
+      onClick={() => navigate(`/app/price/${entry.id}`)}
       className={cn(
-        'relative bg-bg-surface border border-border-soft rounded-2xl p-5 shadow-sm',
-        'hover:shadow-card transition-shadow'
+        "group p-8 bg-bg-surface border border-border-primary hover:border-primary transition-all relative cursor-pointer",
+        "before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-primary/20 hover:before:bg-primary before:transition-all",
+        "hover:-translate-y-1 hover:shadow-xl"
       )}
     >
-      {/* Promo ribbon */}
-      {entry.isPromotion && (
-        <div className="absolute top-3 right-3 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
-          PROMO
+      <div className="flex gap-8">
+        {/* Gallery Avatar */}
+        <div className="flex flex-col items-center gap-3 shrink-0">
+          <div className="w-14 h-14 bg-bg-muted border border-border-primary/10 flex items-center justify-center text-primary font-serif font-black text-sm italic rounded-full group-hover:bg-primary group-hover:text-white transition-all">
+            {storeInitials}
+          </div>
+          {entry.status === 'verified' && (
+             <span className="text-[10px] font-black text-primary uppercase tracking-widest">Verified</span>
+          )}
         </div>
-      )}
 
-      {/* Store info */}
-      <div className="flex items-start justify-between mb-3">
-        <div>
-          <h3 className="text-lg font-bold text-text-main">{entry.store?.name || 'Unknown Store'}</h3>
-          <p className="flex items-center gap-1 text-sm text-text-muted mt-0.5">
-            <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>location_on</span>
-            {entry.store?.district}, {entry.store?.city}
-          </p>
-        </div>
-        {entry.submitter && (
-          <TrustBadge score={entry.submitter.trustScore} size="sm" />
-        )}
-      </div>
+        {/* Archival Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start mb-2">
+             <h3 className="font-serif text-2xl font-black text-text-main italic truncate leading-tight">
+               {entry.store?.name}
+             </h3>
+             <div className="text-right shrink-0 ml-4">
+                <p className="text-2xl font-serif font-black text-primary leading-none tabular-nums">
+                   {entry.priceLbp.toLocaleString()}
+                </p>
+                <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em] mt-1">LBP_CURRENCY</p>
+             </div>
+          </div>
 
-      {/* Product name */}
-      <p className="text-sm text-text-sub mb-3">{entry.product?.name}</p>
+          <div className="flex items-center gap-4 text-[10px] font-bold text-text-sub uppercase tracking-widest mb-4">
+             <span>{entry.store?.district}</span>
+             <span className="w-1 h-1 rounded-full bg-border-primary" />
+             <span className="text-primary">{entry.product?.category}</span>
+          </div>
 
-      {/* Price & status row */}
-      <div className="flex items-end justify-between mb-3">
-        <div>
-          <p className="text-2xl font-bold text-text-main">{formatLBP(entry.priceLbp)}</p>
-          <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mt-1">
-            Updated {timeAgo(entry.createdAt)}
-          </p>
-        </div>
-        <StatusBadge status={entry.status} />
-      </div>
-
-      {/* Old price prompt */}
-      {isOld && entry.status === 'verified' && (
-        <div className="flex items-center gap-2 mb-3 p-2.5 rounded-lg bg-accent-sand/50 dark:bg-[var(--status-pending-bg)]">
-          <span className="text-sm">🤔</span>
-          <p className="text-xs font-medium text-text-sub">Is this price still correct?</p>
-          <div className="flex gap-1 ml-auto">
-            <button
-              onClick={() => onFeedback?.(entry.id, true)}
-              className="w-7 h-7 rounded-full bg-[var(--status-verified-bg)] text-[var(--status-verified-text)] flex items-center justify-center text-sm hover:scale-110 transition-transform"
-              aria-label="Confirm price"
-            >
-              👍
-            </button>
-            <button
-              onClick={() => onFeedback?.(entry.id, false)}
-              className="w-7 h-7 rounded-full bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] flex items-center justify-center text-sm hover:scale-110 transition-transform"
-              aria-label="Price is wrong"
-            >
-              👎
-            </button>
+          <div className="flex items-center gap-3 text-[9px] font-bold text-text-muted uppercase tracking-tighter">
+             <span className="material-symbols-outlined text-[14px]">history</span>
+             Captured {timeAgo(entry.createdAt)}
+             {distance && (
+                <>
+                  <span className="w-1 h-1 rounded-full bg-border-primary/40" />
+                  <span className="text-primary/70">{formatDistance(distance)} offset</span>
+                </>
+             )}
           </div>
         </div>
+      </div>
+
+      {/* Boutique Metadata strip */}
+      {(showsFridge || !isRateFair) && (
+        <div className="mt-8 pt-6 border-t border-border-soft flex flex-wrap gap-4">
+          {showsFridge && (
+            <div className={cn(
+              "px-3 py-1 text-[9px] font-black uppercase tracking-widest border",
+              powerStatus === 'stable' ? "text-status-verified-text border-status-verified-text/20 bg-status-verified-text/5" : "text-status-flagged-text border-status-flagged-text/20 bg-status-flagged-text/5"
+            )}>
+              {powerStatus === 'stable' ? 'Cold Chain Protocol: Stable' : 'Cold Chain Protocol: Compromised'}
+            </div>
+          )}
+          {!isRateFair && (
+            <div className="px-3 py-1 text-[9px] font-black text-primary uppercase tracking-widest border border-primary/20 bg-primary/5">
+              Warning: Higher Internal Store Rate
+            </div>
+          )}
+        </div>
       )}
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 pt-2 border-t border-border-soft">
-        <button
-          onClick={() => navigate(`/app/price/${entry.id}`)}
-          className="flex-1 h-10 rounded-lg bg-bg-muted text-text-sub text-sm font-bold hover:bg-border-soft transition-colors"
-          aria-label="View price details"
-        >
-          View Details
-        </button>
-        {onReport && (
-          <button
-            onClick={() => onReport(entry.id)}
-            className="h-10 w-10 rounded-lg border border-border-soft text-text-muted hover:text-[var(--status-flagged-text)] hover:border-[var(--status-flagged-text)] flex items-center justify-center transition-colors"
-            aria-label="Report price"
+      {/* Interactive Overlay Strip */}
+      <div className="mt-8 pt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+        <div className="flex gap-4">
+           <button
+            onClick={(e) => { e.stopPropagation(); open('report-price', { id: entry.id }); }}
+            className="text-[9px] font-black underline underline-offset-4 text-text-muted hover:text-red-600 transition-colors uppercase tracking-[0.2em]"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>flag</span>
+            FLAG_INACCURACY
           </button>
-        )}
+          <button
+            onClick={(e) => { e.stopPropagation(); open('report-reality', { storeId: entry.storeId, type: 'market' }); }}
+            className="text-[9px] font-black underline underline-offset-4 text-text-muted hover:text-primary transition-colors uppercase tracking-[0.2em]"
+          >
+             REFINE_LOCATION_DATA
+          </button>
+        </div>
+        <button
+          onClick={handleAddToCart}
+          className="h-11 px-8 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.25em] hover:bg-black transition-all shadow-lg"
+        >
+          Add to Collection
+        </button>
       </div>
     </motion.div>
   );
-}
+};
+
+export const PriceResultCard = React.memo(PriceResultCardBase);

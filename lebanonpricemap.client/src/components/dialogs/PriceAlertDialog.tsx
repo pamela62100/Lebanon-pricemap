@@ -36,71 +36,94 @@ export function PriceAlertDialog({ isOpen, onClose, productName, currentAvgPrice
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40" onClick={onClose} />
           <motion.div
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface rounded-t-3xl p-6 pb-8 max-w-lg mx-auto"
+            initial={{ y: 20, opacity: 0 }} 
+            animate={{ y: 0, opacity: 1 }} 
+            exit={{ y: 20, opacity: 0 }}
+            className="fixed inset-0 m-auto z-50 bg-bg-surface border border-text-main shadow-[12px_12px_0px_rgba(0,102,255,0.3)] max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden"
           >
-            <div className="w-10 h-1 bg-border-soft rounded-full mx-auto mb-6" />
-            <h2 className="text-xl font-bold text-text-main">Set Price Alert</h2>
-            <p className="text-sm text-text-muted mt-1 mb-6">We'll notify you when the price drops</p>
+            {/* Fixed Header */}
+            <div className="p-8 pb-6 border-b border-border-soft shrink-0">
+              <span className="text-primary font-bold text-[10px] tracking-[0.4em] uppercase mb-4 block">SECURITY_PROTOCOL // PRICE_MONITOR</span>
+              <h2 className="text-2xl font-serif font-black text-text-main uppercase tracking-tight">Set Price Alert</h2>
+              <p className="text-[10px] font-bold text-text-muted mt-1 uppercase tracking-widest">Active surveillance initialization</p>
+            </div>
 
-            <div className="flex items-center gap-3 p-3 bg-bg-muted rounded-xl mb-6">
-              <div className="w-10 h-10 rounded-lg bg-primary-soft flex items-center justify-center">
-                <span className="material-symbols-outlined text-primary" style={{ fontSize: '20px' }}>shopping_bag</span>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="flex items-center gap-4 p-4 border border-border-soft bg-bg-base/30 mb-8">
+                <div className="w-12 h-12 bg-text-main flex items-center justify-center shadow-[2px_2px_0px_#0066FF]">
+                  <span className="material-symbols-outlined text-bg-base" style={{ fontSize: '24px' }}>shopping_bag</span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-black text-text-main uppercase tracking-tight">{productName}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] font-bold text-text-muted uppercase tracking-widest">CURRENT_AVG:</span>
+                    <span className="text-mono-data text-xs text-primary font-bold">LBP {currentAvgPrice.toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-text-main">{productName}</p>
-                <p className="text-xs text-primary">Current avg: LBP {currentAvgPrice.toLocaleString()}</p>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-[10px] font-bold text-text-muted mb-3 uppercase tracking-[0.2em]">Target Threshold (LBP)</label>
+                  <LBPInput value={threshold} onChange={(val) => setThreshold(val || 0)} placeholder="e.g. 95,000" className="h-14 border-border-soft focus:border-primary text-xl font-serif" />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-bold text-text-muted mb-3 uppercase tracking-[0.2em]">Operational Region</label>
+                  <div className="flex flex-wrap gap-2">
+                    {REGIONS.map(region => (
+                      <button
+                        key={region}
+                        onClick={() => toggleRegion(region)}
+                        className={cn(
+                          'px-4 py-2 border text-[10px] font-bold uppercase tracking-widest transition-all',
+                          selectedRegions.includes(region)
+                            ? 'border-text-main bg-text-main text-bg-base shadow-[2px_2px_0px_#0066FF]'
+                            : 'border-border-soft bg-bg-surface text-text-sub hover:border-primary'
+                        )}
+                      >
+                        {region}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border border-blue-500/20 bg-blue-500/5">
+                  <div>
+                    <p className="text-[10px] font-bold text-text-main uppercase tracking-widest mb-1">Verified Authority Only</p>
+                    <p className="text-[9px] text-text-muted uppercase font-medium">Ignore unauthorized citizen reports</p>
+                  </div>
+                  <button
+                    onClick={() => setVerifiedOnly(!verifiedOnly)}
+                    className={cn(
+                      'relative w-12 h-6 border transition-all',
+                      verifiedOnly ? 'bg-primary border-primary' : 'bg-bg-muted border-border-soft'
+                    )}
+                    role="switch" aria-checked={verifiedOnly}
+                  >
+                    <div className={cn(
+                      'absolute top-px w-[20px] h-[20px] transition-all',
+                      verifiedOnly ? 'right-px bg-white' : 'left-px bg-text-muted'
+                    )} />
+                  </button>
+                </div>
               </div>
             </div>
 
-            <label className="block text-sm font-semibold text-text-sub mb-2">Alert Price (LBP)</label>
-            <LBPInput value={threshold} onChange={setThreshold} placeholder="e.g. 95,000" />
-
-            <label className="block text-sm font-semibold text-text-sub mb-2 mt-5">Select Region</label>
-            <div className="flex flex-wrap gap-2 mb-5">
-              {REGIONS.map(region => (
-                <button
-                  key={region}
-                  onClick={() => toggleRegion(region)}
-                  className={cn(
-                    'px-4 py-2 rounded-full text-sm font-medium border transition-all',
-                    selectedRegions.includes(region)
-                      ? 'border-primary bg-primary text-white'
-                      : 'border-border-soft bg-bg-surface text-text-sub hover:border-primary'
-                  )}
-                >
-                  {region}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center justify-between p-3 bg-bg-muted rounded-xl mb-6">
-              <div>
-                <p className="text-sm font-semibold text-text-main">Verified Prices Only</p>
-                <p className="text-xs text-text-muted">Only notify for store-verified price updates</p>
-              </div>
-              <button
-                onClick={() => setVerifiedOnly(!verifiedOnly)}
-                className={cn(
-                  'relative w-11 h-6 rounded-full transition-colors',
-                  verifiedOnly ? 'bg-primary' : 'bg-border-soft'
-                )}
-                role="switch" aria-checked={verifiedOnly}
+            {/* Fixed Footer */}
+            <div className="p-8 pt-6 border-t border-border-soft flex flex-col gap-2 shrink-0">
+              <button 
+                onClick={handleSubmit} 
+                className="btn-consulate w-full h-14 bg-text-main text-bg-base border-text-main shadow-[3px_3px_0px_#0066FF]"
               >
-                <div className={cn(
-                  'absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform',
-                  verifiedOnly ? 'left-[22px]' : 'left-0.5'
-                )} />
+                INITIALIZE_ALERT
               </button>
-            </div>
-
-            <div className="flex gap-3">
-              <button onClick={onClose} className="flex-1 h-12 rounded-xl border border-border-soft text-text-sub font-semibold hover:bg-bg-muted transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleSubmit} className="flex-1 h-12 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover transition-colors">
-                Set Alert
+              <button 
+                onClick={onClose} 
+                className="btn-consulate btn-outline w-full h-14"
+              >
+                TERMINATE_SESSION
               </button>
             </div>
           </motion.div>

@@ -1,16 +1,19 @@
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from '@/components/ui/AdminSidebar';
+import { ExchangeRateBanner } from '@/components/ui/ExchangeRateBanner';
 
 export function AdminLayout() {
   return (
-    <div className="min-h-dvh flex bg-bg-base font-sans">
-      <AdminSidebar />
-      <main className="flex-1 overflow-x-hidden flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-bg-base font-sans">
+      <ExchangeRateBanner />
+      <div className="flex flex-1">
+        <AdminSidebar />
+        <main className="flex-1 overflow-x-hidden flex flex-col">
         {/* Top Header for Admin */}
         <header className="h-20 bg-bg-surface/80 backdrop-blur-md border-b border-border-soft flex items-center justify-between px-10 sticky top-0 z-30">
           <div>
-            <h2 className="text-xl font-bold text-text-main tracking-tight">Admin Portal</h2>
-            <p className="text-sm text-text-muted mt-0.5">Manage the Wein Arkhas community</p>
+            <h2 className="text-xl font-bold text-text-main tracking-tight font-serif">Admin Portal</h2>
+            <p className="text-sm text-text-muted mt-0.5">Manage the Wein Wrkhas community</p>
           </div>
           <div className="flex items-center gap-4">
             <button className="relative w-10 h-10 rounded-full bg-bg-muted flex items-center justify-center text-text-sub hover:bg-border-soft transition-colors">
@@ -31,6 +34,7 @@ export function AdminLayout() {
           <Outlet />
         </div>
       </main>
+      </div>
     </div>
   );
 }

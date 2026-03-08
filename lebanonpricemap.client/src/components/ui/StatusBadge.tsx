@@ -23,8 +23,8 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   const config = statusConfig[status] || statusConfig.pending;
   return (
     <span className={cn(
-      'inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-semibold',
-      config.bg, config.text, className
+      'inline-flex items-center gap-1 px-2 py-0.5 border text-[9px] font-black uppercase tracking-[0.1em] shadow-[1px_1px_0px_rgba(0,0,0,0.1)]',
+      config.bg, config.text, 'border-current/20', className
     )}>
       {config.label}
     </span>

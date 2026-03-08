@@ -25,7 +25,7 @@ export function UpdatePricePage() {
     e.preventDefault();
     if (!priceValue) return;
     addToast('Price updated successfully', 'success');
-    navigate('/app/retailer');
+    navigate('/retailer');
   };
 
   return (
@@ -138,8 +138,6 @@ export function UpdatePricePage() {
                  {/* Reusing the PriceResultCard with mock data to show exactly how it looks */}
                  <PriceResultCard 
                    index={0}
-                   onReport={() => {}} 
-                   onFeedback={() => {}}
                    entry={{
                      id: 'mock-preview',
                      productId: product.id,

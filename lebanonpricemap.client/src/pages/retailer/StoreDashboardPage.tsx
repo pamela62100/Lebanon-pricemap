@@ -4,6 +4,8 @@ import { KpiCard } from '@/components/cards/KpiCard';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { formatLBP } from '@/lib/utils';
+import { SyncStatusCard } from '@/components/retailer/SyncStatusCard';
+import { useToastStore } from '@/store/useToastStore';
 
 export function StoreDashboardPage() {
   const navigate = useNavigate();
@@ -44,73 +46,84 @@ export function StoreDashboardPage() {
         </div>
         
         <div className="flex gap-3 mt-6 md:mt-0 relative z-10">
-          <button onClick={() => navigate('/app/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-primary bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors cursor-pointer">
+          <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-primary bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors cursor-pointer">
             Manage Promos
           </button>
-          <button onClick={() => navigate('/app/retailer/insights')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:bg-primary-hover shadow-md cursor-pointer transition-all">
+          <button onClick={() => navigate('/retailer/insights')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:bg-primary-hover shadow-md cursor-pointer transition-all">
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>insights</span>
             Insights
           </button>
         </div>
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map(stat => (
-          <KpiCard key={stat.label} {...stat} className="bg-bg-surface border border-border-soft rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]" />
-        ))}
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Content */}
+        <div className="lg:col-span-2 flex flex-col gap-8">
+          {/* KPI Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {stats.map(stat => (
+              <KpiCard key={stat.label} {...stat} className="bg-bg-surface border border-border-soft rounded-2xl shadow-sm" />
+            ))}
+          </div>
 
-      {/* Product List Data Grid */}
-      <div className="bg-bg-surface border border-border-soft rounded-3xl overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-border-soft flex items-center justify-between bg-bg-muted/30">
-          <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary">inventory</span>
-            Your Product Catalog
-          </h2>
-          <div className="flex items-center gap-2 bg-bg-surface border border-border-primary rounded-lg px-3 h-10 w-64 shadow-sm focus-within:border-primary transition-colors">
-            <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '18px' }}>search</span>
-            <input placeholder="Search catalog..." className="bg-transparent border-none outline-none text-sm text-text-main placeholder:text-text-muted flex-1" />
+          {/* Catalog Preview */}
+          <div className="bg-bg-surface border border-border-soft rounded-3xl overflow-hidden shadow-sm">
+             <div className="p-6 border-b border-border-soft flex items-center justify-between bg-bg-muted/30">
+              <h2 className="text-xl font-bold text-text-main flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">inventory</span>
+                Catalog Preview
+              </h2>
+              <button onClick={() => navigate('/retailer/products')} className="text-xs font-bold text-primary hover:underline">View all →</button>
+            </div>
+            <table className="w-full text-left">
+              <thead className="bg-bg-muted/50 border-b border-border-soft">
+                <tr>
+                  <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest">Product</th>
+                  <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest text-right">Price</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-soft">
+                {storeProducts.map((p, i) => (
+                  <tr key={p.id} className="hover:bg-bg-muted/40 transition-colors">
+                    <td className="py-4 px-6 font-semibold text-text-main text-sm">{p.name}</td>
+                    <td className="py-4 px-6 text-right font-display font-bold text-text-main tracking-tight">
+                      LBP {formatLBP(45000 + i * 15000).replace('LBP', '').trim()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
-        
-        <table className="w-full text-left">
-          <thead className="bg-bg-muted/50 border-b border-border-soft">
-            <tr>
-              <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest">Product Name</th>
-              <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest">Category</th>
-              <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest text-right">Your Listed Price</th>
-              <th className="py-4 px-6 text-xs font-bold text-text-muted uppercase tracking-widest text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-soft">
-            {storeProducts.map((p, i) => (
-              <tr key={p.id} className="hover:bg-bg-muted/40 transition-colors group">
-                <td className="py-5 px-6 font-semibold text-text-main flex flex-col">
-                  {p.name}
-                  <span className="text-xs font-normal text-text-muted font-mono">{p.id}</span>
-                </td>
-                <td className="py-5 px-6">
-                  <span className="px-3 py-1 bg-border-soft text-text-sub rounded-md text-xs font-bold">{p.category}</span>
-                </td>
-                <td className="py-5 px-6 text-right font-display font-bold text-lg text-text-main tracking-tight">
-                  <span className="text-secondary text-base font-sans mr-1 opacity-50">LBP</span> 
-                  {formatLBP(45000 + i * 15000).replace('LBP', '').trim()}
-                </td>
-                <td className="py-5 px-6">
-                  <div className="flex justify-center">
-                    <button 
-                      onClick={() => navigate(`/app/retailer/price/${p.id}/edit`)}
-                      className="px-4 py-1.5 rounded-lg border border-border-primary text-sm font-semibold text-text-main hover:border-primary hover:text-primary hover:bg-primary-soft/50 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    >
-                      Update Price
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+        {/* Sidebar Widgets */}
+        <div className="flex flex-col gap-8">
+          {/* Sync Status Widget */}
+          <SyncStatusCard />
+
+          {/* Unresolved Reports */}
+          <div className="bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-text-main flex items-center gap-2">
+                <span className="material-symbols-outlined text-red-400" style={{ fontSize: '20px' }}>report</span>
+                Customer Reports
+              </h3>
+              <span className="px-2 py-0.5 rounded-full bg-red-400/10 text-red-400 text-[10px] font-bold border border-red-400/20">2 Pending</span>
+            </div>
+            <div className="flex flex-col gap-3">
+              <div className="p-3 rounded-xl bg-bg-muted/50 border border-border-soft">
+                <p className="text-xs font-bold text-text-main">Wrong price reported</p>
+                <p className="text-[10px] text-text-muted mt-1">Whole Milk TL 1L · Achrafieh Store</p>
+                <button className="text-[10px] font-bold text-primary mt-2">Resolve now →</button>
+              </div>
+              <div className="p-3 rounded-xl bg-bg-muted/50 border border-border-soft">
+                <p className="text-xs font-bold text-text-main">Outdated stock</p>
+                <p className="text-[10px] text-text-muted mt-1">Eggs 30 Pack · Beirut Store</p>
+                <button className="text-[10px] font-bold text-primary mt-2">Resolve now →</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </motion.div>

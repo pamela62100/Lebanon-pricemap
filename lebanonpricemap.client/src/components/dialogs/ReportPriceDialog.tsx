@@ -31,75 +31,74 @@ export function ReportPriceDialog({ isOpen, onClose, currentPrice, onSubmit }: R
       {isOpen && (
         <>
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#0A1128]/70 backdrop-blur-md z-40"
             onClick={onClose}
           />
           <motion.div
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            // @ts-ignore
-            className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface rounded-t-3xl p-6 pb-8 max-w-lg mx-auto"
+            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+            className="fixed inset-0 m-auto z-50 bg-bg-surface border border-text-main shadow-[12px_12px_0px_rgba(239,68,68,0.2)] max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden"
           >
-            <div className="w-10 h-1 bg-border-soft rounded-full mx-auto mb-6" />
-
-            <div className="text-center mb-6">
-              <span className="material-symbols-outlined text-primary text-3xl mb-2">report</span>
-              <h2 className="text-xl font-bold text-text-main">Report Incorrect Price</h2>
-              <p className="text-sm text-text-muted mt-1">Help us keep our community data accurate</p>
+            {/* Fixed Header */}
+            <div className="p-8 pb-6 border-b border-border-soft shrink-0 text-center">
+              <div className="w-12 h-12 bg-red-600/10 border border-red-600/20 flex items-center justify-center mx-auto mb-4">
+                 <span className="material-symbols-outlined text-red-600 text-3xl">report_problem</span>
+              </div>
+              <h2 className="text-2xl font-serif font-black text-text-main uppercase tracking-tight">Report Anomaly</h2>
+              <p className="text-[10px] font-bold text-text-muted mt-1 uppercase tracking-widest font-mono">INTEGRITY_AUDIT // SEQ_0842</p>
             </div>
 
-            <div className="bg-bg-muted rounded-xl p-4 text-center mb-6">
-              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">Current Listed Price</p>
-              <p className="text-2xl font-bold text-text-main">LBP {currentPrice.toLocaleString()}</p>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-8">
+              <div className="bg-bg-muted border border-border-soft p-6 text-center mb-8">
+                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-2">Listed Value Assessment</p>
+                <p className="text-3xl font-serif font-black text-text-main">LBP {currentPrice.toLocaleString()}</p>
+              </div>
+
+              <p className="text-[10px] font-bold text-text-muted mb-4 uppercase tracking-widest">Select Discrepancy Vector</p>
+              <div className="grid grid-cols-1 gap-2 mb-8">
+                {reportOptions.map(opt => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSelectedType(opt.value)}
+                    className={`flex items-center gap-4 p-4 border text-left transition-all ${
+                      selectedType === opt.value
+                        ? 'border-red-600 bg-red-600/5 text-red-700 shadow-[2px_2px_0px_rgba(220,38,38,0.3)]'
+                        : 'border-border-soft bg-bg-surface hover:border-red-600/30'
+                    }`}
+                  >
+                    <span className="text-lg grayscale">{opt.icon}</span>
+                    <span className="text-[11px] font-black uppercase tracking-widest">{opt.label}</span>
+                    <div className={`ml-auto w-4 h-4 border flex items-center justify-center transition-all ${
+                      selectedType === opt.value ? 'border-red-600 bg-red-600' : 'border-border-soft'
+                    }`}>
+                      {selectedType === opt.value && <span className="w-1.5 h-1.5 bg-white" />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <div>
+                 <label className="block text-[10px] font-bold text-text-muted mb-3 uppercase tracking-widest">Technical Justification (Optional)</label>
+                 <textarea
+                   value={note}
+                   onChange={(e) => setNote(e.target.value)}
+                   placeholder="INITIALIZING_LOG_ENTRY..."
+                   className="w-full h-24 p-4 border border-border-soft bg-bg-base text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-red-600 transition-all font-mono"
+                 />
+              </div>
             </div>
 
-            <p className="text-sm font-semibold text-text-sub mb-3">Select the reason for this report</p>
-            <div className="flex flex-col gap-2 mb-4">
-              {reportOptions.map(opt => (
-                <button
-                  key={opt.value}
-                  onClick={() => setSelectedType(opt.value)}
-                  className={`flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                    selectedType === opt.value
-                      ? 'border-primary bg-primary-soft'
-                      : 'border-border-soft bg-bg-surface hover:border-border-primary'
-                  }`}
-                >
-                  <span>{opt.icon}</span>
-                  <span className="text-sm font-medium text-text-main">{opt.label}</span>
-                  <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    selectedType === opt.value ? 'border-primary' : 'border-border-soft'
-                  }`}>
-                    {selectedType === opt.value && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <label className="block text-sm font-semibold text-text-sub mb-2">
-              Additional details (Optional)
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Tell us more about what's wrong..."
-              className="w-full h-20 p-3 rounded-xl border border-border-soft bg-bg-surface text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)] transition-all"
-            />
-
-            <div className="flex flex-col gap-3 mt-6">
+            {/* Fixed Footer */}
+            <div className="p-8 pt-6 border-t border-border-soft flex flex-col gap-2 shrink-0">
               <button
                 onClick={handleSubmit}
-                className="w-full h-12 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors"
+                className="btn-consulate w-full h-14 bg-red-600 text-white border-red-600 shadow-[3px_3px_0px_rgba(0,0,0,0.2)]"
               >
-                Submit Report
+                SUBMIT_REPORT
               </button>
-              <button onClick={onClose} className="text-sm font-medium text-text-muted hover:text-text-sub">
-                Cancel
+              <button onClick={onClose} className="btn-consulate btn-outline w-full h-14">
+                TERMINATE_ACTION
               </button>
             </div>
           </motion.div>

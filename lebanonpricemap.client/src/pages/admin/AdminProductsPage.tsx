@@ -1,6 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { MOCK_PRODUCTS } from '@/api/mockData';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { cn } from '@/lib/utils';
 
 const CATEGORIES = ['All', 'Dairy', 'Oil', 'Grains', 'Fuel', 'Produce'];
@@ -8,6 +11,11 @@ const CATEGORIES = ['All', 'Dairy', 'Oil', 'Grains', 'Fuel', 'Produce'];
 export function AdminProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
+  const { open, getParam } = useRouteDialog();
+
+  const activeProductId = getParam('id');
+  const activeProduct = MOCK_PRODUCTS.find(p => p.id === activeProductId);
+  const [editName, setEditName] = useState(activeProduct?.name ?? '');
 
   const filtered = MOCK_PRODUCTS.filter(p => {
     if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -84,13 +92,25 @@ export function AdminProductsPage() {
                     <td className="py-4 px-4 text-sm text-text-sub">{product.uploadCount}</td>
                     <td className="py-4 px-4">
                       <div className="flex gap-1">
-                        <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg-muted text-text-sub hover:bg-border-soft" title="Edit">
+                        <button
+                          onClick={() => open('edit-product', { id: product.id })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-bg-muted text-text-sub hover:bg-border-soft"
+                          title="Edit"
+                        >
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
                         </button>
-                        <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-info-bg)] text-[var(--status-info-text)] hover:opacity-80" title="Merge">
+                        <button
+                          onClick={() => open('merge-product', { id: product.id })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-info-bg)] text-[var(--status-info-text)] hover:opacity-80"
+                          title="Merge"
+                        >
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>merge</span>
                         </button>
-                        <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80" title="Archive">
+                        <button
+                          onClick={() => open('archive-product', { id: product.id })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80"
+                          title="Archive"
+                        >
                           <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>archive</span>
                         </button>
                       </div>
@@ -102,6 +122,35 @@ export function AdminProductsPage() {
           </div>
         </div>
       </div>
+
+      {/* URL-Driven Product Dialogs */}
+      <RouteDialog dialogId="edit-product" title="Edit Product" description="Update core product information.">
+        <div className="flex flex-col gap-4">
+          <div>
+            <label className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">Product Name</label>
+            <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm text-text-main focus:border-primary focus:outline-none" />
+          </div>
+          <button className="h-10 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover transition-all mt-2">Save Changes</button>
+        </div>
+      </RouteDialog>
+
+      <ConfirmDialog
+        dialogId="archive-product"
+        title="Archive Product"
+        description={`Are you sure you want to archive ${activeProduct?.name}? This will hide it from the public catalog and disable price submissions.`}
+        confirmLabel="Archive Product"
+        variant="warning"
+        onConfirm={() => console.log('Archived:', activeProductId)}
+      />
+
+      <ConfirmDialog
+        dialogId="merge-product"
+        title="Merge Product"
+        description={`Merge ${activeProduct?.name} into another entry? This will transfer all associated price history.`}
+        confirmLabel="Next Step"
+        variant="primary"
+        onConfirm={() => console.log('Merging:', activeProductId)}
+      />
     </motion.div>
   );
 }

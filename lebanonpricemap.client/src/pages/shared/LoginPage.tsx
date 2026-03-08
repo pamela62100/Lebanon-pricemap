@@ -18,8 +18,8 @@ export function LoginPage() {
 
   const handleLogin = () => {
     login(selectedRole);
-    if (selectedRole === 'admin') navigate('/app/admin');
-    else if (selectedRole === 'retailer') navigate('/app/retailer');
+    if (selectedRole === 'admin') navigate('/admin');
+    else if (selectedRole === 'retailer') navigate('/retailer');
     else navigate('/app');
   };
 
@@ -32,12 +32,12 @@ export function LoginPage() {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center mb-4">
-            <span className="text-white text-3xl">🔥</span>
+        <div className="text-center mb-12 animate-page">
+          <div className="w-20 h-20 bg-bg-surface border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-gold transition-transform hover:scale-105">
+            <span className="text-primary text-3xl font-serif font-black tracking-tighter">WW</span>
           </div>
-          <h1 className="text-3xl font-bold text-text-main">Wein Arkhas</h1>
-          <p className="text-sm text-text-muted mt-2">Lebanon's community-driven price comparison</p>
+          <h1 className="text-display text-4xl mb-4">Wein Wrkhas</h1>
+          <p className="text-overline tracking-[0.3em] mb-2">Personnel Access Port</p>
         </div>
 
         {/* Role selector */}
