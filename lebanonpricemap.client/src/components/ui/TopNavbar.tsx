@@ -14,16 +14,18 @@ export function TopNavbar() {
   const logout = useAuthStore(s => s.logout);
   const { isDark, toggle } = useThemeStore();
   const totalItems = useCartStore(s => s.totalItemCount());
-  const myRequestsCount = useApprovalStore(s => s.requests.filter(r => r.requestedBy === user?.id && r.status === 'pending').length);
+  const myRequestsCount = useApprovalStore(
+    s => s.requests.filter(r => r.requestedBy === user?.id && r.status === 'pending').length
+  );
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setProfileOpen(false);
       }
-    }
+    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -31,40 +33,37 @@ export function TopNavbar() {
   const profilePath = user?.role === 'retailer' ? '/retailer/profile' : '/app/profile';
 
   return (
-    <div className="sticky top-0 z-50 w-full">
+    <div className="sticky top-0 z-50 w-full font-sans">
       <GlobalEssentialsTicker />
-      <nav className="bg-bg-surface/90 backdrop-blur-xl border-b border-border-primary w-full px-8 md:px-12 h-20 flex items-center justify-between transition-all">
-        {/* Logo - Archival Monogram */}
-        <div className="flex items-center gap-4 select-none cursor-pointer group" onClick={() => navigate('/app')}>
-          <div className="w-11 h-11 bg-primary border border-primary flex items-center justify-center transition-all group-hover:brightness-125 shadow-sm">
-            <span className="text-white text-xl font-serif font-black tracking-tighter italic">WW</span>
+
+      <nav className="bg-bg-surface/90 backdrop-blur-xl border-b border-border-primary w-full px-6 md:px-12 h-20 flex items-center justify-between transition-all">
+        
+        {/* Logo */}
+        <div
+          className="flex items-center gap-3 select-none cursor-pointer group"
+          onClick={() => navigate('/app')}
+        >
+          <div className="w-9 h-9 bg-primary rounded-lg flex items-center justify-center shadow-sm group-hover:opacity-90 transition-all">
+            <span className="text-white text-sm font-sans font-black tracking-tight">W.A</span>
           </div>
-          <div className="flex flex-col">
-            <span className="font-serif font-black text-2xl tracking-[0.1em] text-text-main leading-none uppercase">
-              Wein Wrkhas
-            </span>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="h-[1px] w-4 bg-primary" />
-              <span className="text-text-muted text-[9px] tracking-[0.4em] font-bold uppercase">Archival Edition</span>
-            </div>
-          </div>
+          <span className="font-sans font-black text-lg text-text-main tracking-tight">
+            WeinArkhas
+          </span>
         </div>
 
-        {/* Right Actions - Clean Gallery Grid */}
+        {/* Right Actions */}
         <div className="flex items-center gap-2 p-1.5 bg-bg-muted border border-border-primary/10 rounded-full">
-          {/* Theme Toggle */}
+          {/* Theme toggle */}
           <button
             onClick={toggle}
-            className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+            className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary rounded-full hover:bg-bg-surface transition-all"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
-              {isDark ? 'light_mode' : 'dark_mode'}
-            </span>
+            <span className="material-symbols-outlined text-lg">{isDark ? 'light_mode' : 'dark_mode'}</span>
           </button>
 
           <div className="w-px h-6 bg-border-primary/10 mx-1" />
 
-          {/* Action Grid */}
+          {/* Action buttons */}
           {[
             { icon: 'barcode_scanner', path: '/app/scan', title: 'Scan' },
             { icon: 'local_gas_station', path: '/app/fuel', title: 'Fuel' },
@@ -74,38 +73,38 @@ export function TopNavbar() {
             <button
               key={item.path}
               onClick={() => navigate(item.path)}
-              className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+              className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary rounded-full hover:bg-bg-surface transition-all"
               title={item.title}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{item.icon}</span>
+              <span className="material-symbols-outlined text-lg">{item.icon}</span>
             </button>
           ))}
 
-          {/* My Requests */}
+          {/* Requests badge */}
           {user?.role === 'shopper' && (
             <button
               onClick={() => navigate('/app/requests')}
-              className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+              className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary rounded-full hover:bg-bg-surface transition-all"
               title="Requests"
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>approval</span>
+              <span className="material-symbols-outlined text-lg">approval</span>
               {myRequestsCount > 0 && (
-                <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[8px] font-bold flex items-center justify-center rounded-full">
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-white text-[8px] font-bold flex items-center justify-center rounded-full">
                   {myRequestsCount}
                 </span>
               )}
             </button>
           )}
 
-          {/* Cart with badge */}
+          {/* Cart */}
           <button
             onClick={() => navigate('/app/cart')}
-            className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+            className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary rounded-full hover:bg-bg-surface transition-all"
             title="Cart"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shopping_cart</span>
+            <span className="material-symbols-outlined text-lg">shopping_cart</span>
             {totalItems > 0 && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-text-main text-bg-base text-[8px] font-bold flex items-center justify-center rounded-full">
+              <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-text-main text-bg-base text-[8px] font-bold flex items-center justify-center rounded-full">
                 {totalItems}
               </span>
             )}
@@ -118,15 +117,17 @@ export function TopNavbar() {
             <button
               onClick={() => setProfileOpen(!profileOpen)}
               className={cn(
-                "h-10 px-4 flex items-center gap-2 transition-all border border-border-primary/20 hover:border-primary/40 rounded-full",
-                profileOpen && "bg-primary text-white border-primary"
+                'h-10 px-4 flex items-center gap-2 border border-border-primary/20 rounded-full hover:border-primary/40 transition-all',
+                profileOpen && 'bg-primary text-white border-primary'
               )}
             >
               <div className="w-5 h-5 flex items-center justify-center text-[9px] font-bold border border-current rounded-full">
                 {user?.avatarInitials}
               </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.2em] hidden lg:block">{user?.role}</span>
-              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+              <span className="hidden lg:block text-xs font-bold capitalize">
+                {user?.role}
+              </span>
+              <span className="material-symbols-outlined text-sm">
                 {profileOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
               </span>
             </button>
@@ -137,27 +138,31 @@ export function TopNavbar() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute right-0 mt-3 w-64 bg-bg-surface border border-border-primary shadow-xl z-50 overflow-hidden"
+                  className="absolute right-0 mt-3 w-60 bg-bg-surface border border-border-primary rounded-2xl shadow-xl z-50 overflow-hidden"
                 >
-                  <div className="p-6 border-b border-border-soft bg-bg-muted/50">
-                    <p className="font-serif text-xl font-black text-text-main italic truncate leading-none mb-1">{user?.name}</p>
-                    <p className="text-[9px] text-primary uppercase font-bold tracking-[0.3em]">Verified {user?.role}</p>
+                  <div className="p-5 border-b border-border-soft bg-bg-muted/50">
+                    <p className="font-sans text-base font-black text-text-main truncate mb-1">
+                      {user?.name}
+                    </p>
+                    <p className="text-xs text-primary font-bold capitalize">
+                      {user?.role}
+                    </p>
                   </div>
                   <div className="p-2 bg-bg-surface">
-                    <NavLink 
-                      to={profilePath} 
-                      onClick={() => setProfileOpen(false)} 
-                      className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-sub hover:bg-primary/5 hover:text-primary transition-all uppercase tracking-widest rounded-sm"
+                    <NavLink
+                      to={profilePath}
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-text-sub rounded-lg hover:bg-primary/5 hover:text-primary transition-all"
                     >
-                      <span className="material-symbols-outlined text-text-muted group-hover:text-primary" style={{ fontSize: '18px' }}>account_circle</span>
-                      Identity Archive
+                      <span className="material-symbols-outlined text-text-muted text-lg">account_circle</span>
+                      My Profile
                     </NavLink>
-                    <button 
-                      onClick={() => { logout(); setProfileOpen(false); }} 
-                      className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-all uppercase tracking-widest rounded-sm"
+                    <button
+                      onClick={() => { logout(); setProfileOpen(false); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 rounded-lg hover:bg-red-50 transition-all"
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>logout</span>
-                      Terminate Session
+                      <span className="material-symbols-outlined text-lg">logout</span>
+                      Log Out
                     </button>
                   </div>
                 </motion.div>

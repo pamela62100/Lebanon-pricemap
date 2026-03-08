@@ -71,79 +71,78 @@ export function AlertsPage() {
   const activeCount = alerts.filter(a => a.active).length;
 
   return (
-    <div className="flex flex-col gap-8 max-w-4xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-end justify-between border-b-2 border-text-main pb-8">
+    <div className="flex flex-col gap-6 max-w-4xl mx-auto">
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-end justify-between border-b border-border-soft pb-6">
         <div>
-          <span className="text-primary font-bold text-[10px] tracking-[0.4em] uppercase mb-2 block">USER_PROTOCOL // NOTIFICATION_CENTER</span>
-          <h1 className="text-5xl font-serif font-black text-text-main uppercase tracking-tight">Price Monitoring</h1>
-          <p className="text-text-muted text-xs font-bold mt-2 uppercase tracking-widest leading-relaxed">
-            {activeCount} active surveillance nodes initialized · real-time drop detection active.
+          <span className="text-primary font-bold text-[11px] tracking-wider uppercase mb-2 block">Price Alerts</span>
+          <h1 className="text-4xl font-black text-text-main">Price Monitoring</h1>
+          <p className="text-text-muted text-sm font-medium mt-2">
+            {activeCount} active {activeCount === 1 ? 'alert' : 'alerts'} · notified when prices drop below your limit.
           </p>
         </div>
         <button
           onClick={() => open('new-alert')}
-          className="btn-consulate h-14 px-8 bg-text-main text-bg-base border-text-main shadow-[4px_4px_0px_#0066FF] flex items-center gap-3"
+          className="h-11 px-6 rounded-xl bg-primary text-white font-bold text-sm flex items-center gap-2 hover:opacity-90 transition-all shadow-md"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
-          INITIALIZE_NEW_MONITOR
+          <span className="material-symbols-outlined text-[18px]">add</span>
+          New Alert
         </button>
       </motion.div>
 
-      {/* Alert list - Architectural Grid */}
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-3">
         {alerts.map((alert, i) => (
           <motion.div key={alert.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-            className={`p-6 border transition-all ${alert.active ? 'bg-bg-surface border-text-main shadow-[6px_6px_0px_rgba(0,102,255,0.1)]' : 'bg-bg-base border-border-soft opacity-40'}`}
+            className={`p-5 rounded-xl border transition-all ${alert.active ? 'bg-bg-surface border-border-soft shadow-sm' : 'bg-bg-base border-border-soft opacity-40'}`}
           >
             <div className="flex items-center justify-between gap-6">
-              <div className="flex items-center gap-5 flex-1">
-                <div className={`w-12 h-12 flex items-center justify-center shrink-0 border ${alert.active ? 'bg-primary/5 border-primary/20' : 'bg-bg-muted border-border-soft'}`}>
-                  <span className="material-symbols-outlined" style={{ fontSize: '24px', color: alert.active ? 'var(--primary)' : 'var(--text-muted)' }}>radar</span>
+              <div className="flex items-center gap-4 flex-1">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${alert.active ? 'bg-primary/10' : 'bg-bg-muted'}`}>
+                  <span className="material-symbols-outlined text-[20px]" style={{ color: alert.active ? 'var(--primary)' : 'var(--text-muted)' }}>notifications</span>
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-1">
-                    <p className="text-lg font-black text-text-main uppercase tracking-tight">{alert.productName}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="text-sm font-black text-text-main">{alert.productName}</p>
                     {alert.verifiedOnly && (
-                       <span className="text-[8px] font-bold bg-blue-600 text-white px-2 py-0.5 uppercase tracking-widest shadow-[2px_2px_0px_rgba(0,0,0,0.1)]">VERIFIED_ONLY</span>
+                      <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">Verified only</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                    <span>THRESHOLD: <span className="text-primary">LBP {alert.thresholdLbp.toLocaleString()}</span></span>
-                    <span className="w-1.5 h-1.5 bg-border-soft" />
-                    <span>SCOPE: {alert.regions.join(' / ')}</span>
+                  <div className="flex items-center gap-3 text-xs text-text-muted font-medium">
+                    <span>Below <span className="text-primary font-bold">LBP {alert.thresholdLbp.toLocaleString()}</span></span>
+                    <span>·</span>
+                    <span>{alert.regions.join(', ')}</span>
                   </div>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-3 shrink-0">
+
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   onClick={() => toggleActive(alert.id)}
-                  className={`text-[9px] font-black px-4 py-2 border uppercase tracking-[0.2em] transition-all ${alert.active ? 'bg-green-600 border-green-600 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.1)]' : 'bg-bg-muted border-border-soft text-text-muted hover:border-text-main'}`}
+                  className={`text-xs font-bold px-4 py-2 rounded-lg border transition-all ${alert.active ? 'bg-green-600 border-green-600 text-white' : 'bg-bg-muted border-border-soft text-text-muted hover:border-primary'}`}
                 >
-                  {alert.active ? 'ACTIVE_SCAN' : 'PAUSED'}
+                  {alert.active ? 'Active' : 'Paused'}
                 </button>
                 <button
-                   onClick={() => open('delete-alert', { id: alert.id })}
-                   className="w-10 h-10 border border-border-soft text-text-muted hover:text-red-600 hover:border-red-600 hover:bg-red-600/5 transition-all flex items-center justify-center"
+                  onClick={() => open('delete-alert', { id: alert.id })}
+                  className="w-9 h-9 rounded-lg border border-border-soft text-text-muted hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all flex items-center justify-center"
                 >
-                  <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete_forever</span>
+                  <span className="material-symbols-outlined text-[18px]">delete</span>
                 </button>
               </div>
             </div>
           </motion.div>
         ))}
+
         {alerts.length === 0 && (
-          <div className="flex flex-col items-center py-20 text-center bg-bg-base border border-dashed border-border-soft">
-            <div className="w-16 h-16 border border-dashed border-border-soft flex items-center justify-center mb-6">
-              <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '32px' }}>visibility_off</span>
+          <div className="flex flex-col items-center py-16 text-center bg-bg-base border border-dashed border-border-soft rounded-2xl">
+            <div className="w-14 h-14 rounded-2xl bg-bg-muted flex items-center justify-center mb-4">
+              <span className="material-symbols-outlined text-text-muted text-[28px]">notifications_off</span>
             </div>
-            <p className="text-sm font-black text-text-main uppercase tracking-[0.2em]">Zero Active Monitors</p>
-            <p className="text-[10px] text-text-muted mt-2 uppercase tracking-widest">No surveillance parameters have been defined.</p>
+            <p className="text-sm font-black text-text-main">No alerts yet</p>
+            <p className="text-xs text-text-muted mt-1">Create an alert to get notified when prices drop.</p>
           </div>
         )}
       </div>
 
-      {/* URL-Driven Alert Dialogs */}
       <RouteDialog dialogId="new-alert" title="Create Price Alert" description="We'll notify you when prices drop below your limit.">
         <div className="flex flex-col gap-6 py-2">
           <div className="grid grid-cols-1 gap-5">
@@ -160,13 +159,10 @@ export function AlertsPage() {
             </div>
             <div>
               <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-1 text-center">Alert Threshold (LBP)</label>
-              <LBPInput
-                value={newThreshold}
-                onChange={val => setNewThreshold(val)}
-                autoFocus
-              />
+              <LBPInput value={newThreshold} onChange={val => setNewThreshold(val)} autoFocus />
             </div>
           </div>
+
           <div>
             <label className="text-[10px] font-bold text-text-muted uppercase tracking-widest block mb-2">Regions</label>
             <div className="flex flex-wrap gap-1.5">
@@ -174,14 +170,14 @@ export function AlertsPage() {
                 <button
                   key={r}
                   onClick={() => setNewRegions(prev => prev.includes(r) ? prev.filter(x => x !== r) : [...prev, r])}
-                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${newRegions.includes(r) ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-bg-muted text-text-sub border-border-soft hover:border-text-muted'}`}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all border ${newRegions.includes(r) ? 'bg-primary text-white border-primary' : 'bg-bg-muted text-text-sub border-border-soft hover:border-primary'}`}
                 >
                   {r}
                 </button>
               ))}
             </div>
           </div>
-          
+
           <div className="bg-bg-muted/50 p-4 rounded-xl border border-border-soft">
             <label className="flex items-center gap-3 cursor-pointer">
               <input type="checkbox" checked={verifiedOnly} onChange={e => setVerifiedOnly(e.target.checked)} className="w-5 h-5 rounded-md accent-primary" />
@@ -192,10 +188,10 @@ export function AlertsPage() {
             </label>
           </div>
 
-          <button 
-            onClick={saveNewAlert} 
-            disabled={!newProduct || !newThreshold} 
-            className="h-12 rounded-xl bg-primary text-white font-bold text-sm shadow-xl shadow-primary/20 hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          <button
+            onClick={saveNewAlert}
+            disabled={!newProduct || !newThreshold}
+            className="h-12 rounded-xl bg-primary text-white font-bold text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             Activate Alert
           </button>

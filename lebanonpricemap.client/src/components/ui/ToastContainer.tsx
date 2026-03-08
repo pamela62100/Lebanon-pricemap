@@ -18,10 +18,10 @@ export function ToastContainer() {
             onClick={() => removeToast(toast.id)}
             className={cn(
               'flex items-center gap-3 px-5 py-3 rounded-full text-sm font-semibold shadow-md cursor-pointer whitespace-nowrap',
-              toast.type === 'success' && 'bg-[var(--status-verified-text)] text-white',
-              toast.type === 'error' && 'bg-[var(--status-flagged-text)] text-white',
-              toast.type === 'warning' && 'bg-[#ca8a04] text-white',
-              toast.type === 'info' && 'bg-text-main text-bg-surface',
+              toast.type === 'success' && 'bg-green-600 text-white',
+              toast.type === 'error' && 'bg-red-600 text-white',
+              toast.type === 'warning' && 'bg-yellow-600 text-white',
+              toast.type === 'info' && 'bg-text-main text-bg-base',
             )}
           >
             {toast.message}
