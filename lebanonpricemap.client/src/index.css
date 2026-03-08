@@ -1,10 +1,135 @@
-html, body, #root {
-    margin: 0;
-    padding: 0;
-    min-height: 100%;
-    width: 100%;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Sleek Modern Light Mode (Slate & Indigo) */
+    --bg-base: #f8fafc;        /* slate-50 */
+    --bg-surface: #ffffff;     /* white */
+    --bg-muted: #f1f5f9;       /* slate-100 */
+
+    --text-main: #0f172a;      /* slate-900 */
+    --text-sub: #334155;       /* slate-700 */
+    --text-muted: #64748b;     /* slate-500 */
+
+    --border-default: #e2e8f0; /* slate-200 */
+    --border-soft: #f1f5f9;    /* slate-100 */
+
+    /* Primary: Sleek Indigo */
+    --primary: #4f46e5;        /* indigo-600 */
+    --primary-hover: #4338ca;  /* indigo-700 */
+    --primary-soft: #e0e7ff;   /* indigo-100 */
+
+    /* Semantic Statuses */
+    --status-verified-bg: #dcfce7;   /* green-100 */
+    --status-verified-text: #166534; /* green-800 */
+    
+    --status-pending-bg: #fef9c3;    /* yellow-100 */
+    --status-pending-text: #854d0e;  /* yellow-800 */
+    
+    --status-flagged-bg: #fee2e2;    /* red-100 */
+    --status-flagged-text: #991b1b;  /* red-800 */
+    
+    --status-info-bg: #e0f2fe;       /* sky-100 */
+    --status-info-text: #075985;     /* sky-800 */
+
+    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --shadow-glass: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    /* Premium Dark Mode (Slate & Indigo) */
+    --bg-base: #0f172a;        /* slate-900 */
+    --bg-surface: #1e293b;     /* slate-800 */
+    --bg-muted: #334155;       /* slate-700 */
+
+    --text-main: #f8fafc;      /* slate-50 */
+    --text-sub: #cbd5e1;       /* slate-300 */
+    --text-muted: #94a3b8;     /* slate-400 */
+
+    --border-default: #334155; /* slate-700 */
+    --border-soft: #1e293b;    /* slate-800 */
+
+    /* Primary: Vibrant Indigo */
+    --primary: #6366f1;        /* indigo-500 */
+    --primary-hover: #818cf8;  /* indigo-400 */
+    --primary-soft: rgba(99, 102, 241, 0.15); /* Translucent indigo */
+
+    /* Semantic Statuses (Dark optimized) */
+    --status-verified-bg: rgba(34, 197, 94, 0.15);  /* green-500 @ 15% */
+    --status-verified-text: #4ade80;                /* green-400 */
+    
+    --status-pending-bg: rgba(234, 179, 8, 0.15);   /* yellow-500 @ 15% */
+    --status-pending-text: #facc15;                 /* yellow-400 */
+    
+    --status-flagged-bg: rgba(239, 68, 68, 0.15);   /* red-500 @ 15% */
+    --status-flagged-text: #f87171;                 /* red-400 */
+    
+    --status-info-bg: rgba(14, 165, 233, 0.15);     /* sky-500 @ 15% */
+    --status-info-text: #38bdf8;                    /* sky-400 */
+
+    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-glass: 0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  }
+
+  /* Base HTML styles */
+  html {
+    @apply h-full antialiased;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+  }
+
+  body {
+    @apply h-full m-0 font-sans;
+  }
+
+  /* Custom scrollbar for sleek desktop feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+  }
 }
 
-body {
-    margin: 0;
+/* Leaflet Overrides for Premium Look */
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  background-color: #cbd5e1; /* slate-300 matches the screenshot map color */
+  font-family: inherit;
+}
+
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: var(--shadow-glass) !important;
+  border-radius: 12px !important;
+  overflow: hidden;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border-soft) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--bg-muted) !important;
+}
+
+.leaflet-touch .leaflet-bar a {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
 }
