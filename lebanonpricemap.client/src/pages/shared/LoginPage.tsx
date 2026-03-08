@@ -1,90 +1,91 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { useAuthStore } from '@/store/useAuthStore';
-import type { UserRole } from '@/types';
-import { cn } from '@/lib/utils';
-
-const roles: { value: UserRole; label: string; icon: string; desc: string }[] = [
-  { value: 'shopper',  label: 'Shopper',  icon: 'shopping_cart', desc: 'Find the cheapest groceries near you' },
-  { value: 'retailer', label: 'Retailer', icon: 'storefront',    desc: 'Manage your store prices and promotions' },
-  { value: 'admin',    label: 'Admin',    icon: 'admin_panel_settings', desc: 'Monitor and manage the platform' },
-];
 
 export function LoginPage() {
-  const [selectedRole, setSelectedRole] = useState<UserRole>('shopper');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
+
   const login = useAuthStore(s => s.login);
   const navigate = useNavigate();
 
   const handleLogin = () => {
-    login(selectedRole);
-    if (selectedRole === 'admin') navigate('/admin');
-    else if (selectedRole === 'retailer') navigate('/retailer');
-    else navigate('/app');
-  };
+  if (!email || !password) {
+    alert('Please enter email and password');
+    return;
+  }
+
+  const userRole = email.includes('retailer') ? 'retailer' : 'shopper';
+  login(userRole);
+
+  if (userRole === 'retailer') navigate('/retailer');
+  else navigate('/app');
+};
 
   return (
-    <div className="min-h-dvh bg-bg-base flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md"
-      >
-        {/* Logo */}
-        <div className="text-center mb-12 animate-page">
-          <div className="w-20 h-20 bg-bg-surface border border-border-primary rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-gold transition-transform hover:scale-105">
-            <span className="text-primary text-3xl font-serif font-black tracking-tighter">WW</span>
-          </div>
-          <h1 className="text-display text-4xl mb-4">Wein Wrkhas</h1>
-          <p className="text-overline tracking-[0.3em] mb-2">Personnel Access Port</p>
+    <div className="flex flex-col items-center justify-center min-h-screen px-6 bg-bg-base">
+      <div className="w-full max-w-sm space-y-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-black text-text-main">Login</h2>
+          <p className="text-sm text-text-muted mt-2">Track prices and save your budget</p>
         </div>
 
-        {/* Role selector */}
-        <div className="flex flex-col gap-3 mb-8">
-          {roles.map(role => (
+        <div className="space-y-4">
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full p-4 rounded-2xl border border-border-soft focus:ring-2 ring-primary outline-none transition-all"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="w-full p-4 rounded-2xl border border-border-soft focus:ring-2 ring-primary outline-none transition-all"
+          />
+
+          <div className="flex justify-between items-center px-2">
+            <label className="flex items-center gap-2 text-xs text-text-sub">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={e => setRemember(e.target.checked)}
+                className="accent-primary"
+              />{' '}
+              Remember me
+            </label>
             <button
-              key={role.value}
-              onClick={() => setSelectedRole(role.value)}
-              className={cn(
-                'flex items-center gap-4 p-4 rounded-2xl border text-left transition-all',
-                selectedRole === role.value
-                  ? 'border-primary bg-primary-soft shadow-sm'
-                  : 'border-border-soft bg-bg-surface hover:border-border-primary'
-              )}
+              type="button"
+              className="text-xs text-primary font-bold"
+              onClick={() => alert('Password reset flow')}
             >
-              <div className={cn(
-                'w-12 h-12 rounded-xl flex items-center justify-center',
-                selectedRole === role.value ? 'bg-primary text-white' : 'bg-bg-muted text-text-sub'
-              )}>
-                <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>{role.icon}</span>
-              </div>
-              <div className="flex-1">
-                <p className="text-base font-semibold text-text-main">{role.label}</p>
-                <p className="text-xs text-text-muted mt-0.5">{role.desc}</p>
-              </div>
-              <div className={cn(
-                'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                selectedRole === role.value ? 'border-primary' : 'border-border-soft'
-              )}>
-                {selectedRole === role.value && <div className="w-2.5 h-2.5 rounded-full bg-primary" />}
-              </div>
+              Forgot password?
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Login button */}
         <button
+          type="button"
           onClick={handleLogin}
-          className="w-full h-14 rounded-2xl bg-primary text-white text-lg font-bold hover:bg-primary-hover transition-colors active:scale-[0.98]"
+          className="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-primary/30 transition-all active:scale-95"
         >
-          Continue as {roles.find(r => r.value === selectedRole)?.label}
+          Login
         </button>
+       
 
-        <p className="text-center text-xs text-text-muted mt-6">
-          Demo mode — select a role to explore the app
+        <p className="text-center text-sm text-text-muted">
+          Don’t have an account?{' '}
+          <span
+            className="text-primary font-bold cursor-pointer"
+            onClick={() => navigate('/register')}
+          >
+            Sign up now
+          </span>
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 }

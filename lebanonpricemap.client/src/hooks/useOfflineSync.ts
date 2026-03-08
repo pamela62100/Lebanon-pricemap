@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { useOfflineStore } from '@/store/useOfflineStore';
+
 import { getEnrichedPriceEntries } from '@/api/mockData';
+import { useOfflineStore } from '@/store/useOfflineStore';
 
 export function useOfflineSync() {
   const { isOnline, setCached } = useOfflineStore();

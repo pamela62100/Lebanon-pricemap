@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useOfflineStore } from '@/store/useOfflineStore';
+
 import { timeAgo } from '@/lib/utils';
+import { useOfflineStore } from '@/store/useOfflineStore';
 
 export function OfflineBanner() {
   const { isOnline, lastSyncAt } = useOfflineStore();

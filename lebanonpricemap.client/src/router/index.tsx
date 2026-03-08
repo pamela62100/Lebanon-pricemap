@@ -76,21 +76,20 @@ export function AppRouter() {
       <Route path="/store/:id"   element={<StorePublicPage />} />
 
       {/* ── Shopper stack ──────────────────────────────────────── */}
-      <Route element={<RequireAuth />}>
-        <Route path="/app" element={<DesktopLayout />}>
-          <Route index              element={<SearchPage />} />
-          <Route path="cart"        element={<CartPage />} />
-          <Route path="cart/optimize" element={<CartOptimizePage />} />
-          <Route path="scan"        element={<BarcodeScannerPage />} />
-          <Route path="fuel"        element={<FuelTrackerPage />} />
-          <Route path="profile"     element={<ProfilePage />} />
-          <Route path="upload"      element={<UploadReceiptPage />} />
-          <Route path="price/:id"   element={<PriceDetailPage />} />
-          <Route path="alerts"      element={<AlertsPage />} />
-          <Route path="notifications" element={<NotificationsPage />} />
-          <Route path="requests"    element={<MyRequestsPage />} />
-        </Route>
-      </Route>
+      {/* ── Shopper stack ──────────────────────────────────────── */}
+<Route path="/app" element={<DesktopLayout />}>
+  <Route index                element={<SearchPage />} />
+  <Route path="cart"          element={<CartPage />} />
+  <Route path="cart/optimize" element={<CartOptimizePage />} />
+  <Route path="scan"          element={<BarcodeScannerPage />} />
+  <Route path="fuel"          element={<FuelTrackerPage />} />
+  <Route path="profile"       element={<ProfilePage />} />
+  <Route path="upload"        element={<UploadReceiptPage />} />
+  <Route path="price/:id"     element={<PriceDetailPage />} />
+  <Route path="alerts"        element={<AlertsPage />} />
+  <Route path="notifications" element={<NotificationsPage />} />
+  <Route path="requests"      element={<MyRequestsPage />} />
+</Route>
 
       {/* ── Retailer stack ─────────────────────────────────────── */}
       <Route element={<ProtectedRoute allowedRoles={['retailer', 'admin']} />}>
