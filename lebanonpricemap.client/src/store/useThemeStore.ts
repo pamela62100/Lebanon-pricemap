@@ -10,7 +10,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   toggle: () => set((state) => {
     const next = !state.isDark;
     document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('rakis-theme', next ? 'dark' : 'light');
+    localStorage.setItem('wein-theme', next ? 'dark' : 'light');
     return { isDark: next };
   }),
 }));

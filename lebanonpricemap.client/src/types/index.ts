@@ -24,10 +24,13 @@ export interface Product {
   nameAr: string;
   category: string;
   unit: string;
+  barcode: string | null;
   aliases: string[];
   uploadCount: number;
   isArchived: boolean;
 }
+
+export type PowerStatus = 'stable' | 'unstable' | 'reported_warm';
 
 export interface Store {
   id: string;
@@ -42,6 +45,8 @@ export interface Store {
   trustScore: number;
   status: 'pending' | 'verified' | 'flagged';
   region: string;
+  internalRateLbp?: number; // Store's own USD->LBP rate
+  powerStatus?: PowerStatus;
 }
 
 export interface PriceEntry {
@@ -138,3 +143,85 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
+
+// ─── New Features ─────────────────────────────────────────────────────────────
+
+// ─── Exchange Rate ───────────────────────────────────────────
+export interface ExchangeRate {
+  rateLbpPerUsd: number;
+  lastUpdated: string;
+  source: string;
+}
+
+// ─── Cart ────────────────────────────────────────────────────
+export interface CartItem {
+  productId: string;
+  quantity: number;
+  product?: Product;
+}
+
+export interface CartStoreComparison {
+  store: Store;
+  totalLbp: number;
+  totalUsd: number;
+  itemsFound: number;
+  itemsTotal: number;
+  coverage: number; // 0–1 percentage
+  missingItems: string[]; // product names not found at this store
+}
+
+// ─── Fuel ────────────────────────────────────────────────────
+export type FuelType = 'gasoline_95' | 'gasoline_98' | 'diesel';
+
+export interface FuelPrice {
+  id: string;
+  fuelType: FuelType;
+  officialPriceLbp: number;   // per 20L — government official
+  reportedPriceLbp?: number;  // what stations actually charge
+  effectiveFrom: string;
+  effectiveTo: string;
+  source: string;
+}
+
+export interface StationReport {
+  id: string;
+  storeId: string;
+  fuelType: FuelType;
+  isOpen: boolean;
+  hasStock: boolean;
+  queueMinutes?: number;
+  queueDepth?: number;   // number of cars
+  isRationed: boolean;
+  limitAmountLbp?: number;
+  confirmedBy: string[];  // array of userIds who confirmed this
+  reportedBy: string;
+  createdAt: string;
+  store?: Store;
+}
+
+// ─── Approval Workflow ────────────────────────────────────────
+export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ApprovalRequest {
+  id: string;
+  requestedBy: string;                    // userId
+  action: string;                          // e.g. 'account:delete', 'bulk:delete'
+  label: string;                           // human-readable action name
+  payload: Record<string, unknown>;       // data snapshot for diff view
+  status: ApprovalStatus;
+  reviewedBy: string | null;
+  reviewNote: string | null;
+  createdAt: string;
+  resolvedAt: string | null;
+  // Enriched (joined):
+  requester?: Pick<User, 'id' | 'name' | 'avatarInitials' | 'trustScore' | 'role'>;
+}
+
+export interface GlobalAlert {
+  id: string;
+  type: 'stock_out' | 'safety' | 'news';
+  message: string;
+  severity: 'low' | 'medium' | 'high';
+  createdAt: string;
+}
+

@@ -1,32 +1,22 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useThemeStore } from '@/store/useThemeStore';
+import { useCartStore } from '@/store/useCartStore';
+import { useApprovalStore } from '@/store/useApprovalStore';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useRef, useEffect } from 'react';
-
-const shopperTabs = [
-  { path: '/app',              icon: 'search',         label: 'Browse Items' },
-  { path: '/app/upload',       icon: 'add_a_photo',    label: 'Upload Receipt' },
-  { path: '/app/notifications',icon: 'notifications',  label: 'Alerts' },
-];
-
-const retailerTabs = [
-  { path: '/app/retailer',            icon: 'storefront',    label: 'Store Dashboard' },
-  { path: '/app/retailer/insights',   icon: 'insights',      label: 'Market Insights' },
-  { path: '/app/retailer/promotions', icon: 'local_offer',   label: 'Promotions' },
-];
+import { GlobalEssentialsTicker } from './GlobalEssentialsTicker';
 
 export function TopNavbar() {
-  const location = useLocation();
   const navigate = useNavigate();
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
   const { isDark, toggle } = useThemeStore();
+  const totalItems = useCartStore(s => s.totalItemCount());
+  const myRequestsCount = useApprovalStore(s => s.requests.filter(r => r.requestedBy === user?.id && r.status === 'pending').length);
   const [profileOpen, setProfileOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const tabs = user?.role === 'retailer' ? retailerTabs : shopperTabs;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -38,110 +28,136 @@ export function TopNavbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const profilePath = user?.role === 'retailer' ? '/app/retailer/profile' : '/app/profile';
+  const profilePath = user?.role === 'retailer' ? '/retailer/profile' : '/app/profile';
 
   return (
-    <nav className="sticky top-0 z-50 bg-bg-surface/80 backdrop-blur-lg border-b border-border-primary w-full shadow-sm">
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        
-        {/* Logo */}
-        <div className="flex items-center gap-2 select-none shrink-0" onClick={() => navigate('/app')} style={{cursor: 'pointer'}}>
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <span className="text-white text-lg">🔥</span>
+    <div className="sticky top-0 z-50 w-full">
+      <GlobalEssentialsTicker />
+      <nav className="bg-bg-surface/90 backdrop-blur-xl border-b border-border-primary w-full px-8 md:px-12 h-20 flex items-center justify-between transition-all">
+        {/* Logo - Archival Monogram */}
+        <div className="flex items-center gap-4 select-none cursor-pointer group" onClick={() => navigate('/app')}>
+          <div className="w-11 h-11 bg-primary border border-primary flex items-center justify-center transition-all group-hover:brightness-125 shadow-sm">
+            <span className="text-white text-xl font-serif font-black tracking-tighter italic">WW</span>
           </div>
-          <span className="font-display font-bold text-xl tracking-tight text-text-main">
-            Wein <span className="text-primary">Arkhas</span>
-          </span>
+          <div className="flex flex-col">
+            <span className="font-serif font-black text-2xl tracking-[0.1em] text-text-main leading-none uppercase">
+              Wein Wrkhas
+            </span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="h-[1px] w-4 bg-primary" />
+              <span className="text-text-muted text-[9px] tracking-[0.4em] font-bold uppercase">Archival Edition</span>
+            </div>
+          </div>
         </div>
 
-        {/* Center Nav Links */}
-        <div className="hidden md:flex items-center gap-1">
-          {tabs.map((tab) => {
-            const isActive = tab.path === '/app' || tab.path === '/app/retailer'
-              ? location.pathname === tab.path
-              : location.pathname.startsWith(tab.path);
-            return (
-              <NavLink
-                key={tab.path}
-                to={tab.path}
-                className={cn(
-                  'relative px-4 py-2 rounded-lg text-sm font-medium transition-all group flex items-center gap-2',
-                  isActive ? 'text-text-main' : 'text-text-muted hover:text-text-main hover:bg-bg-muted/50'
-                )}
-              >
-                <span className="material-symbols-outlined" style={{ fontSize: '18px', fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}>
-                  {tab.icon}
-                </span>
-                {tab.label}
-                {isActive && (
-                  <motion.div
-                    layoutId="top-nav-active"
-                    className="absolute inset-x-0 -bottom-[19px] h-0.5 bg-primary"
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  />
-                )}
-              </NavLink>
-            );
-          })}
-        </div>
-
-        {/* Right Actions */}
-        <div className="flex items-center gap-3 shrink-0">
+        {/* Right Actions - Clean Gallery Grid */}
+        <div className="flex items-center gap-2 p-1.5 bg-bg-muted border border-border-primary/10 rounded-full">
+          {/* Theme Toggle */}
           <button
             onClick={toggle}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-muted transition-colors"
-            aria-label="Toggle dark mode"
+            className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
           >
-            <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
               {isDark ? 'light_mode' : 'dark_mode'}
             </span>
           </button>
+
+          <div className="w-px h-6 bg-border-primary/10 mx-1" />
+
+          {/* Action Grid */}
+          {[
+            { icon: 'barcode_scanner', path: '/app/scan', title: 'Scan' },
+            { icon: 'local_gas_station', path: '/app/fuel', title: 'Fuel' },
+            { icon: 'notifications_active', path: '/app/alerts', title: 'Alerts' },
+            { icon: 'inbox', path: '/app/notifications', title: 'Inbox' },
+          ].map(item => (
+            <button
+              key={item.path}
+              onClick={() => navigate(item.path)}
+              className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+              title={item.title}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{item.icon}</span>
+            </button>
+          ))}
+
+          {/* My Requests */}
+          {user?.role === 'shopper' && (
+            <button
+              onClick={() => navigate('/app/requests')}
+              className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+              title="Requests"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>approval</span>
+              {myRequestsCount > 0 && (
+                <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-white text-[8px] font-bold flex items-center justify-center rounded-full">
+                  {myRequestsCount}
+                </span>
+              )}
+            </button>
+          )}
+
+          {/* Cart with badge */}
+          <button
+            onClick={() => navigate('/app/cart')}
+            className="relative w-10 h-10 flex items-center justify-center text-text-muted hover:text-primary transition-all rounded-full hover:bg-bg-surface"
+            title="Cart"
+          >
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>shopping_cart</span>
+            {totalItems > 0 && (
+              <span className="absolute top-1 right-1 w-4 h-4 bg-text-main text-bg-base text-[8px] font-bold flex items-center justify-center rounded-full">
+                {totalItems}
+              </span>
+            )}
+          </button>
+
+          <div className="w-px h-6 bg-border-primary/10 mx-1" />
 
           {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setProfileOpen(!profileOpen)}
-              className="flex items-center gap-2 p-1 pl-3 pr-1 rounded-full border border-border-primary hover:border-primary transition-colors bg-bg-surface"
+              className={cn(
+                "h-10 px-4 flex items-center gap-2 transition-all border border-border-primary/20 hover:border-primary/40 rounded-full",
+                profileOpen && "bg-primary text-white border-primary"
+              )}
             >
-              <span className="text-sm font-semibold text-text-main max-w-[100px] truncate">{user?.name}</span>
-              <div className="w-8 h-8 rounded-full bg-primary-soft text-primary flex items-center justify-center text-xs font-bold shrink-0">
+              <div className="w-5 h-5 flex items-center justify-center text-[9px] font-bold border border-current rounded-full">
                 {user?.avatarInitials}
               </div>
+              <span className="text-[9px] font-black uppercase tracking-[0.2em] hidden lg:block">{user?.role}</span>
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>
+                {profileOpen ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}
+              </span>
             </button>
 
             <AnimatePresence>
               {profileOpen && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute right-0 mt-2 w-56 bg-bg-surface border border-border-primary rounded-xl shadow-glass overflow-hidden z-50"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="absolute right-0 mt-3 w-64 bg-bg-surface border border-border-primary shadow-xl z-50 overflow-hidden"
                 >
-                  <div className="p-4 border-b border-border-soft bg-bg-muted/50">
-                    <p className="font-bold text-text-main truncate">{user?.name}</p>
-                    <p className="text-xs text-text-muted mt-0.5 truncate">{user?.email}</p>
-                    <div className="flex items-center gap-1 mt-2 bg-primary-soft text-primary text-xs font-bold px-2 py-1 rounded w-fit">
-                      <span className="material-symbols-outlined" style={{ fontSize: '14px', fontVariationSettings: "'FILL' 1" }}>star</span>
-                      {user?.trustScore} Trust Score
-                    </div>
+                  <div className="p-6 border-b border-border-soft bg-bg-muted/50">
+                    <p className="font-serif text-xl font-black text-text-main italic truncate leading-none mb-1">{user?.name}</p>
+                    <p className="text-[9px] text-primary uppercase font-bold tracking-[0.3em]">Verified {user?.role}</p>
                   </div>
-                  
-                  <div className="p-2 flex flex-col gap-1">
-                    <NavLink
-                      to={profilePath}
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-text-sub hover:bg-bg-muted hover:text-text-main transition-colors"
+                  <div className="p-2 bg-bg-surface">
+                    <NavLink 
+                      to={profilePath} 
+                      onClick={() => setProfileOpen(false)} 
+                      className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-sub hover:bg-primary/5 hover:text-primary transition-all uppercase tracking-widest rounded-sm"
                     >
-                      <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>person</span>
-                      My Profile
+                      <span className="material-symbols-outlined text-text-muted group-hover:text-primary" style={{ fontSize: '18px' }}>account_circle</span>
+                      Identity Archive
                     </NavLink>
-                    <button
-                      onClick={() => { setProfileOpen(false); logout(); }}
-                      className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--status-flagged-text)] hover:bg-[var(--status-flagged-bg)] transition-colors w-full text-left"
+                    <button 
+                      onClick={() => { logout(); setProfileOpen(false); }} 
+                      className="w-full flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-all uppercase tracking-widest rounded-sm"
                     >
                       <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>logout</span>
-                      Sign Out
+                      Terminate Session
                     </button>
                   </div>
                 </motion.div>
@@ -149,7 +165,7 @@ export function TopNavbar() {
             </AnimatePresence>
           </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </div>
   );
 }

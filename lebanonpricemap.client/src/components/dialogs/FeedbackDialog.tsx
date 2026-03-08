@@ -23,30 +23,42 @@ export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProp
       {isOpen && (
         <>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40" onClick={onClose} />
+            className="fixed inset-0 bg-[#0A1128]/70 backdrop-blur-md z-40" onClick={onClose} />
           <motion.div
-            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-            className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface rounded-t-3xl p-6 pb-8 max-w-lg mx-auto"
+            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
+            className="fixed inset-0 m-auto z-50 bg-bg-surface border border-text-main shadow-[12px_12px_0px_rgba(0,102,255,0.3)] max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden"
           >
-            <div className="w-10 h-1 bg-border-soft rounded-full mx-auto mb-6" />
-            <h2 className="text-xl font-bold text-text-main">Community Feedback</h2>
-            <p className="text-sm text-text-muted mt-1 mb-6">Share your thoughts on this price entry</p>
+            {/* Scrollable Body */}
+            <div className="flex-1 overflow-y-auto p-8 pt-10">
+              <div className="mb-8 border-b border-border-soft pb-6">
+                <span className="text-primary font-bold text-[10px] tracking-[0.4em] uppercase mb-4 block">COMMUNITY_PULSE // FEEDBACK_LOG</span>
+                <h2 className="text-2xl font-serif font-black text-text-main uppercase tracking-tight">System Feedback</h2>
+                <p className="text-[10px] font-bold text-text-muted mt-1 uppercase tracking-widest">Share logistical structural updates</p>
+              </div>
 
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add your comment..."
-              rows={4}
-              className="w-full p-4 rounded-xl border border-border-soft bg-bg-surface text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-primary focus:shadow-[0_0_0_3px_var(--primary-soft)] transition-all"
-            />
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="INITIALIZING_INPUT_BUFFER..."
+                rows={4}
+                className="w-full p-4 border border-border-soft bg-bg-base text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-primary transition-all font-mono"
+              />
+            </div>
 
-            <div className="flex gap-3 mt-6">
-              <button onClick={onClose} className="flex-1 h-12 rounded-xl border border-border-soft text-text-sub font-semibold hover:bg-bg-muted transition-colors">
-                Cancel
+            {/* Fixed Footer */}
+            <div className="p-8 pt-0 flex flex-col gap-2 shrink-0">
+              <button 
+                onClick={handleSubmit} 
+                disabled={!note.trim()} 
+                className="btn-consulate w-full h-14 bg-text-main text-bg-base border-text-main shadow-[3px_3px_0px_#0066FF] disabled:opacity-30 disabled:shadow-none"
+              >
+                SUBMIT_LOG
               </button>
-              <button onClick={handleSubmit} disabled={!note.trim()} className="flex-1 h-12 rounded-xl bg-primary text-white font-bold hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-                Submit
+              <button 
+                onClick={onClose} 
+                className="btn-consulate btn-outline w-full h-14"
+              >
+                ABORT_ACTION
               </button>
             </div>
           </motion.div>

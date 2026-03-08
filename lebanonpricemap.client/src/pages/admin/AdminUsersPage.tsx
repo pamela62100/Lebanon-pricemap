@@ -3,11 +3,17 @@ import { motion } from 'framer-motion';
 import { MOCK_USERS } from '@/api/mockData';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TrustBadge } from '@/components/ui/TrustBadge';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { cn } from '@/lib/utils';
 
 export function AdminUsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
+  const { open, getParam } = useRouteDialog();
+
+  const activeUserId = getParam('id');
+  const activeUser = MOCK_USERS.find(u => u.id === activeUserId);
 
   const filtered = MOCK_USERS.filter(u => {
     if (search && !u.name.toLowerCase().includes(search.toLowerCase()) && !u.email.toLowerCase().includes(search.toLowerCase())) return false;
@@ -74,10 +80,16 @@ export function AdminUsersPage() {
                 <td className="py-4 px-4"><StatusBadge status={user.status} /></td>
                 <td className="py-4 px-4">
                   <div className="flex gap-1">
-                    <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] hover:opacity-80">
+                    <button
+                      onClick={() => open('warn-user', { id: user.id })}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] hover:opacity-80"
+                    >
                       Warn
                     </button>
-                    <button className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80">
+                    <button
+                      onClick={() => open('ban-user', { id: user.id })}
+                      className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80"
+                    >
                       Ban
                     </button>
                   </div>
@@ -87,6 +99,29 @@ export function AdminUsersPage() {
           </tbody>
         </table>
       </div>
+
+      {/* URL-Driven Admin Dialogs */}
+      <ConfirmDialog
+        dialogId="warn-user"
+        title="Issue Warning"
+        description={`Are you sure you want to issue a formal warning to ${activeUser?.name}? This will appear in their notification history.`}
+        confirmLabel="Issue Warning"
+        variant="warning"
+        onConfirm={() => {
+          console.log('User warned:', activeUserId);
+        }}
+      />
+
+      <ConfirmDialog
+        dialogId="ban-user"
+        title="Ban User"
+        description={`CRITICAL: This will permanently ban ${activeUser?.name} and revoke all access to the platform. This action is logged for audit.`}
+        confirmLabel="Confirm Ban"
+        variant="danger"
+        onConfirm={() => {
+          console.log('User banned:', activeUserId);
+        }}
+      />
     </motion.div>
   );
 }

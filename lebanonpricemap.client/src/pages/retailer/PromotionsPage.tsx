@@ -2,9 +2,12 @@ import { motion } from 'framer-motion';
 import { getEnrichedProducts } from '@/api/mockData';
 import { formatLBP, getCountdown } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
+import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 
 export function PromotionsPage() {
   const navigate = useNavigate();
+  const { open, getParam } = useRouteDialog();
   const products = getEnrichedProducts().slice(0, 3);
   
   // Create mock promotions
@@ -22,7 +25,7 @@ export function PromotionsPage() {
           <h1 className="text-3xl font-bold text-text-main tracking-tight">Active Promotions</h1>
           <p className="text-sm text-text-muted mt-1">Manage discounts to attract more shoppers</p>
         </div>
-        <button onClick={() => navigate('/app/retailer')} className="h-11 px-6 rounded-xl bg-primary text-white font-bold flex items-center gap-2 hover:bg-primary-hover shadow-md transition-all">
+        <button onClick={() => navigate('/retailer')} className="h-11 px-6 rounded-xl bg-primary text-white font-bold flex items-center gap-2 hover:bg-primary-hover shadow-md transition-all">
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
           New Promotion
         </button>
@@ -64,11 +67,14 @@ export function PromotionsPage() {
               </div>
 
               <div className="flex gap-2 mt-4 relative z-10">
-                <button onClick={() => navigate(`/app/retailer/price/${promo.p.id}/edit`)} className="flex-1 h-10 rounded-xl bg-bg-muted text-sm font-semibold text-text-main hover:bg-border-soft transition-colors cursor-pointer">
+                <button onClick={() => navigate(`/retailer/price/${promo.p.id}/edit`)} className="flex-1 h-10 rounded-xl bg-bg-muted text-sm font-semibold text-text-main hover:bg-border-soft transition-colors cursor-pointer">
                   {isExpired ? 'Renew' : 'Edit'}
                 </button>
                 {!isExpired && (
-                  <button className="h-10 px-4 rounded-xl border border-border-soft text-text-sub hover:bg-[var(--status-flagged-bg)] hover:text-[var(--status-flagged-text)] transition-colors cursor-pointer">
+                  <button
+                    onClick={() => open('delete-promo', { id: i.toString() })}
+                    className="h-10 px-4 rounded-xl border border-border-soft text-text-sub hover:bg-[var(--status-flagged-bg)] hover:text-[var(--status-flagged-text)] transition-colors cursor-pointer"
+                  >
                     <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>delete</span>
                   </button>
                 )}
@@ -77,6 +83,18 @@ export function PromotionsPage() {
           );
         })}
       </div>
+
+      {/* URL-Driven Retailer Dialogs */}
+      <ConfirmDialog
+        dialogId="delete-promo"
+        title="Remove Promotion"
+        description="Are you sure you want to end this promotion early? The price will revert to the standard retail rate immediately."
+        confirmLabel="Remove Promo"
+        variant="warning"
+        onConfirm={() => {
+          console.log('Promotion removed:', getParam('id'));
+        }}
+      />
     </motion.div>
   );
 }

@@ -26,10 +26,12 @@ export function LBPInput({ value, onChange, placeholder = '0', error, className,
   }, [onChange]);
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex flex-col gap-3', className)}>
       <div className={cn(
-        'flex items-center gap-3 bg-bg-surface border rounded-xl px-6 py-4 transition-all',
-        error ? 'border-[var(--status-flagged-text)]' : 'border-border-soft focus-within:border-primary focus-within:shadow-[0_0_0_3px_var(--primary-soft)]'
+        'flex items-center gap-4 bg-bg-surface border px-8 py-6 transition-all',
+        error 
+          ? 'border-red-600 shadow-[4px_4px_0px_rgba(220,38,38,0.2)]' 
+          : 'border-text-main focus-within:shadow-[6px_6px_0px_#0066FF] focus-within:border-primary'
       )}>
         <input
           type="text"
@@ -38,12 +40,12 @@ export function LBPInput({ value, onChange, placeholder = '0', error, className,
           onChange={handleChange}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="flex-1 bg-transparent border-none outline-none font-display text-4xl font-bold text-text-main text-center"
+          className="flex-1 bg-transparent border-none outline-none font-serif text-5xl font-black text-text-main text-center placeholder:text-border-soft"
           aria-label="Price in Lebanese Pounds"
         />
-        <span className="text-xl font-medium text-text-muted flex-shrink-0">LBP</span>
+        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] border-l border-border-soft pl-6 py-2">LBP</span>
       </div>
-      {error && <p className="text-xs text-[var(--status-flagged-text)] mt-1">{error}</p>}
+      {error && <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">ERROR_CODE // {error}</p>}
     </div>
   );
 }

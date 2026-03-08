@@ -10,18 +10,18 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: (() => {
-    const saved = localStorage.getItem('rakis_user_role');
+    const saved = localStorage.getItem('wein_user_role');
     if (saved) return MOCK_USERS.find(u => u.role === saved) || null;
     return null;
   })(),
   login: (role) => {
     const user = MOCK_USERS.find(u => u.role === role) || MOCK_USERS[0];
-    localStorage.setItem('rakis_user_role', role);
+    localStorage.setItem('wein_user_role', role);
     set({ user });
   },
   logout: () => {
-    localStorage.removeItem('rakis_user_role');
-    localStorage.removeItem('rakis_token');
+    localStorage.removeItem('wein_user_role');
+    localStorage.removeItem('wein_token');
     set({ user: null });
   },
 }));

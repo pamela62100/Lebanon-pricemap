@@ -2,134 +2,403 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
+/* ─── Design Tokens ─── */
 @layer base {
   :root {
-    /* Sleek Modern Light Mode (Slate & Indigo) */
-    --bg-base: #f8fafc;        /* slate-50 */
-    --bg-surface: #ffffff;     /* white */
-    --bg-muted: #f1f5f9;       /* slate-100 */
+    /* "The Archival Gallery" (V4.0) - Boutique Minimalism */
+    --bg-base: #FDFDFB;        /* Paper White: Airy, high-end gallery feel */
+    --bg-surface: #FFFFFF;     /* Pure White */
+    --bg-muted: #F8F7F2;       /* Aged Parchment */
 
-    --text-main: #0f172a;      /* slate-900 */
-    --text-sub: #334155;       /* slate-700 */
-    --text-muted: #64748b;     /* slate-500 */
+    --text-main: #1A1A1A;      /* Deep Graphite: High legibility */
+    --text-sub: #4A4A4A;       /* Iron */
+    --text-muted: #8E8E8E;     /* Fog */
 
-    --border-default: #e2e8f0; /* slate-200 */
-    --border-soft: #f1f5f9;    /* slate-100 */
+    --border-primary: #E5E5E5; /* Minimalist hairlines */
+    --border-soft: #F0F0F0;    
 
-    /* Primary: Sleek Indigo */
-    --primary: #4f46e5;        /* indigo-600 */
-    --primary-hover: #4338ca;  /* indigo-700 */
-    --primary-soft: #e0e7ff;   /* indigo-100 */
-
-    /* Semantic Statuses */
-    --status-verified-bg: #dcfce7;   /* green-100 */
-    --status-verified-text: #166534; /* green-800 */
+    --primary: #800020;        /* Lebanese Bordeaux (Burgundy) - Classy & Rich */
+    --primary-hover: #A52A2A;  /* Deep Brown-Red */
+    --primary-soft: rgba(128, 0, 32, 0.05);
+    --primary-glow: rgba(128, 0, 32, 0.12);
     
-    --status-pending-bg: #fef9c3;    /* yellow-100 */
-    --status-pending-text: #854d0e;  /* yellow-800 */
-    
-    --status-flagged-bg: #fee2e2;    /* red-100 */
-    --status-flagged-text: #991b1b;  /* red-800 */
-    
-    --status-info-bg: #e0f2fe;       /* sky-100 */
-    --status-info-text: #075985;     /* sky-800 */
+    --accent-primary: #1A1A1A; 
 
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
-    --shadow-glass: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    /* Semantic Statuses (Editorial Style) */
+    --status-verified-text: #2D5A27;
+    --status-pending-text: #8B6508;
+    --status-flagged-text: #A02020;
+    --status-info-text: #204060;
+
+    /* Gallerist Specification */
+    --gradient-gold: linear-gradient(135deg, #800020 0%, #1A1A1A 100%);
+    --shadow-card: 0 8px 32px -4px rgba(0,0,0,0.06);
+    --shadow-glass: 0 0 0 1px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-gold: 0 0 0 1px rgba(128,0,32,0.2), 0 8px 24px -4px rgba(128,0,32,0.15);
+
+    --radius-sm: 0px;  /* Sharp edges for gallery feel */
+    --radius-md: 2px;
+    --radius-lg: 4px;
+    --radius-xl: 8px;
   }
 
   .dark {
-    /* Premium Dark Mode (Slate & Indigo) */
-    --bg-base: #0f172a;        /* slate-900 */
-    --bg-surface: #1e293b;     /* slate-800 */
-    --bg-muted: #334155;       /* slate-700 */
+    /* Night Gallery - Sophisticated Deep Graphite */
+    --bg-base: #0F0F0F;        
+    --bg-surface: #171717;     
+    --bg-muted: #1F1F1F;       
 
-    --text-main: #f8fafc;      /* slate-50 */
-    --text-sub: #cbd5e1;       /* slate-300 */
-    --text-muted: #94a3b8;     /* slate-400 */
+    --text-main: #EAEAEA;      
+    --text-sub: #A3A3A3;       
+    --text-muted: #737373;     
 
-    --border-default: #334155; /* slate-700 */
-    --border-soft: #1e293b;    /* slate-800 */
+    --border-primary: #262626; 
+    --border-soft: #1C1C1C;    
 
-    /* Primary: Vibrant Indigo */
-    --primary: #6366f1;        /* indigo-500 */
-    --primary-hover: #818cf8;  /* indigo-400 */
-    --primary-soft: rgba(99, 102, 241, 0.15); /* Translucent indigo */
+    --primary: #B01E35;        /* Brighter Bordeaux for Dark Mode */
+    --primary-hover: #D42E46;  
+    --primary-soft: rgba(176, 30, 53, 0.1);
+    --primary-glow: rgba(176, 30, 53, 0.2);
 
-    /* Semantic Statuses (Dark optimized) */
-    --status-verified-bg: rgba(34, 197, 94, 0.15);  /* green-500 @ 15% */
-    --status-verified-text: #4ade80;                /* green-400 */
+    --gradient-gold: linear-gradient(135deg, #B01E35 0%, #0F0F0F 100%);
     
-    --status-pending-bg: rgba(234, 179, 8, 0.15);   /* yellow-500 @ 15% */
-    --status-pending-text: #facc15;                 /* yellow-400 */
-    
-    --status-flagged-bg: rgba(239, 68, 68, 0.15);   /* red-500 @ 15% */
-    --status-flagged-text: #f87171;                 /* red-400 */
-    
-    --status-info-bg: rgba(14, 165, 233, 0.15);     /* sky-500 @ 15% */
-    --status-info-text: #38bdf8;                    /* sky-400 */
-
-    --shadow-card: 0 4px 6px -1px rgb(0 0 0 / 0.2), 0 2px 4px -2px rgb(0 0 0 / 0.2);
-    --shadow-glass: 0 10px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+    --shadow-card: 0 10px 40px -6px rgba(0,0,0,0.7);
+    --shadow-gold: 0 0 0 1px rgba(176,30,53,0.3), 0 12px 48px -8px rgba(176,30,53,0.4);
   }
 
-  /* Base HTML styles */
+  /* ─── Architectural Typography ─── */
   html {
-    @apply h-full antialiased;
+    height: 100%;
+    min-height: 100%;
+    overflow-y: scroll; /* Forces scrollbar always present — prevents layout shift */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     background-color: var(--bg-base);
     color: var(--text-main);
   }
 
   body {
-    @apply h-full m-0 font-sans;
+    min-height: 100%;
+    height: auto;
+    width: 100%;
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+    overflow-x: hidden;
   }
 
-  /* Custom scrollbar for sleek desktop feel */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  h1, h2, h3, h4, .font-serif {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    letter-spacing: -0.025em;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
+
+  .text-display {
+    font-family: 'Playfair Display', serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
   }
+
+  .text-headline {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    line-height: 1.15;
+    letter-spacing: -0.025em;
+  }
+
+  .text-overline {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--primary);
+  }
+
+  .text-data {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* ─── Global Animation Tokens ─── */
+  * {
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .animate-page {
+    animation: fadeSlideUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--bg-muted) 25%,
+      var(--border-soft) 50%,
+      var(--bg-muted) 75%
+    );
+    background-size: 800px 100%;
+    animation: shimmer 1.5s infinite ease-in-out;
+    border-radius: var(--radius-sm);
+  }
+
+  @keyframes goldPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 154, 69, 0); }
+    50%       { box-shadow: 0 0 0 6px rgba(192, 154, 69, 0.15); }
+  }
+  .pulse-gold {
+    animation: goldPulse 2.5s ease-in-out infinite;
+  }
+
+  /* ─── Scrollbar Refinement ─── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: var(--border-default);
-    border-radius: 4px;
+    background: var(--border-primary);
+    border-radius: 99px;
+    transition: background 0.2s;
   }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--text-muted);
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  * { scrollbar-width: thin; scrollbar-color: var(--border-primary) transparent; }
+
+  /* ─── Selection & Focus ─── */
+  ::selection {
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 }
 
-/* Leaflet Overrides for Premium Look */
-@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+/* ─── Utility & Component Classes ─── */
+/* ─── Utility & Component Classes ─── */
+@layer components {
+  /* Architectural Blueprint Grid */
+  .blueprint-grid {
+    position: relative;
+    background-color: var(--bg-base);
+  }
+  .blueprint-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: 
+      linear-gradient(to right, var(--border-soft) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--border-soft) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    z-index: 0;
+  }
 
+  /* Structural Card */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    position: relative;
+    z-index: 1;
+  }
+  .card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px var(--primary);
+  }
+
+  /* Technical Glass (Thin & Sharp) */
+  .glass {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-primary);
+  }
+  .dark .glass {
+    background: rgba(10, 17, 40, 0.85);
+    border: 1px solid var(--primary);
+  }
+
+  /* Consulate Action Button */
+  .btn-consulate {
+    background: var(--text-main);
+    color: var(--bg-base);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    border: 1px solid var(--text-main);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-consulate:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--primary-glow);
+  }
+  .btn-consulate:active {
+    transform: translateY(0);
+  }
+
+  /* Outline variant */
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border-primary);
+    color: var(--text-main);
+  }
+  .btn-outline:hover {
+    background: var(--text-main);
+    color: var(--bg-base);
+  }
+
+  /* Technical Data Display */
+  .text-mono-data {
+    font-family: 'JetBrains Mono', 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.05em;
+    font-weight: 500;
+  }
+
+  /* Section Divider (Technical) */
+  .divider-blueprint {
+    height: 1px;
+    background: var(--border-soft);
+    position: relative;
+    margin: 2rem 0;
+  }
+  .divider-blueprint::after {
+    content: '+';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-family: monospace;
+    font-size: 14px;
+    color: var(--primary);
+    background: var(--bg-base);
+    padding-right: 8px;
+  }
+
+  /* Status badge (Sharp) */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 2px 8px;
+    border: 1px solid currentColor;
+    border-radius: var(--radius-sm);
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .stat-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--text-main);
+  }
+
+  .price-lbp {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 1.1em;
+  }
+}
+
+/* ─── Leaflet Map — Premium Override ─── */
 .leaflet-container {
   width: 100%;
   height: 100%;
-  background-color: #cbd5e1; /* slate-300 matches the screenshot map color */
-  font-family: inherit;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg-muted);
 }
 
 .leaflet-control-zoom {
   border: none !important;
-  box-shadow: var(--shadow-glass) !important;
-  border-radius: 12px !important;
+  border-radius: var(--radius-md) !important;
   overflow: hidden;
+  box-shadow: var(--shadow-glass) !important;
 }
-
-.leaflet-control-zoom-in, .leaflet-control-zoom-out {
-  background-color: var(--bg-surface) !important;
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+  background: var(--bg-surface) !important;
   color: var(--text-main) !important;
+  border: none !important;
+  border-bottom: 1px solid var(--border-soft) !important;
+  font-size: 16px !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  transition: background 0.15s ease !important;
+}
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+  background: var(--bg-muted) !important;
+  color: var(--primary) !important;
+}
+.leaflet-control-zoom-out { border-bottom: none !important; }
+
+.leaflet-control-attribution {
+  background: var(--bg-surface) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+  border-radius: var(--radius-sm) !important;
+  padding: 2px 8px !important;
   border: 1px solid var(--border-soft) !important;
 }
 
-.leaflet-bar a:hover {
-  background-color: var(--bg-muted) !important;
+.leaflet-popup-content-wrapper {
+  background: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border-radius: var(--radius-md) !important;
+  border: 1px solid var(--border-soft) !important;
+  box-shadow: var(--shadow-glass) !important;
+  padding: 0 !important;
 }
-
-.leaflet-touch .leaflet-bar a {
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
+.leaflet-popup-content {
+  margin: 12px 16px !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 13px !important;
+}
+.leaflet-popup-tip {
+  background: var(--bg-surface) !important;
+}
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+  font-size: 16px !important;
+  padding: 6px !important;
 }

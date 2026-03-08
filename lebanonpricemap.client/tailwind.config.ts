@@ -20,27 +20,44 @@ export default {
           muted: 'var(--text-muted)',
         },
         border: {
-          primary: 'var(--border-default)',
+          primary: 'var(--border-primary)',
           soft: 'var(--border-soft)',
         },
         primary: {
           DEFAULT: 'var(--primary)',
           hover: 'var(--primary-hover)',
           soft: 'var(--primary-soft)',
+          glow: 'var(--primary-glow)',
         },
+        status: {
+          flagged: {
+            bg: 'var(--status-flagged-bg)',
+            text: 'var(--status-flagged-text)',
+          },
+          verified: {
+            bg: 'var(--status-verified-bg)',
+            text: 'var(--status-verified-text)',
+          },
+        }
       },
       fontFamily: {
-        sans: ['"Inter"', 'sans-serif'],
-        display: ['"Outfit"', 'sans-serif'],
+        serif: ['"Playfair Display"', 'serif'],
+        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {
         card: 'var(--shadow-card)',
         glass: 'var(--shadow-glass)',
+        gold: 'var(--shadow-gold)',
+      },
+      backgroundImage: {
+        'gradient-gold': 'var(--gradient-gold)',
       },
       borderRadius: {
-        'xl': '0.75rem',
-        '2xl': '1rem',
-        '3xl': '1.5rem',
+        'sm': 'var(--radius-sm)',
+        'md': 'var(--radius-md)',
+        'lg': 'var(--radius-lg)',
+        'xl': 'var(--radius-xl)',
       },
     },
   },
