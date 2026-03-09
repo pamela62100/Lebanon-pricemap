@@ -70,7 +70,7 @@ function RequestApprovalButton({
     <motion.button
       whileTap={{ scale: 0.97 }}
       onClick={onRequest}
-      className="h-10 px-4 border border-amber-400/40 bg-amber-400/5 hover:bg-amber-400/10 text-amber-600 dark:text-amber-300 text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
+      className="h-10 px-4 border border-amber-400/40 bg-amber-400/5 hover:bg-amber-400/10 text-amber-600 text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
       title={`You need approval to ${actionLabel}`}
     >
       <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>

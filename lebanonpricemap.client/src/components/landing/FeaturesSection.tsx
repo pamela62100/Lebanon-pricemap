@@ -1,35 +1,76 @@
-// src/components/landing/FeaturesSection.tsx
-export default function FeaturesSection() {
-  const features = [
-    { title: 'MARKET PULSE', desc: 'Real-time structural monitoring of essential availability.' },
-    { title: 'STORE RATE AUDIT', desc: 'Pre-emptive verification of internal exchange rates.' },
-    { title: 'POWER STABILITY', desc: 'Citizen-led logging of cold-chain reliability and generator health.' },
-    { title: 'DEPTH LOGISTICS', desc: 'Wait-time and car-count monitoring for high-demand stations.' },
-    { title: 'SPATIAL DEPTH', desc: 'High-precision coordinate mapping of regional cost-floors.' },
-    { title: 'VERIFIED TRUST', desc: 'Receipt-backed authority scoring for system contributors.' }
-  ];
+import { motion } from 'framer-motion';
 
+const FEATURES = [
+  {
+    icon: 'inventory_2',
+    label: 'Official Catalog Prices',
+    desc: 'Store owners publish their own prices directly. No guessing — always from the source.',
+    color: 'text-primary bg-primary/10 border-primary/20',
+  },
+  {
+    icon: 'rate_review',
+    label: 'Community Discrepancy Reports',
+    desc: 'When shelf price doesn\'t match the catalog, shoppers report it. Admin resolves it fast.',
+    color: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
+  },
+  {
+    icon: 'bolt',
+    label: 'Power & Cold Chain Status',
+    desc: 'Know if a store has stable power before buying dairy or infant formula.',
+    color: 'text-amber-500 bg-amber-400/10 border-amber-400/20',
+  },
+  {
+    icon: 'route',
+    label: 'Cart Optimizer',
+    desc: 'Add products to your cart. We calculate the cheapest store combination in real time.',
+    color: 'text-green-500 bg-green-500/10 border-green-500/20',
+  },
+  {
+    icon: 'verified_user',
+    label: 'Trust Score System',
+    desc: 'Every report is weighted by the reporter\'s trust score. Bad data never floats to the top.',
+    color: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+  },
+  {
+    icon: 'currency_exchange',
+    label: 'Dual-Rate Transparency',
+    desc: 'We flag stores whose internal USD rate differs from the market by more than 500 LBP.',
+    color: 'text-red-400 bg-red-400/10 border-red-400/20',
+  },
+];
+
+export default function FeaturesSection() {
   return (
-    <section className="py-40 bg-bg-surface">
-      <div className="container mx-auto px-8 md:px-16">
-        <div className="flex justify-between items-end mb-24 border-b border-border-primary pb-12">
-          <div>
-            <span className="text-primary font-bold text-[10px] tracking-[0.5em] uppercase mb-6 block">02 // SPECIFICATIONS</span>
-            <h3 className="text-headline uppercase">Operational Modules</h3>
-          </div>
-          <p className="text-text-muted text-[10px] font-bold tracking-widest hidden md:block uppercase">Consulate v4.0.1</p>
+    <section className="py-28 bg-bg-base border-t border-border-primary/10">
+      <div className="max-w-7xl mx-auto px-8 md:px-12">
+        {/* Header */}
+        <div className="mb-16 max-w-2xl">
+          <p className="text-[10px] font-black text-primary uppercase tracking-[0.4em] mb-4">What we do</p>
+          <h2 className="text-5xl font-black text-text-main leading-tight mb-4">
+            Everything a Lebanese<br />shopper needs.
+          </h2>
+          <p className="text-text-muted font-medium text-base leading-relaxed">
+            Built from the ground up for the realities of Lebanon — hyperinflation, power outages, and multiple exchange rates.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((f, i) => (
-            <div key={i} className="card p-12 hover:border-primary group">
-              <div className="flex justify-between items-start mb-12">
-                <span className="text-mono-data text-primary text-xs">M_{String(i+1).padStart(2, '0')}</span>
-                <span className="material-symbols-outlined text-text-muted group-hover:text-primary" style={{ fontSize: '20px' }}>settings_accessibility</span>
+        {/* Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {FEATURES.map((f, i) => (
+            <motion.div
+              key={f.label}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ delay: i * 0.08, duration: 0.5 }}
+              className="bg-bg-surface border border-border-primary/15 rounded-3xl p-7 hover:border-primary/30 transition-all group"
+            >
+              <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center mb-6 ${f.color}`}>
+                <span className="material-symbols-outlined text-[22px]">{f.icon}</span>
               </div>
-              <h4 className="font-serif text-2xl text-text-main mb-4 uppercase">{f.title}</h4>
-              <p className="text-text-muted text-sm font-medium leading-relaxed">{f.desc}</p>
-            </div>
+              <h3 className="font-black text-text-main text-base mb-2 group-hover:text-primary transition-colors leading-tight">{f.label}</h3>
+              <p className="text-sm text-text-muted font-medium leading-relaxed">{f.desc}</p>
+            </motion.div>
           ))}
         </div>
       </div>

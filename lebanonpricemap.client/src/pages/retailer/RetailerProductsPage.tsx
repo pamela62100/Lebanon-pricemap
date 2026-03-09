@@ -202,7 +202,7 @@ export function RetailerProductsPage() {
                // Logic to update mock data would go here
              }}
              disabled={!editPrice || editPrice === activeEntry?.priceLbp}
-             className="h-11 rounded-xl bg-primary text-white font-bold text-sm shadow-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+             className="h-11 rounded-xl bg-primary text-white font-bold text-sm shadow-card hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
            >
              Save New Price
            </button>

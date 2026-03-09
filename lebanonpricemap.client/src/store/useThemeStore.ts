@@ -6,11 +6,9 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  isDark: document.documentElement.classList.contains('dark'),
-  toggle: () => set((state) => {
-    const next = !state.isDark;
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('wein-theme', next ? 'dark' : 'light');
-    return { isDark: next };
-  }),
+  isDark: false,
+  toggle: () => {
+    // Light only mode — no operation
+    console.log('System is locked to Light Editorial.');
+  },
 }));

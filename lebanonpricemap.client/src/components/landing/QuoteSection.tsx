@@ -1,26 +1,33 @@
+import { motion } from 'framer-motion';
+
 export default function QuoteSection() {
   return (
-    <section className="h-[50vh] relative p-16 flex items-center justify-center bg-text-main overflow-hidden">
+    <section className="py-32 relative bg-text-main overflow-hidden">
+      {/* Subtle blueprint pattern */}
+      <div className="absolute inset-0 opacity-[0.03] blueprint-grid pointer-events-none" />
+      
+      <div className="max-w-4xl mx-auto px-8 relative z-10 text-center">
+        <motion.div
+           initial={{ opacity: 0, scale: 0.95 }}
+           whileInView={{ opacity: 1, scale: 1 }}
+           viewport={{ once: true }}
+           transition={{ duration: 0.8 }}
+        >
+          <span className="material-symbols-outlined text-primary text-5xl mb-8 opacity-50">format_quote</span>
+          
+          <h2 className="text-3xl md:text-5xl font-serif text-bg-base transition-all leading-tight italic mb-10">
+            "In times of crisis, information isn't just data — it's <span className="text-primary not-italic font-sans font-black uppercase tracking-tighter">sovereignty</span> for the people."
+          </h2>
 
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full blueprint-grid" />
+          <div className="flex items-center justify-center gap-4">
+            <div className="h-px w-12 bg-primary/30" />
+            <p className="text-[10px] font-black tracking-[0.5em] uppercase text-bg-base/40">
+              The WeinArkhas Manifesto
+            </p>
+            <div className="h-px w-12 bg-primary/30" />
+          </div>
+        </motion.div>
       </div>
-
-      <div className="relative z-10 text-center text-bg-base max-w-2xl px-12 py-16 border border-bg-base/20">
-
-        <h2 className="font-serif text-4xl mb-8 uppercase leading-tight font-black">
-          "Sovereignty Through <br />
-          <span className="text-primary italic">Information.</span>"
-        </h2>
-
-        <div className="h-px w-24 bg-primary mx-auto mb-8" />
-
-        <p className="text-[10px] font-bold tracking-[0.5em] uppercase text-text-muted">
-          Citizens Intelligence Network
-        </p>
-
-      </div>
-
     </section>
   );
 }

@@ -43,7 +43,7 @@ export function UpdatePricePage() {
            <button type="button" onClick={() => navigate(-1)} className="h-11 px-6 rounded-xl font-bold bg-bg-muted text-text-sub hover:bg-border-soft transition-colors">
             Cancel
           </button>
-          <button type="button" onClick={handleSubmit} className="h-11 px-6 rounded-xl font-bold bg-primary text-white hover:bg-primary-hover shadow-md transition-all">
+          <button type="button" onClick={handleSubmit} className="h-11 px-6 rounded-xl font-bold bg-primary text-white hover:bg-primary-hover  transition-all">
             Save Changes
           </button>
         </div>
@@ -79,7 +79,7 @@ export function UpdatePricePage() {
 
             {/* Promotion Toggle */}
             <div className={cn(
-               "bg-bg-surface border rounded-3xl p-6 shadow-sm transition-colors duration-300",
+               "bg-bg-surface border rounded-3xl p-6 shadow-card transition-colors duration-300",
                isPromo ? "border-primary bg-primary-soft/10" : "border-border-soft"
             )}>
               <div className="flex items-center justify-between mb-4">
@@ -100,7 +100,7 @@ export function UpdatePricePage() {
                 >
                   <motion.div
                     layout
-                    className="w-6 h-6 rounded-full bg-white shadow-sm"
+                    className="w-6 h-6 rounded-full bg-white shadow-card"
                     animate={{ x: isPromo ? 24 : 0 }}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
@@ -163,7 +163,7 @@ export function UpdatePricePage() {
                  />
               </div>
               
-              <div className="bg-bg-surface border border-border-soft rounded-2xl p-5 mt-16 shadow-sm">
+              <div className="bg-bg-surface border border-border-soft rounded-2xl p-5 mt-16 shadow-card">
                 <h4 className="font-bold text-text-main flex items-center gap-2 mb-2 text-sm">
                   <span className="material-symbols-outlined text-primary" style={{ fontSize: '18px' }}>tips_and_updates</span>
                   Pro Tip

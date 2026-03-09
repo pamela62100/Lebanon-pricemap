@@ -76,20 +76,20 @@ export function RouteDialog({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
         >
-          {/* Backdrop - Deep Consulate Navy */}
+          {/* Backdrop - Soft Fog */}
           <motion.div
-            className="absolute inset-0 bg-[#0A1128]/70 backdrop-blur-md"
+            className="absolute inset-0 bg-white/40 backdrop-blur-md"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => { close(); onClose?.(); }}
           />
 
-          {/* Panel - Structural Box */}
+          {/* Panel - Editorial Card */}
           <motion.div
             ref={panelRef}
             className={cn(
-              'relative w-full bg-bg-surface border border-text-main shadow-[8px_8px_0px_rgba(0,102,255,0.4)] overflow-hidden',
+              'relative w-full bg-white border border-border-primary shadow-glass overflow-hidden rounded-xl',
               SIZE_MAP[size]
             )}
             initial={{ opacity: 0, y: 12 }}
@@ -98,10 +98,10 @@ export function RouteDialog({
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Header - Technical Band */}
-            <div className="flex items-start justify-between px-6 pt-8 pb-4 border-b border-border-soft bg-bg-base/30">
+            <div className="flex items-start justify-between px-8 pt-10 pb-6 border-b border-border-primary bg-bg-base/30">
               <div>
-                <h2 className="text-xl font-serif font-black text-text-main leading-tight uppercase tracking-tight">{title}</h2>
-                {description && <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">{description}</p>}
+                <h2 className="font-display text-2xl text-text-main leading-tight tracking-tight" style={{ fontFamily: "'DM Serif Display', serif" }}>{title}</h2>
+                {description && <p className="text-[10px] font-data font-black text-primary uppercase tracking-[0.2em] mt-2">{description}</p>}
               </div>
               <button
                 onClick={() => { close(); onClose?.(); }}

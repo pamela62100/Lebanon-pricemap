@@ -4,6 +4,7 @@ import { useApprovalStore } from '@/store/useApprovalStore';
 import { timeAgo } from '@/lib/utils';
 import type { ApprovalRequest } from '@/types';
 import { cn } from '@/lib/utils';
+import { AdminCatalogReviewPanel } from '@/components/admin/AdminCatalogReviewPanel';
 
 const STATUS_STYLES = {
   pending:  { bg: 'bg-amber-400/10 border-amber-400/30',  text: 'text-amber-500',  label: 'Pending Review' },
@@ -56,7 +57,7 @@ export function AdminApprovalQueuePage() {
             onClick={() => setActiveTab(tab)}
             className={cn(
               'px-5 py-2 rounded-lg text-sm font-semibold transition-all',
-              activeTab === tab ? 'bg-bg-surface shadow-sm text-text-main' : 'text-text-muted hover:text-text-sub'
+              activeTab === tab ? 'bg-bg-surface shadow-card text-text-main' : 'text-text-muted hover:text-text-sub'
             )}
           >
             {tab}
@@ -88,6 +89,9 @@ export function AdminApprovalQueuePage() {
           </div>
         )}
       </div>
+
+      {/* ── Catalog Discrepancy Queue ─────────────────────────────── */}
+      <AdminCatalogReviewPanel />
     </motion.div>
   );
 }

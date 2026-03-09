@@ -1,6 +1,5 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { useThemeStore } from '@/store/useThemeStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useApprovalStore } from '@/store/useApprovalStore';
 
@@ -19,26 +18,29 @@ const navItems = [
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { isDark, toggle } = useThemeStore();
   const logout = useAuthStore(s => s.logout);
   const pendingCount = useApprovalStore(s => s.pendingCount());
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-bg-surface border-r border-text-main flex flex-col h-dvh sticky top-0 blueprint-grid">
-      {/* Logo - Architectural Monogram */}
-      <div className="px-6 py-10 select-none border-b border-border-primary/50 bg-bg-base/30">
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-text-main flex items-center justify-center shadow-[2px_2px_0px_#0066FF]">
-            <span className="text-bg-base text-lg font-serif font-black tracking-tighter">WW</span>
-          </div>
-          <div>
-            <h2 className="text-sm font-black text-text-main font-serif tracking-tight uppercase">Wein Wrkhas</h2>
-            <p className="text-[9px] text-primary uppercase font-bold tracking-[0.2em] mt-0.5">Admin Protocol</p>
-          </div>
+    <aside className="w-56 bg-white border-r border-border-soft flex flex-col h-dvh sticky top-0 shrink-0 z-40">
+      {/* Brand area */}
+      <div className="h-14 flex items-center gap-3 px-5 border-b border-border-soft select-none">
+        <div className="w-8 h-8 bg-text-main rounded-xl flex items-center justify-center">
+          <span className="text-white text-[10px] font-black">W.A</span>
+        </div>
+        <span className="text-sm font-bold text-text-main tracking-tight">WeinArkhas</span>
+      </div>
+
+      {/* Context Ticker - The Whisper */}
+      <div className="px-5 py-3 border-b border-border-soft flex items-center justify-between">
+        <span className="text-[9px] font-data font-black text-text-muted uppercase tracking-widest">System_Protocol</span>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-status-verified/5 border border-status-verified/10">
+          <div className="w-1 h-1 rounded-full bg-status-verified" />
+          <span className="text-[9px] font-data font-black text-status-verified uppercase tracking-wider">Active</span>
         </div>
       </div>
 
-      {/* Nav items - Technical List */}
+      {/* Nav items */}
       <nav className="flex-1 px-3 py-6 flex flex-col gap-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = item.path === '/admin'
@@ -50,18 +52,21 @@ export function AdminSidebar() {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex items-center gap-3 px-4 py-3 text-[10px] font-bold uppercase tracking-widest transition-all border',
+                'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all',
                 isActive
-                  ? 'bg-text-main text-bg-base border-text-main shadow-[2px_2px_0px_#0066FF]'
-                  : 'text-text-muted border-transparent hover:border-border-soft hover:bg-bg-muted/50 hover:text-text-main'
+                  ? 'bg-text-main text-white font-semibold shadow-sm'
+                  : 'font-medium text-text-muted hover:bg-bg-muted hover:text-text-main'
               )}
             >
-              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>
+              <span className="material-symbols-outlined text-[18px]">
                 {item.icon}
               </span>
-              <span className="flex-1">{item.label}</span>
+              <span className="flex-1 truncate">{item.label}</span>
               {item.badge && pendingCount > 0 && (
-                <span className="ml-auto min-w-[18px] h-[18px] bg-primary text-white text-[9px] font-bold flex items-center justify-center">
+                <span className={cn(
+                  "font-data text-[9px] font-black px-2 py-0.5 rounded-md",
+                  isActive ? "bg-white/20 text-white" : "bg-text-main text-white"
+                )}>
                   {pendingCount}
                 </span>
               )}
@@ -70,21 +75,21 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* Bottom actions - Control Panel */}
-      <div className="px-3 pb-8 flex flex-col gap-1 border-t border-border-primary/50 pt-6">
+      {/* User footer / Bottom actions */}
+      <div className="p-3 border-t border-border-soft flex flex-col gap-1">
         <button
           onClick={() => navigate('/app')}
-          className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-text-muted hover:text-text-main hover:bg-bg-muted transition-all w-full text-left uppercase tracking-widest"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-text-muted hover:text-text-main transition-colors"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>terminal</span>
-          Terminal View
+          <span className="material-symbols-outlined text-[18px]">visibility</span>
+          Shopper_View
         </button>
         <button
-          onClick={logout}
-          className="flex items-center gap-3 px-4 py-3 text-[10px] font-bold text-red-600 hover:bg-red-50 transition-all w-full text-left uppercase tracking-widest"
+          onClick={() => { logout(); navigate('/'); }}
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-status-danger hover:bg-status-danger/5 transition-colors"
         >
-          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>power_settings_new</span>
-          SHUTDOWN
+          <span className="material-symbols-outlined text-[18px]">logout</span>
+          Sign Out
         </button>
       </div>
     </aside>

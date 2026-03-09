@@ -1,55 +1,91 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { User, UserRole } from '@/types';
 
 interface AuthState {
   user: User | null;
-  login: (role: UserRole) => void;
+  isLoading: boolean;
+  login: (email: string, password: string) => { success: boolean; error?: string };
   logout: () => void;
-  register: (email: string, password: string, role: UserRole, name: string) => void; // ← ADD
+  register: (email: string, password: string, role: UserRole, name: string) => { success: boolean; error?: string };
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
-  user: {
-    id: '123',
-    name: 'Dev Tester',
-    email: 'dev@test.com',
-    role: 'shopper',
-    city: 'Beirut',
-    trustScore: 80,
-    uploadCount: 10,
-    verifiedCount: 5,
-    avatarInitials: 'DT',
-    joinedAt: new Date().toISOString(),
-    status: 'active',
-    notifications: [
-      { id: 1, userId: '123', type: 'price_alert', title: 'Price drop', message: 'Price drop on Milk!', isRead: false, createdAt: new Date().toISOString(), relatedPriceEntryId: null },
-      { id: 2, userId: '123', type: 'price_verified', title: 'Order shipped', message: 'Your order has shipped', isRead: false, createdAt: new Date().toISOString(), relatedPriceEntryId: null },
-    ],
-    alerts: [
-      { id: 1, type: 'stock_out', message: 'New promotion nearby', severity: 'medium', createdAt: new Date().toISOString() },
-    ],
-  },
+function detectRole(email: string): UserRole {
+  if (email.includes('@admin') || email.includes('admin@')) return 'admin';
+  if (email.includes('retailer') || email.includes('@store')) return 'retailer';
+  return 'shopper';
+}
 
-  login: (role: UserRole) =>
-    set((state) => ({ user: { ...state.user!, role } })),
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      // Start logged-out — users must authenticate
+      user: null,
+      isLoading: false,
 
-  logout: () => set({ user: null }),
+      login: (email: string, password: string) => {
+        if (!email || !password) {
+          return { success: false, error: 'Please enter your email and password.' };
+        }
+        if (password.length < 6) {
+          return { success: false, error: 'Password must be at least 6 characters.' };
+        }
 
-  // ── ADD THIS ──────────────────────────────────────────
-  register: (email: string, _password: string, role: UserRole, name: string) =>
-    set({
-      user: {
-        id: Date.now().toString(),
-        name: name || email.split('@')[0],
-        email,
-        role,
-        city: 'Beirut',
-        trustScore: 0,
-        uploadCount: 0,
-        verifiedCount: 0,
-        avatarInitials: (name || email).slice(0, 2).toUpperCase(),
-        joinedAt: new Date().toISOString(),
-        status: 'active',
+        const role = detectRole(email);
+        const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+        set({
+          user: {
+            id: `user_${Date.now()}`,
+            name,
+            email,
+            role,
+            city: 'Beirut',
+            trustScore: role === 'admin' ? 100 : role === 'retailer' ? 85 : 70,
+            uploadCount: 0,
+            verifiedCount: 0,
+            avatarInitials: name.slice(0, 2).toUpperCase(),
+            joinedAt: new Date().toISOString(),
+            status: 'active',
+            notifications: [],
+            alerts: [],
+          },
+        });
+
+        return { success: true };
+      },
+
+      logout: () => set({ user: null }),
+
+      register: (email: string, password: string, role: UserRole, name: string) => {
+        if (!email || !password || !name) {
+          return { success: false, error: 'All fields are required.' };
+        }
+        if (password.length < 6) {
+          return { success: false, error: 'Password must be at least 6 characters.' };
+        }
+
+        set({
+          user: {
+            id: `user_${Date.now()}`,
+            name: name.trim(),
+            email,
+            role,
+            city: 'Beirut',
+            trustScore: 0,
+            uploadCount: 0,
+            verifiedCount: 0,
+            avatarInitials: name.trim().slice(0, 2).toUpperCase(),
+            joinedAt: new Date().toISOString(),
+            status: 'active',
+            notifications: [],
+            alerts: [],
+          },
+        });
+
+        return { success: true };
       },
     }),
-}));
+    { name: 'wein_auth_v2' }
+  )
+);

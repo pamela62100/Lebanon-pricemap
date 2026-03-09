@@ -25,7 +25,7 @@ export function PromotionsPage() {
           <h1 className="text-3xl font-bold text-text-main tracking-tight">Active Promotions</h1>
           <p className="text-sm text-text-muted mt-1">Manage discounts to attract more shoppers</p>
         </div>
-        <button onClick={() => navigate('/retailer')} className="h-11 px-6 rounded-xl bg-primary text-white font-bold flex items-center gap-2 hover:bg-primary-hover shadow-md transition-all">
+        <button onClick={() => navigate('/retailer')} className="h-11 px-6 rounded-xl bg-primary text-white font-bold flex items-center gap-2 hover:bg-primary-hover  transition-all">
           <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>add</span>
           New Promotion
         </button>
@@ -37,7 +37,7 @@ export function PromotionsPage() {
           const countdown = getCountdown(promo.end.toISOString());
 
           return (
-            <div key={i} className={`bg-bg-surface border rounded-3xl p-6 shadow-sm flex flex-col gap-4 relative overflow-hidden transition-all ${isExpired ? 'border-border-soft opacity-60' : 'border-primary/30 hover:shadow-glass hover:border-primary'}`}>
+            <div key={i} className={`bg-bg-surface border rounded-3xl p-6 shadow-card flex flex-col gap-4 relative overflow-hidden transition-all ${isExpired ? 'border-border-soft opacity-60' : 'border-primary/30 hover:shadow-glass hover:border-primary'}`}>
               
               {!isExpired && (
                 <div className="absolute -top-6 -right-6 w-32 h-32 bg-primary-soft rounded-full blur-2xl pointer-events-none" />
@@ -47,7 +47,7 @@ export function PromotionsPage() {
                 <div className="w-16 h-16 rounded-2xl bg-bg-muted flex items-center justify-center border border-border-soft">
                   <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '28px' }}>shopping_bag</span>
                 </div>
-                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isExpired ? 'bg-bg-muted text-text-sub' : 'bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] shadow-sm'}`}>
+                <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isExpired ? 'bg-bg-muted text-text-sub' : 'bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] shadow-card'}`}>
                   {isExpired ? 'Expired' : countdown}
                 </div>
               </div>

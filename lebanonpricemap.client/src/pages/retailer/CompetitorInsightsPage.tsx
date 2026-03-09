@@ -14,7 +14,7 @@ export function CompetitorInsightsPage() {
           <h1 className="text-3xl font-black text-text-main">Market Insights</h1>
           <p className="text-sm text-text-muted mt-1">Compare your pricing against local competitors in your region</p>
         </div>
-        <div className="flex items-center gap-2 bg-bg-surface border border-border-primary rounded-xl px-4 py-2 shadow-sm focus-within:border-primary transition-all">
+        <div className="flex items-center gap-2 bg-bg-surface border border-border-primary rounded-xl px-4 py-2 shadow-card focus-within:border-primary transition-all">
           <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '20px' }}>search</span>
           <input placeholder="Search your products..." className="bg-transparent border-none outline-none text-sm font-medium w-48 text-text-main placeholder:text-text-muted" />
         </div>
@@ -23,7 +23,7 @@ export function CompetitorInsightsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         
         {/* Insight Card 1 */}
-        <div className="bg-bg-surface border border-border-soft rounded-2xl p-7 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+        <div className="bg-bg-surface border border-border-soft rounded-2xl p-7 shadow-card flex flex-col gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-green-500 rounded-full opacity-10 blur-3xl translate-x-1/2 -translate-y-1/2" />
           <div className="flex items-start justify-between">
             <div>
@@ -67,7 +67,7 @@ export function CompetitorInsightsPage() {
         </div>
 
         {/* Insight Card 2 */}
-        <div className="bg-bg-surface border border-border-soft rounded-2xl p-7 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+        <div className="bg-bg-surface border border-border-soft rounded-2xl p-7 shadow-card flex flex-col gap-6 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-500 rounded-full opacity-10 blur-3xl translate-x-1/2 -translate-y-1/2" />
           <div className="flex items-start justify-between">
             <div>

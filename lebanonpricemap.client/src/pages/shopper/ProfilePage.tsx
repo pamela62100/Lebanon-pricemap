@@ -19,159 +19,208 @@ export function ProfilePage() {
   if (!user) return null;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto flex flex-col gap-6 p-6">
-
-      {/* Profile Header */}
-      <div className="bg-bg-surface border border-border-soft rounded-2xl p-8 flex flex-col md:flex-row items-center md:items-start gap-8">
-        <div className="relative">
-          <div className="w-24 h-24 bg-primary rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-lg">
-            {user.avatarInitials}
+    <div className="max-w-7xl mx-auto px-5 py-12 md:py-20 animate-page">
+      <div className="flex flex-col gap-12">
+        
+        {/* Profile Identity (Dark Hero) */}
+        <header className="card-dark p-8 md:p-12 flex flex-col md:flex-row items-center md:items-start gap-10 relative overflow-hidden">
+          {/* Abstract Wave Background (SVG) */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none">
+            <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <path d="M0 100 C 20 0 50 0 100 100 Z" fill="currentColor" />
+            </svg>
           </div>
-          <button
-            onClick={() => open('edit-profile')}
-            className="absolute -bottom-2 -right-2 w-9 h-9 bg-bg-surface border border-border-soft rounded-xl flex items-center justify-center text-text-muted hover:text-primary hover:border-primary transition-all shadow-sm"
-          >
-            <span className="material-symbols-outlined text-[18px]">edit</span>
-          </button>
-        </div>
 
-        <div className="flex-1 text-center md:text-left">
-          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3">
-            <div>
-              <p className="text-[11px] font-bold text-primary uppercase tracking-wider mb-1">Your Profile</p>
-              <h1 className="text-3xl font-black text-text-main">{user.name}</h1>
+          <div className="relative z-10">
+            <div className="w-24 h-24 md:w-32 md:h-32 bg-white text-text-main rounded-[2rem] flex items-center justify-center text-3xl md:text-4xl font-bold shadow-2xl">
+              {user.avatarInitials}
             </div>
-            <TrustBadge score={user.trustScore} size="lg" className="bg-bg-base border border-border-soft px-5 py-2.5 rounded-xl" />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-6 text-sm text-text-muted font-medium">
-            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px] text-primary">alternate_email</span>{user.email}</span>
-            <span className="w-1 h-1 rounded-full bg-border-soft" />
-            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px] text-primary">location_on</span>{user.city}</span>
-            <span className="w-1 h-1 rounded-full bg-border-soft" />
-            <span className="flex items-center gap-1.5"><span className="material-symbols-outlined text-[16px] text-primary">calendar_today</span>Joined {new Date(user.joinedAt).getFullYear()}</span>
-          </div>
-
-          <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-            <div className="bg-bg-base border border-border-soft rounded-xl p-4 min-w-[140px]">
-              <p className="text-2xl font-black text-text-main">{user.uploadCount}</p>
-              <p className="text-[11px] font-bold text-text-muted uppercase tracking-wider mt-1">Submissions</p>
-            </div>
-            <div className="bg-bg-base border border-primary/20 rounded-xl p-4 min-w-[140px]">
-              <p className="text-2xl font-black text-primary">{user.verifiedCount}</p>
-              <p className="text-[11px] font-bold text-primary/70 uppercase tracking-wider mt-1">Verified</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Monitored Products */}
-        <div className="lg:col-span-2 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-border-soft pb-3">
-            <h2 className="text-sm font-black text-text-main uppercase tracking-wider flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]">data_thresholding</span>
-              Monitored Products
-            </h2>
-            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Live</span>
-          </div>
-          <div className="bg-bg-surface border border-border-soft rounded-xl overflow-hidden">
-            {MOCK_PRODUCTS.slice(0, 5).map(product => (
-              <div key={product.id} className="flex flex-col p-4 border-b border-border-soft last:border-0 hover:bg-bg-base transition-all cursor-pointer group">
-                <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">{product.name}</p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[11px] text-text-muted flex items-center gap-1">
-                    <span className="material-symbols-outlined text-[13px]">sensors</span> Monitoring
-                  </span>
-                  <span className="text-sm font-black text-text-main">LBP {(Math.random() * 50000 + 40000).toFixed(0)}</span>
-                </div>
-              </div>
-            ))}
-            <button className="w-full text-center text-[11px] font-bold text-primary py-3 hover:bg-bg-base transition-all uppercase tracking-wider border-t border-border-soft">
-              View All
+            <button
+              onClick={() => open('edit-profile')}
+              className="absolute -bottom-1 -right-1 w-10 h-10 bg-white text-text-main rounded-xl flex items-center justify-center shadow-xl hover:scale-110 transition-all border-[3px] border-text-main"
+            >
+              <span className="material-symbols-outlined text-lg">edit_square</span>
             </button>
           </div>
+
+          <div className="flex-1 text-center md:text-left relative z-10 flex flex-col">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+               <div>
+                 <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em] mb-3">Account_Protocol</p>
+                 <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tighter leading-none">{user.name}</h1>
+               </div>
+               <div className="px-5 py-2.5 bg-white/10 rounded-xl border border-white/10 backdrop-blur-xl">
+                  <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest mb-0.5">Trust_Score</p>
+                  <div className="flex items-baseline gap-2">
+                     <span className="text-2xl font-bold text-white font-data">{user.trustScore}</span>
+                     <span className="text-[9px] font-bold text-green-400 uppercase">Verified</span>
+                  </div>
+               </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 text-[10px] font-bold text-white/60 uppercase tracking-widest">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-white/40">mail</span>
+                {user.email}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-white/40">location_on</span>
+                {user.city}
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base text-white/40">schedule</span>
+                Active_Since_{new Date(user.joinedAt).getFullYear()}
+              </span>
+            </div>
+          </div>
+        </header>
+
+        {/* Analytics Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+           <div className="card p-6 md:p-8 group hover:bg-text-main hover:text-white transition-all duration-500">
+              <p className="text-[9px] font-bold text-text-muted group-hover:text-white/40 uppercase tracking-widest mb-1.5">Total_Reports</p>
+              <div className="flex items-baseline gap-2">
+                 <span className="text-3xl font-bold font-data tracking-tighter">{user.uploadCount}</span>
+                 <span className="text-[9px] font-bold opacity-40 uppercase">Units</span>
+              </div>
+           </div>
+           <div className="card p-6 md:p-8 border-green-500/20 bg-green-500/5 group hover:bg-green-500 hover:text-white transition-all duration-500">
+              <p className="text-[9px] font-bold text-green-600 group-hover:text-white/40 uppercase tracking-widest mb-1.5">Verified_Intel</p>
+              <div className="flex items-baseline gap-2">
+                 <span className="text-3xl font-bold font-data tracking-tighter text-green-600 group-hover:text-white">{user.verifiedCount}</span>
+                 <span className="text-[9px] font-bold opacity-40 uppercase">Hits</span>
+              </div>
+           </div>
+           <div className="card p-6 md:p-8 lg:col-span-2 flex items-center justify-between">
+              <div>
+                <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mb-1.5">Community_Impact</p>
+                <p className="text-lg font-bold text-text-main tracking-tight">Tier_Gold Shopper</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                <span className="material-symbols-outlined text-xl">workspace_premium</span>
+              </div>
+           </div>
         </div>
 
-        {/* Submission History */}
-        <div className="lg:col-span-3 flex flex-col gap-4">
-          <div className="flex items-center justify-between border-b border-border-soft pb-3">
-            <h2 className="text-sm font-black text-text-main uppercase tracking-wider flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary text-[18px]">history</span>
-              Submission History
-            </h2>
-          </div>
-          <div className="bg-bg-surface border border-border-soft rounded-xl overflow-hidden">
-            <table className="w-full text-left">
-              <thead className="bg-bg-base border-b border-border-soft">
-                <tr>
-                  <th className="py-3 px-5 text-[10px] font-black text-text-muted uppercase tracking-wider">Product</th>
-                  <th className="py-3 px-5 text-[10px] font-black text-text-muted uppercase tracking-wider">Price</th>
-                  <th className="py-3 px-5 text-[10px] font-black text-text-muted uppercase tracking-wider">Date</th>
-                  <th className="py-3 px-5 text-[10px] font-black text-text-muted uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-soft">
-                {myEntries.slice(0, 8).map(entry => (
-                  <tr key={entry.id} className="hover:bg-bg-base transition-colors group">
-                    <td className="py-4 px-5">
-                      <p className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">{entry.product?.name}</p>
-                      <p className="text-[11px] text-text-muted mt-0.5">{entry.store?.name}</p>
-                    </td>
-                    <td className="py-4 px-5 text-sm font-black text-text-main">{formatLBP(entry.priceLbp)}</td>
-                    <td className="py-4 px-5 text-[11px] text-text-sub">{new Date(entry.createdAt).toLocaleDateString()}</td>
-                    <td className="py-4 px-5"><StatusBadge status={entry.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {myEntries.length === 0 && (
-              <div className="p-12 text-center text-sm text-text-muted">No submissions yet</div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+          {/* Recent Transmission History */}
+          <section className="lg:col-span-8 space-y-6">
+             <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-bold text-text-main tracking-tighter">Transmission History.</h2>
+                <div className="px-2.5 py-1 bg-text-main text-white rounded-full text-[8px] font-bold uppercase tracking-widest">
+                   {myEntries.length} Signals
+                </div>
+             </div>
+             
+             <div className="card overflow-hidden">
+                <div className="overflow-x-auto">
+                   <table className="w-full text-left">
+                      <thead>
+                        <tr className="bg-bg-muted/30">
+                          <th className="py-5 px-8 text-[10px] font-bold text-text-muted uppercase tracking-widest">Target_Signal</th>
+                          <th className="py-5 px-8 text-[10px] font-bold text-text-muted uppercase tracking-widest">Value_LBP</th>
+                          <th className="py-5 px-8 text-[10px] font-bold text-text-muted uppercase tracking-widest text-center">Protocol_Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border-soft/40">
+                         {myEntries.slice(0, 10).map(entry => (
+                           <tr key={entry.id} className="group hover:bg-bg-muted/10 transition-colors">
+                             <td className="py-6 px-8 flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-xl bg-bg-muted flex items-center justify-center text-text-muted group-hover:bg-text-main group-hover:text-white transition-colors">
+                                   <span className="material-symbols-outlined text-lg">inventory_2</span>
+                                </div>
+                                <div className="min-w-0">
+                                   <p className="font-bold text-text-main group-hover:text-text-main truncate transition-colors">{entry.product?.name}</p>
+                                   <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1 opacity-40 truncate">{entry.store?.name}</p>
+                                </div>
+                             </td>
+                             <td className="py-6 px-8">
+                                <p className="text-lg font-bold text-text-main font-data tracking-tighter">
+                                   {entry.priceLbp.toLocaleString()}
+                                </p>
+                             </td>
+                             <td className="py-6 px-8 text-center">
+                                <StatusBadge status={entry.status} />
+                             </td>
+                           </tr>
+                         ))}
+                      </tbody>
+                   </table>
+                </div>
+                {myEntries.length === 0 && (
+                  <div className="p-20 flex flex-col items-center text-center">
+                     <span className="material-symbols-outlined text-5xl text-text-muted/10 mb-6">sensors_off</span>
+                     <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-2">Zero_Transmission_History</p>
+                     <p className="text-sm font-medium text-text-muted opacity-40 max-w-xs leading-relaxed">
+                        Start reporting prices at retail nodes to build your market transparency profile.
+                     </p>
+                  </div>
+                )}
+             </div>
+          </section>
+
+          {/* Side Intelligence */}
+          <aside className="lg:col-span-4 space-y-12">
+             <div className="space-y-6">
+                <h3 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Signal_Thresholds</h3>
+                <div className="space-y-3">
+                   {MOCK_PRODUCTS.slice(0, 4).map(product => (
+                     <div key={product.id} className="p-4 rounded-2xl bg-white border border-border-soft flex items-center justify-between hover:border-text-main/20 transition-all cursor-pointer group shadow-sm">
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-bold text-text-main truncate group-hover:text-text-main">{product.name}</p>
+                           <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1 opacity-60">Status: Active</p>
+                        </div>
+                        <span className="material-symbols-outlined text-lg text-text-muted opacity-20 group-hover:opacity-100 transition-opacity">arrow_forward_ios</span>
+                     </div>
+                   ))}
+                </div>
+             </div>
+
+             <div className="p-8 rounded-[2rem] bg-red-500/5 border border-red-500/10 space-y-6">
+                <h3 className="text-[10px] font-bold text-red-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                   <span className="material-symbols-outlined text-lg">warning</span>
+                   Emergency_Protocols
+                </h3>
+                <div className="space-y-4">
+                  <button onClick={() => open('delete-submissions')} className="w-full h-12 rounded-xl border border-red-500/20 text-red-600 text-[10px] font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+                    Terminal_Purge [Submissions]
+                  </button>
+                  <button onClick={() => open('delete-account')} className="w-full h-12 rounded-xl bg-red-500 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-red-600 transition-all shadow-lg shadow-red-500/20">
+                    Account_Decommission
+                  </button>
+                </div>
+             </div>
+          </aside>
         </div>
       </div>
 
-      {/* Danger Zone */}
-      <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-        <h2 className="text-sm font-black text-red-600 flex items-center gap-2 mb-4 uppercase tracking-wider">
-          <span className="material-symbols-outlined text-[18px]">warning</span>
-          Danger Zone
-        </h2>
-        <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => open('delete-submissions')}
-            className="h-11 px-6 rounded-xl border border-red-300 text-red-600 font-bold text-sm hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[18px]">delete_sweep</span>
-            Delete All Submissions
-          </button>
-          <button
-            onClick={() => open('delete-account')}
-            className="h-11 px-6 rounded-xl bg-red-600/10 border border-red-400 text-red-600 font-bold text-sm hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
-          >
-            <span className="material-symbols-outlined text-[18px]">person_remove</span>
-            Delete Account
-          </button>
-        </div>
-      </div>
-
-      <RouteDialog dialogId="edit-profile" title="Edit Profile" description="Update your display name and city.">
-        <div className="flex flex-col gap-4">
-          <div>
-            <label className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">Display Name</label>
-            <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm text-text-main focus:border-primary focus:outline-none" />
+      {/* Dialogs */}
+      <RouteDialog dialogId="edit-profile" title="Update_Identity_Protocol" description="Modifier your system display credentials and geographic primary node.">
+        <div className="space-y-8 py-4">
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Coded_Identifier</p>
+            <input 
+               value={editName} 
+               onChange={e => setEditName(e.target.value)} 
+               className="w-full h-14 bg-bg-muted border-none rounded-2xl px-5 text-sm font-bold focus:ring-2 focus:ring-text-main/10 transition-all" 
+            />
           </div>
-          <div>
-            <label className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">City</label>
-            <input value={editCity} onChange={e => setEditCity(e.target.value)} className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm text-text-main focus:border-primary focus:outline-none" />
+          <div className="space-y-3">
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">Primary_District_Node</p>
+            <input 
+               value={editCity} 
+               onChange={e => setEditCity(e.target.value)} 
+               className="w-full h-14 bg-bg-muted border-none rounded-2xl px-5 text-sm font-bold focus:ring-2 focus:ring-text-main/10 transition-all" 
+            />
           </div>
-          <button className="h-10 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-all mt-2">Save Changes</button>
+          <button className="btn-primary w-full h-14 rounded-2xl shadow-xl shadow-text-main/10 mt-4">
+            Commit Identity Update
+          </button>
         </div>
       </RouteDialog>
 
-      <ConfirmDialog dialogId="delete-submissions" title="Delete All Submissions" description={`This will permanently remove all ${myEntries.length} of your price submissions.`} confirmLabel="Delete All" variant="danger" permission="bulk:delete" approvalLabel="Bulk delete all my price submissions" approvalPayload={{ scope: 'all_submissions', userId: user.id }} onConfirm={() => {}} />
-      <ConfirmDialog dialogId="delete-account" title="Delete Account" description="Your account and all data will be permanently removed." confirmLabel="Delete My Account" variant="danger" permission="account:delete" approvalLabel="Delete my account" approvalPayload={{ userId: user.id, reason: 'User initiated' }} onConfirm={() => {}} />
-    </motion.div>
+      <ConfirmDialog dialogId="delete-submissions" title="Purge Submissions" description={`Strategic operation: Permanently remove ${myEntries.length} signal transmissions? This action is irreversible.`} confirmLabel="Execute Purge" variant="danger" permission="bulk:delete" approvalLabel="Authorize total submission wipe" approvalPayload={{ scope: 'all_submissions', userId: user.id }} onConfirm={() => {}} />
+      <ConfirmDialog dialogId="delete-account" title="Decommission Account" description="Terminal sequence initiated: Purge all credentials and data nodes?" confirmLabel="Confirm Decommission" variant="danger" permission="account:delete" approvalLabel="Authorize account termination" approvalPayload={{ userId: user.id, reason: 'User initiated' }} onConfirm={() => {}} />
+    </div>
   );
 }

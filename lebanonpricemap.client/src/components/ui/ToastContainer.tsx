@@ -17,7 +17,7 @@ export function ToastContainer() {
             exit={{ y: 16, opacity: 0 }}
             onClick={() => removeToast(toast.id)}
             className={cn(
-              'flex items-center gap-3 px-5 py-3 rounded-full text-sm font-semibold shadow-md cursor-pointer whitespace-nowrap',
+              'flex items-center gap-3 px-5 py-3 rounded-full text-sm font-semibold  cursor-pointer whitespace-nowrap',
               toast.type === 'success' && 'bg-green-600 text-white',
               toast.type === 'error' && 'bg-red-600 text-white',
               toast.type === 'warning' && 'bg-yellow-600 text-white',

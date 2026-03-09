@@ -19,7 +19,7 @@ export function MyRequestsPage() {
   const myRequests = requests.filter(r => r.requestedBy === user?.id);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-10">
+    <div className="max-w-2xl mx-auto px-6 py-8 md:px-10 md:py-10 animate-page">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-text-main mb-1">My Requests</h1>
         <p className="text-sm text-text-muted">

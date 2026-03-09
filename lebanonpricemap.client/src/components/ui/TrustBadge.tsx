@@ -12,7 +12,7 @@ export function TrustBadge({ score, size = 'sm', className }: TrustBadgeProps) {
       <span
         className={cn(
           'inline-flex items-center gap-1 px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest',
-          'bg-blue-50 border-blue-200 text-blue-700 shadow-sm',
+          'bg-blue-50 border-blue-200 text-blue-700 shadow-card',
           className
         )}
       >
@@ -34,7 +34,7 @@ export function TrustBadge({ score, size = 'sm', className }: TrustBadgeProps) {
   const circumference = 2 * Math.PI * 40;
   const offset = circumference - (score / 100) * circumference;
   return (
-    <div className={cn('relative inline-flex items-center justify-center p-2 border bg-bg-base shadow-sm', className)}>
+    <div className={cn('relative inline-flex items-center justify-center p-2 border bg-bg-base shadow-card', className)}>
       <svg width="96" height="96" viewBox="0 0 96 96" className="rotate-[-90deg]">
         <circle cx="48" cy="48" r="40" fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
         <circle

@@ -30,6 +30,8 @@ import { PriceDetailPage }    from '@/pages/shopper/PriceDetailPage';
 import { AlertsPage }         from '@/pages/shopper/AlertsPage';
 import { NotificationsPage }  from '@/pages/shopper/NotificationsPage';
 import { MyRequestsPage }     from '@/pages/shopper/MyRequestsPage';
+import { RetailerCatalogPage } from '@/pages/shopper/RetailerCatalogPage';
+import { RetailerCatalogDetailPage } from '@/pages/shopper/RetailerCatalogDetailPage';
 
 // Retailer pages
 import { StoreDashboardPage }     from '@/pages/retailer/StoreDashboardPage';
@@ -76,20 +78,23 @@ export function AppRouter() {
       <Route path="/store/:id"   element={<StorePublicPage />} />
 
       {/* ── Shopper stack ──────────────────────────────────────── */}
-      {/* ── Shopper stack ──────────────────────────────────────── */}
-<Route path="/app" element={<DesktopLayout />}>
-  <Route index                element={<SearchPage />} />
-  <Route path="cart"          element={<CartPage />} />
-  <Route path="cart/optimize" element={<CartOptimizePage />} />
-  <Route path="scan"          element={<BarcodeScannerPage />} />
-  <Route path="fuel"          element={<FuelTrackerPage />} />
-  <Route path="profile"       element={<ProfilePage />} />
-  <Route path="upload"        element={<UploadReceiptPage />} />
-  <Route path="price/:id"     element={<PriceDetailPage />} />
-  <Route path="alerts"        element={<AlertsPage />} />
-  <Route path="notifications" element={<NotificationsPage />} />
-  <Route path="requests"      element={<MyRequestsPage />} />
-</Route>
+      <Route element={<RequireAuth />}>
+        <Route path="/app" element={<DesktopLayout />}>
+          <Route index                element={<SearchPage />} />
+          <Route path="cart"          element={<CartPage />} />
+          <Route path="cart/optimize" element={<CartOptimizePage />} />
+          <Route path="scan"          element={<BarcodeScannerPage />} />
+          <Route path="fuel"          element={<FuelTrackerPage />} />
+          <Route path="profile"       element={<ProfilePage />} />
+          <Route path="upload"        element={<UploadReceiptPage />} />
+          <Route path="price/:id"     element={<PriceDetailPage />} />
+          <Route path="alerts"        element={<AlertsPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="requests"      element={<MyRequestsPage />} />
+          <Route path="catalog"       element={<RetailerCatalogPage />} />
+          <Route path="catalog/:storeId" element={<RetailerCatalogDetailPage />} />
+        </Route>
+      </Route>
 
       {/* ── Retailer stack ─────────────────────────────────────── */}
       <Route element={<ProtectedRoute allowedRoles={['retailer', 'admin']} />}>

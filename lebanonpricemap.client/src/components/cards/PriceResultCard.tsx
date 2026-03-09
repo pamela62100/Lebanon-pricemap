@@ -1,16 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import type { PriceEntry } from '@/types';
 import { formatLBP, timeAgo, cn } from '@/lib/utils';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
 import { useCartStore } from '@/store/useCartStore';
-import { useLocationStore } from '@/store/useLocationStore';
 import { useToastStore } from '@/store/useToastStore';
-import { useRouteDialog } from '@/hooks/useRouteDialog';
-import { distanceKm, formatDistance } from '@/lib/distanceUtils';
-import { Card } from './Card';
-
 
 interface PriceResultCardProps {
   entry: PriceEntry;
@@ -20,138 +14,105 @@ interface PriceResultCardProps {
 const PriceResultCardBase = ({ entry, index }: PriceResultCardProps) => {
   const navigate = useNavigate();
   const { rateLbpPerUsd } = useExchangeRateStore();
-  const { lat, lng } = useLocationStore();
   const addItem = useCartStore(s => s.addItem);
   const addToast = useToastStore(s => s.addToast);
-  const { open } = useRouteDialog();
 
   const usdPrice = (entry.priceLbp / rateLbpPerUsd).toFixed(2);
-  const storeRate = entry.store?.internalRateLbp ?? rateLbpPerUsd;
-  const rateDiff = storeRate - rateLbpPerUsd;
-  const isRateFair = Math.abs(rateDiff) < 500;
-
-  const showsFridge = entry.product?.category === 'Dairy' || entry.product?.category === 'Meat';
-  const powerStatus = entry.store?.powerStatus ?? 'stable';
-
-  const distance = lat && lng && entry.store?.latitude && entry.store?.longitude
-    ? distanceKm(lat, lng, entry.store.latitude, entry.store.longitude)
-    : null;
+  const isHero = index === 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
     addItem(entry.productId);
-    addToast(`${entry.product?.name ?? 'Item'} added ✓`, 'success');
+    addToast(`${entry.product?.name ?? 'Item'} added to dossier ✓`, 'success');
   };
 
-  const storeInitials = entry.store?.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'ST';
+  const storeInitials = entry.store?.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'SN';
+
+  if (isHero) {
+    return (
+      <div 
+        className="card-dark p-8 cursor-pointer group relative overflow-hidden transition-all duration-500 hover:scale-[1.01]" 
+        onClick={() => navigate(`/app/price/${entry.id}`)}
+      >
+        <div className="absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-br from-primary/20 to-transparent" />
+        
+        <div className="relative z-10 flex items-start justify-between mb-8">
+          <div>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">
+              Best_Market_Entry // {entry.product?.category}
+            </p>
+            <h3 className="text-3xl font-bold text-white tracking-tighter leading-none mb-2 group-hover:text-primary transition-colors">
+              {entry.store?.name}
+            </h3>
+            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{entry.store?.district}</p>
+          </div>
+          {entry.source === 'official' && (
+            <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/10 shadow-2xl flex items-center gap-2">
+              <span className="material-symbols-outlined text-white text-sm">verified</span>
+              <span className="text-[9px] font-bold text-white uppercase tracking-widest">Verified_Source</span>
+            </div>
+          )}
+        </div>
+
+        <div className="relative z-10 flex flex-col gap-1">
+          <div className="flex items-baseline gap-3">
+            <span className="font-data text-6xl text-white tracking-tighter leading-none">
+              {entry.priceLbp.toLocaleString()}
+            </span>
+            <span className="text-xl font-bold text-white/40 uppercase tracking-widest">LBP</span>
+          </div>
+          <p className="text-lg font-bold text-white/30 font-data tracking-tight">≈ ${usdPrice}</p>
+        </div>
+
+        <div className="relative z-10 flex items-center justify-between mt-12 pt-8 border-t border-white/5">
+          <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">
+            Broadcasted // {timeAgo(entry.createdAt)}
+          </p>
+          <button 
+            className="w-14 h-14 rounded-2xl bg-white text-text-main flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-2xl"
+            onClick={handleAddToCart}
+          >
+             <span className="material-symbols-outlined text-2xl">add_shopping_cart</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+    <div 
+      className="card p-6 cursor-pointer group hover:bg-bg-muted/50 transition-all duration-300" 
       onClick={() => navigate(`/app/price/${entry.id}`)}
     >
-      <Card className="relative group cursor-pointer p-2">
-        {/* Left Avatar + Verified */}
-        <div className="flex gap-8">
-          <div className="flex flex-col items-center gap-3 shrink-0">
-            <div className={cn(
-              "w-14 h-14 rounded-full border border-border-primary/10 flex items-center justify-center font-serif font-black text-sm italic text-primary transition-all group-hover:bg-primary group-hover:text-white"
-            )}>
-              {storeInitials}
-            </div>
-            {entry.status === 'verified' && (
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
-                Verified
-              </span>
-            )}
+      <div className="flex items-center justify-between gap-6">
+        <div className="flex items-center gap-6">
+          <div className="w-14 h-14 rounded-2xl bg-bg-muted flex items-center justify-center text-xs font-bold text-text-muted transition-all group-hover:bg-text-main group-hover:text-white group-hover:rotate-12">
+            {storeInitials}
           </div>
-
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-sans text-xl font-black text-text-main truncate leading-tight">
-  {entry.store?.name}
-</h3>
-              <div className="text-right shrink-0 ml-4">
-                <p className="text-2xl font-black text-primary leading-none tabular-nums">
-  {entry.priceLbp.toLocaleString()}
-</p>
-                <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.3em] mt-1">
-                  LBP
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4 text-[10px] font-bold text-text-sub uppercase tracking-widest mb-4">
-              <span>{entry.store?.district}</span>
-              <span className="w-1 h-1 rounded-full bg-border-primary" />
-              <span className="text-primary">{entry.product?.category}</span>
-            </div>
-
-            <div className="flex items-center gap-3 text-[9px] font-bold text-text-muted uppercase tracking-tighter">
-              <span className="material-symbols-outlined text-[14px]">history</span>
-              Captured {timeAgo(entry.createdAt)}
-              {distance && (
-                <>
-                  <span className="w-1 h-1 rounded-full bg-border-primary/40" />
-                  <span className="text-primary/70">{formatDistance(distance)} offset</span>
-                </>
+          <div>
+            <div className="flex items-center gap-3">
+              <p className="text-lg font-bold text-text-main tracking-tight group-hover:text-primary transition-colors">{entry.store?.name}</p>
+              {entry.source === 'official' && (
+                 <span className="material-symbols-outlined text-text-muted text-base">verified</span>
               )}
             </div>
-
-            {/* Metadata strip */}
-            {(showsFridge || !isRateFair) && (
-              <div className="mt-3 pt-3 border-t border-border-soft flex flex-wrap gap-2">
-                {showsFridge && (
-                  <div className={cn(
-                    "px-3 py-1 text-[9px] font-black uppercase tracking-widest border rounded-md",
-                    powerStatus === 'stable'
-                      ? "text-status-verified-text border-status-verified-text/20 bg-status-verified-text/5"
-                      : "text-status-flagged-text border-status-flagged-text/20 bg-status-flagged-text/5"
-                  )}>
-                    {powerStatus === 'stable'
-                      ? 'Cold Chain Protocol: Stable'
-                      : 'Cold Chain Protocol: Compromised'}
-                  </div>
-                )}
-                {!isRateFair && (
-                  <div className="px-3 py-1 text-[9px] font-black text-primary uppercase tracking-widest border border-primary/20 bg-primary/5 rounded-md">
-                    Warning: Higher Internal Store Rate
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Interactive Overlay */}
-            <div className="mt-8 pt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-              <div className="flex gap-4">
-                <button
-                  onClick={(e) => { e.stopPropagation(); open('report-price', { id: entry.id }); }}
-                  className="text-[9px] font-black underline underline-offset-4 text-text-muted hover:text-red-600 transition-colors uppercase tracking-[0.2em]"
-                >
-                  FLAG_INACCURACY
-                </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); open('report-reality', { storeId: entry.storeId, type: 'market' }); }}
-                  className="text-[9px] font-black underline underline-offset-4 text-text-muted hover:text-primary transition-colors uppercase tracking-[0.2em]"
-                >
-                  REFINE_LOCATION_DATA
-                </button>
-              </div>
-
-              <button
-                onClick={handleAddToCart}
-                className="h-11 px-8 bg-primary text-white text-[10px] font-bold uppercase tracking-[0.25em] hover:bg-black transition-all shadow-lg rounded-md"
-              >
-                Add to Collection
-              </button>
-            </div>
+            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1 opacity-50">
+              {entry.store?.district} · {timeAgo(entry.createdAt)}
+            </p>
           </div>
         </div>
-      </Card>
-    </motion.div>
+        
+        <div className="text-right">
+          <div className="flex items-baseline gap-2 justify-end">
+            <span className="font-data text-3xl text-text-main font-bold tracking-tighter">
+              {entry.priceLbp.toLocaleString()}
+            </span>
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">LBP</span>
+          </div>
+          <p className="text-sm font-bold text-text-muted font-data opacity-40">≈ ${usdPrice}</p>
+        </div>
+      </div>
+    </div>
   );
 };
 

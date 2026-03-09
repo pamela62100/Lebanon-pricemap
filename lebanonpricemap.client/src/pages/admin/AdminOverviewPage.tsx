@@ -61,7 +61,7 @@ export function AdminOverviewPage() {
             <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '20px' }}>admin_panel_settings</span>
           </div>
           <div className="flex-1">
-            <p className="font-bold text-amber-600 dark:text-amber-400 text-sm">
+            <p className="font-bold text-amber-600 text-sm">
               {pendingApprovals} approval request{pendingApprovals > 1 ? 's' : ''} awaiting review
             </p>
             <p className="text-xs text-amber-500/70 mt-0.5">Click to open the Approval Queue →</p>
@@ -73,7 +73,7 @@ export function AdminOverviewPage() {
       {/* Two column: Live Feed + Recent Flags */}
       <div className="grid grid-cols-3 gap-8 mb-8">
         {/* Live Activity Feed */}
-        <div className="col-span-2 bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-sm">
+        <div className="col-span-2 bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-card">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
@@ -113,7 +113,7 @@ export function AdminOverviewPage() {
         {/* Action Widgets */}
         <div className="flex flex-col gap-6">
           {/* Moderation Queue widget */}
-          <div className="bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-sm">
+          <div className="bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-card">
             <h3 className="font-bold text-text-main mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined text-primary">fact_check</span>
               Moderation Queue
@@ -133,7 +133,7 @@ export function AdminOverviewPage() {
           </div>
 
           {/* Anomaly widget */}
-          <div className="bg-amber-400/5 border border-amber-400/20 rounded-3xl p-6 shadow-sm">
+          <div className="bg-amber-400/5 border border-amber-400/20 rounded-3xl p-6 shadow-card">
             <h3 className="font-bold text-amber-500 mb-4 flex items-center gap-2">
               <span className="material-symbols-outlined">warning</span>
               Price Anomalies

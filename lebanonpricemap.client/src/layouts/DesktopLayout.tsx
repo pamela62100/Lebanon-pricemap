@@ -2,14 +2,16 @@ import { Outlet } from 'react-router-dom';
 import { TopNavbar } from '@/components/ui/TopNavbar';
 import { ExchangeRateBanner } from '@/components/ui/ExchangeRateBanner';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { GlobalEssentialsTicker } from '@/components/ui/GlobalEssentialsTicker';
 
 export function DesktopLayout() {
   return (
-    <div className="min-h-dvh bg-bg-base flex flex-col blueprint-grid">
+    <div className="min-h-dvh bg-bg-base flex flex-col">
       <ExchangeRateBanner />
       <OfflineBanner />
       <TopNavbar />
-      <main className="flex-1 w-full bg-bg-base/50 overflow-x-hidden relative z-10">
+      <GlobalEssentialsTicker />
+      <main className="flex-1 w-full overflow-x-hidden">
         <Outlet />
       </main>
     </div>

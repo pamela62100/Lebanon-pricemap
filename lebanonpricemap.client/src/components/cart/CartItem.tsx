@@ -71,7 +71,7 @@ export function AddProductInput({ onAdd, existing }: AddProductInputProps) {
         />
       </div>
       {open && products.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-bg-surface rounded-xl border border-border-soft shadow-lg z-20 max-h-48 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-bg-surface rounded-xl border border-border-soft shadow-card z-20 max-h-48 overflow-y-auto">
           {products.map(p => (
             <button
               key={p.id}

@@ -28,24 +28,27 @@ export function LBPInput({ value, onChange, placeholder = '0', error, className,
   return (
     <div className={cn('flex flex-col gap-3', className)}>
       <div className={cn(
-        'flex items-center gap-4 bg-bg-surface border px-8 py-6 transition-all',
+        'relative group bg-bg-base border border-border-primary px-6 py-4 rounded-md shadow-card transition-all',
         error 
-          ? 'border-red-600 shadow-[4px_4px_0px_rgba(220,38,38,0.2)]' 
-          : 'border-text-main focus-within:shadow-[6px_6px_0px_#0066FF] focus-within:border-primary'
+          ? 'border-status-flagged ring-4 ring-status-flagged/5' 
+          : 'focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/5'
       )}>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={displayValue}
-          onChange={handleChange}
-          placeholder={placeholder}
-          autoFocus={autoFocus}
-          className="flex-1 bg-transparent border-none outline-none font-serif text-5xl font-black text-text-main text-center placeholder:text-border-soft"
-          aria-label="Price in Lebanese Pounds"
-        />
-        <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em] border-l border-border-soft pl-6 py-2">LBP</span>
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            inputMode="numeric"
+            value={displayValue}
+            onChange={handleChange}
+            placeholder={placeholder}
+            autoFocus={autoFocus}
+            className="flex-1 bg-transparent border-none outline-none font-data text-3xl font-black text-text-main text-center placeholder:text-text-muted/20"
+            aria-label="Price in Lebanese Pounds"
+          />
+          <div className="h-8 w-px bg-border-primary" />
+          <span className="text-[10px] font-data font-black text-primary uppercase tracking-[0.2em] whitespace-nowrap">LBP_Fixed</span>
+        </div>
       </div>
-      {error && <p className="text-[10px] font-bold text-red-600 uppercase tracking-widest mt-1">ERROR_CODE // {error}</p>}
+      {error && <p className="text-[9px] font-data font-black text-status-flagged uppercase tracking-widest mt-2 px-1">Critical_Error // {error}</p>}
     </div>
   );
 }
