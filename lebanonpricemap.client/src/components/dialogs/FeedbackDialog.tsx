@@ -8,58 +8,71 @@ interface FeedbackDialogProps {
 }
 
 export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProps) {
-  const [note, setNote] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
 
   const handleSubmit = () => {
-    if (note.trim()) {
-      onSubmit(note.trim());
-      setNote('');
-      onClose();
-    }
+    const trimmedMessage = feedbackMessage.trim();
+    if (!trimmedMessage) return;
+
+    onSubmit(trimmedMessage);
+    setFeedbackMessage('');
+    onClose();
   };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-[#0A1128]/70 backdrop-blur-md z-40" onClick={onClose} />
           <motion.div
-            initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }}
-            className="fixed inset-0 m-auto z-50 bg-bg-surface border border-text-main shadow-[12px_12px_0px_rgba(0,102,255,0.3)] max-w-lg w-full max-h-[90dvh] flex flex-col overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/45 backdrop-blur-sm z-40"
+            onClick={onClose}
+          />
+
+          <motion.div
+            initial={{ y: 24, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 24, opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
           >
-            {/* Scrollable Body */}
-            <div className="flex-1 overflow-y-auto p-8 pt-10">
-              <div className="mb-8 border-b border-border-soft pb-6">
-                <span className="text-primary font-bold text-[10px] tracking-[0.4em] uppercase mb-4 block">COMMUNITY_PULSE // FEEDBACK_LOG</span>
-                <h2 className="text-2xl font-serif font-black text-text-main uppercase tracking-tight">System Feedback</h2>
-                <p className="text-[10px] font-bold text-text-muted mt-1 uppercase tracking-widest">Share logistical structural updates</p>
+            <div className="w-full max-w-lg rounded-3xl bg-bg-surface border border-border-primary shadow-glass overflow-hidden">
+              <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border-soft">
+                <p className="text-[11px] font-black text-primary uppercase tracking-[0.25em] mb-2">
+                  WenArkhass Feedback
+                </p>
+                <h2 className="text-2xl font-black text-text-main">Share your feedback</h2>
+                <p className="text-sm text-text-muted mt-1">
+                  Tell us what is working, what feels confusing, or what we should improve.
+                </p>
               </div>
 
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="INITIALIZING_INPUT_BUFFER..."
-                rows={4}
-                className="w-full p-4 border border-border-soft bg-bg-base text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-primary transition-all font-mono"
-              />
-            </div>
+              <div className="p-5 sm:p-6">
+                <textarea
+                  value={feedbackMessage}
+                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                  placeholder="Write your feedback here..."
+                  rows={5}
+                  className="w-full rounded-2xl border border-border-soft bg-bg-base px-4 py-3 text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-primary transition-all"
+                />
+              </div>
 
-            {/* Fixed Footer */}
-            <div className="p-8 pt-0 flex flex-col gap-2 shrink-0">
-              <button 
-                onClick={handleSubmit} 
-                disabled={!note.trim()} 
-                className="btn-consulate w-full h-14 bg-text-main text-bg-base border-text-main shadow-[3px_3px_0px_#0066FF] disabled:opacity-30 disabled:shadow-none"
-              >
-                SUBMIT_LOG
-              </button>
-              <button 
-                onClick={onClose} 
-                className="btn-consulate btn-outline w-full h-14"
-              >
-                ABORT_ACTION
-              </button>
+              <div className="px-5 sm:px-6 pb-5 sm:pb-6 flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={onClose}
+                  className="w-full sm:flex-1 h-12 rounded-2xl border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-bold"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmit}
+                  disabled={!feedbackMessage.trim()}
+                  className="w-full sm:flex-1 h-12 rounded-2xl bg-primary text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+                >
+                  Send Feedback
+                </button>
+              </div>
             </div>
           </motion.div>
         </>
