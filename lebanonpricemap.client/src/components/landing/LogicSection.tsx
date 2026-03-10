@@ -1,45 +1,55 @@
-// src/components/landing/LogicSection.tsx
 export default function LogicSection() {
   return (
-    <section className="py-40 px-8 md:px-16 border-b border-border-primary">
-      <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
+    <section className="py-20 sm:py-24 lg:py-32 px-4 sm:px-6 md:px-10 lg:px-16 border-b border-border-primary/10 bg-bg-base">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <div>
-          <span className="text-primary font-bold text-[10px] tracking-[0.5em] uppercase mb-8 block">01 // THE PROTOCOL</span>
-          <h2 className="text-display text-text-main mb-12 leading-none uppercase">
-            Mapping the <br />
-            Invisible <span className="text-text-muted">Market.</span>
+          <span className="text-primary font-black text-[11px] tracking-[0.25em] uppercase mb-5 block">
+            How it works
+          </span>
+
+          <h2 className="text-4xl sm:text-5xl font-black text-text-main leading-tight mb-6">
+            Smarter shopping starts before you leave home.
           </h2>
-          <p className="text-xl text-text-sub font-medium leading-relaxed max-w-lg mb-8">
-            In an era of rapid devaluation, data is your strongest shield. Wein Wrkhas provides a verifiable structural map of Lebanon's essential prices—updated hourly by a decentralized network of citizens.
+
+          <p className="text-base sm:text-lg text-text-sub font-medium leading-relaxed max-w-xl mb-8">
+            WenArkhass helps people in Lebanon compare live prices, check product
+            availability, and understand store conditions before making a trip.
+            That means less wasted time, less fuel, and better buying decisions.
           </p>
-          <div className="grid grid-cols-2 gap-8 border-t border-border-primary pt-12">
+
+          <div className="grid grid-cols-2 gap-6 border-t border-border-primary/10 pt-8">
             <div>
-              <p className="text-mono-data text-4xl text-text-main font-bold mb-2">99.8%</p>
-              <p className="text-[9px] font-bold text-text-muted tracking-widest uppercase">Verification Reliability</p>
+              <p className="text-3xl sm:text-4xl text-text-main font-black mb-2">Live</p>
+              <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                Price updates
+              </p>
             </div>
             <div>
-              <p className="text-mono-data text-4xl text-text-main font-bold mb-2">12ms</p>
-              <p className="text-[9px] font-bold text-text-muted tracking-widest uppercase">System Latency</p>
+              <p className="text-3xl sm:text-4xl text-text-main font-black mb-2">Trusted</p>
+              <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                Community reports
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-text-main p-1 shadow-[8px_8px_0px_#0066FF]">
-          <div className="bg-bg-base p-8 border border-text-main min-h-[400px] flex flex-col justify-between">
-            <div className="flex justify-between items-start mb-12">
-              <span className="text-[9px] font-bold tracking-widest text-text-muted uppercase">Terminal Status [STABLE]</span>
-              <span className="w-2 h-2 bg-green-500 animate-pulse" />
+        <div className="bg-primary/5 border border-primary/10 rounded-3xl p-6 sm:p-8 shadow-glass">
+          <div className="bg-white border border-border-primary rounded-3xl p-6 sm:p-8 min-h-[320px] flex flex-col justify-between">
+            <div className="flex justify-between items-center mb-10">
+              <span className="text-sm font-bold text-text-muted">Live store insights</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
             </div>
-            <div className="space-y-6">
-              <div className="h-px bg-border-soft" />
-              <div className="h-4 bg-bg-muted w-3/4" />
-              <div className="h-px bg-border-soft" />
-              <div className="h-4 bg-bg-muted w-1/2" />
-              <div className="h-px bg-border-soft" />
-              <div className="h-4 bg-bg-muted w-full" />
+
+            <div className="space-y-4">
+              <div className="rounded-2xl bg-bg-muted h-12" />
+              <div className="rounded-2xl bg-bg-muted h-12 w-5/6" />
+              <div className="rounded-2xl bg-bg-muted h-12 w-4/6" />
             </div>
-            <div className="mt-12">
-              <p className="text-mono-data text-primary text-xs">// VERIFYING_RECEIPT_0842...</p>
+
+            <div className="mt-10">
+              <p className="text-sm text-primary font-bold">
+                Prices, stock status, and store conditions in one place.
+              </p>
             </div>
           </div>
         </div>

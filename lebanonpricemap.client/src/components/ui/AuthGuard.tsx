@@ -10,24 +10,26 @@ interface AuthGuardProps {
 }
 
 const ROLE_HOME: Record<string, string> = {
-  shopper:  '/app',
+  shopper: '/app',
   retailer: '/retailer',
-  admin:    '/admin',
+  admin: '/admin',
 };
 
-export function AuthGuard({ children, requiredRole, redirectTo = '/login' }: AuthGuardProps) {
-  const user = useAuthStore(s => s.user);
+export function AuthGuard({
+  children,
+  requiredRole,
+  redirectTo = '/login',
+}: AuthGuardProps) {
+  const user = useAuthStore((state) => state.user);
 
-  // Not authenticated at all → go to login
   if (!user) {
     return <Navigate to={redirectTo} replace />;
   }
 
-  // Role check
   if (requiredRole) {
-    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    if (!allowed.includes(user.role as UserRole)) {
-      // Redirect them to their correct home
+    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+
+    if (!allowedRoles.includes(user.role as UserRole)) {
       const home = ROLE_HOME[user.role] ?? '/app';
       return <Navigate to={home} replace />;
     }

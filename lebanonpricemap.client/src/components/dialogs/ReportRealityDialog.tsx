@@ -1,148 +1,94 @@
 import { useState, useEffect } from 'react';
-import { RouteDialog } from './RouteDialog';
+import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
-import { formatLBP } from '@/lib/utils';
 import { MOCK_STORES } from '@/api/mockData';
-import type { PowerStatus } from '@/types';
 
 export function ReportRealityDialog() {
   const { isOpen, getParam, close } = useRouteDialog();
-  const addToast = useToastStore(s => s.addToast);
-  
+  const addToast = useToastStore((state) => state.addToast);
+
   const dialogId = 'report-reality';
   const isVisible = isOpen(dialogId);
   const storeId = getParam('storeId');
-  const type = getParam('type') as 'market' | 'fuel';
+  const reportType = getParam('type') as 'market' | 'fuel';
 
-  const [rate, setRate] = useState<string>('');
-  const [power, setPower] = useState<PowerStatus>('stable');
-  const [isRationed, setIsRationed] = useState(false);
-  const [limit, setLimit] = useState('');
-  const [queue, setQueue] = useState('');
+  const [isFuelRationed, setIsFuelRationed] = useState(false);
+  const [queueCount, setQueueCount] = useState('');
 
-  const store = MOCK_STORES.find(s => s.id === storeId);
+  const store = MOCK_STORES.find((currentStore) => currentStore.id === storeId);
 
   useEffect(() => {
-    if (isVisible && store) {
-      setRate(store.internalRateLbp?.toString() || '');
-      setPower(store.powerStatus || 'stable');
+    if (!isVisible) {
+      setIsFuelRationed(false);
+      setQueueCount('');
     }
-  }, [isVisible, store]);
-
-  if (!isVisible) return null;
+  }, [isVisible]);
 
   const handleSubmit = () => {
-    // In a real app, this would be an API call
-    console.log('Reporting Reality:', { storeId, rate, power, isRationed, limit, queue });
-    addToast('Thank you! Your report helps the whole community. 🇱🇧', 'success');
+    addToast('Thanks for the update.');
     close();
   };
+
+  if (!isVisible) return null;
 
   return (
     <RouteDialog
       dialogId={dialogId}
-      title={type === 'market' ? 'Report Store Status' : 'Fuel Station Status'}
-      description={`Helping others know the reality at ${store?.name || 'this location'}.`}
+      title={reportType === 'fuel' ? 'Report fuel station status' : 'Report store status'}
+      description={
+        reportType === 'fuel'
+          ? `Share what is happening now at ${store?.name ?? 'this station'}.`
+          : `Share what is happening now at ${store?.name ?? 'this store'}.`
+      }
+      size="md"
     >
-      <div className="space-y-8">
-        {/* Internal Rate - Precision Input */}
-        {type === 'market' && (
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-2 block">
-              Internal Exchange Rate [TASA3IR]
-            </label>
-            <div className="relative">
-              <input
-                type="number"
-                placeholder="e.g. 91500"
-                value={rate}
-                onChange={e => setRate(e.target.value)}
-                className="w-full h-14 bg-bg-base border border-border-soft px-4 font-serif font-black text-xl text-text-main focus:border-primary outline-none transition-all"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-primary uppercase tracking-widest">LBP</span>
-            </div>
-            <p className="text-[9px] text-text-muted uppercase font-medium tracking-widest">
-              Live cashier rate verification required.
-            </p>
-          </div>
-        )}
-
-        {/* Power / Fridge Status - Structural Grid */}
-        {type === 'market' && (
-          <div className="space-y-3">
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-2 block">
-              Cold-Chain Integrity [POWER]
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['stable', 'unstable', 'reported_warm'] as PowerStatus[]).map(status => (
-                <button
-                  key={status}
-                  onClick={() => setPower(status)}
-                  className={`py-4 border text-[9px] font-black uppercase tracking-widest transition-all ${
-                    power === status 
-                      ? 'bg-text-main border-text-main text-bg-base shadow-[2px_2px_0px_#0066FF]' 
-                      : 'bg-bg-surface border-border-soft text-text-muted hover:border-text-main'
-                  }`}
-                >
-                  {status === 'stable' ? '❄️ STABLE' : status === 'unstable' ? '⚡ WEAK' : '⚠️ WARM'}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Fuel Specifics - Technical Toggles */}
-        {type === 'fuel' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between p-5 border border-blue-500/20 bg-blue-500/5">
+      <div className="space-y-6">
+        {reportType === 'fuel' ? (
+          <>
+            <div className="rounded-3xl border border-border-soft bg-bg-surface px-5 py-5 flex items-center justify-between gap-4">
               <div>
-                <p className="text-[10px] font-black text-text-main uppercase tracking-widest mb-1">Fuel Rationing Protocol</p>
-                <p className="text-[9px] text-text-muted uppercase font-medium">Active volume limits per unit</p>
+                <p className="text-xl font-bold text-text-main">Fuel rationing</p>
+                <p className="text-sm text-text-muted mt-1">
+                  Turn this on if there is a spending or volume limit.
+                </p>
               </div>
-              <button 
-                onClick={() => setIsRationed(!isRationed)}
-                className={`w-12 h-6 border relative transition-all ${isRationed ? 'bg-primary border-primary' : 'bg-bg-muted border-border-soft'}`}
+
+              <button
+                type="button"
+                onClick={() => setIsFuelRationed((value) => !value)}
+                className={`relative w-16 h-9 rounded-full transition-all shrink-0 ${
+                  isFuelRationed ? 'bg-text-main' : 'bg-bg-muted border border-border-soft'
+                }`}
               >
-                <div className={`absolute top-px w-[20px] h-[20px] transition-all ${isRationed ? 'right-px bg-white' : 'left-px bg-text-muted'}`} />
+                <span
+                  className={`absolute top-1 w-7 h-7 rounded-full bg-white shadow-sm transition-all ${
+                    isFuelRationed ? 'right-1' : 'left-1'
+                  }`}
+                />
               </button>
             </div>
 
-            {isRationed && (
-              <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
-                <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-2 block">
-                  Volume Limit [LBP]
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g. 2000000"
-                  value={limit}
-                  onChange={e => setLimit(e.target.value)}
-                  className="w-full h-14 bg-bg-base border border-border-soft px-4 font-serif font-black text-xl text-text-main outline-none focus:border-primary transition-all"
-                />
-              </div>
-            )}
-
-            <div className="space-y-3">
-              <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-2 block">
-                Queue Density [UNIT_COUNT]
+            <div>
+              <label className="block text-sm font-semibold text-text-muted mb-3">
+                Approximate queue size
               </label>
               <input
-                type="number"
+                value={queueCount}
+                onChange={(event) => setQueueCount(event.target.value)}
                 placeholder="e.g. 15"
-                value={queue}
-                onChange={e => setQueue(e.target.value)}
-                className="w-full h-14 bg-bg-base border border-border-soft px-4 font-mono font-bold text-text-main outline-none focus:border-primary transition-all"
+                className="w-full h-14 rounded-3xl border border-border-soft bg-bg-surface px-5 text-xl text-text-main placeholder:text-text-muted outline-none focus:border-text-main transition-all"
               />
             </div>
-          </div>
-        )}
+          </>
+        ) : null}
 
         <button
           onClick={handleSubmit}
-          className="btn-consulate w-full h-16 bg-text-main text-bg-base border-text-main shadow-[4px_4px_0px_#0066FF]"
+          className="w-full h-14 rounded-full bg-text-main text-white text-lg font-semibold hover:opacity-95 transition-all"
+          type="button"
         >
-          INITIALIZE_INSIGHT_DESTRUCTION
+          Submit Update
         </button>
       </div>
     </RouteDialog>

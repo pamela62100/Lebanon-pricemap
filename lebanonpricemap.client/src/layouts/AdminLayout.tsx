@@ -12,8 +12,8 @@ export function AdminLayout() {
           {/* Top Header - v3 */}
           <header className="h-14 bg-bg-surface/90 backdrop-blur-lg border-b border-border-soft flex items-center justify-between px-8 sticky top-0 z-30">
             <div>
-              <p className="text-sm font-bold text-text-main leading-none">Admin_Panel</p>
-              <p className="text-[9px] font-data text-text-muted uppercase tracking-[0.2em] mt-1 font-black">System_Authority</p>
+              <p className="text-sm font-bold text-text-main leading-none">Admin Panel</p>
+              <p className="text-[9px] font-data text-text-muted uppercase tracking-[0.2em] mt-1 font-black">System Authority</p>
             </div>
             
             <div className="flex items-center gap-1.5">
@@ -28,7 +28,7 @@ export function AdminLayout() {
                 <div className="w-7 h-7 rounded-full bg-text-main text-white flex items-center justify-center text-[10px] font-bold">
                   SA
                 </div>
-                <span className="text-xs font-semibold text-text-main hidden sm:block">Master_Admin</span>
+                <span className="text-xs font-semibold text-text-main hidden sm:block">Master Admin</span>
               </div>
             </div>
           </header>

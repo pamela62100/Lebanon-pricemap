@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -21,9 +20,21 @@ interface ConfirmDialogProps {
 }
 
 const VARIANT_STYLES = {
-  danger:  { btn: 'bg-red-600 border-red-600 text-white hover:bg-red-700', icon: 'warning', iconColor: 'text-red-500', iconBg: 'bg-red-50 border-red-100' },
-  warning: { btn: 'bg-amber-500 border-amber-500 text-white hover:bg-amber-600', icon: 'error', iconColor: 'text-amber-500', iconBg: 'bg-amber-50 border-amber-100' },
-  primary: { btn: 'bg-primary border-primary text-white hover:opacity-90', icon: 'help', iconColor: 'text-primary', iconBg: 'bg-primary/10 border-primary/20' },
+  danger: {
+    icon: 'delete',
+    iconWrap: 'bg-red-50 text-red-500',
+    button: 'bg-text-main hover:opacity-95 text-white',
+  },
+  warning: {
+    icon: 'warning',
+    iconWrap: 'bg-amber-50 text-amber-500',
+    button: 'bg-text-main hover:opacity-95 text-white',
+  },
+  primary: {
+    icon: 'help',
+    iconWrap: 'bg-bg-muted text-text-main',
+    button: 'bg-text-main hover:opacity-95 text-white',
+  },
 };
 
 export function ConfirmDialog({
@@ -38,12 +49,12 @@ export function ConfirmDialog({
   approvalPayload = {},
 }: ConfirmDialogProps) {
   const { close } = useRouteDialog();
-  const user = useAuthStore(s => s.user);
-  const submitRequest = useApprovalStore(s => s.submitRequest);
+  const user = useAuthStore((state) => state.user);
+  const submitRequest = useApprovalStore((state) => state.submitRequest);
   const [loading, setLoading] = useState(false);
 
   const style = VARIANT_STYLES[variant];
-  const rbacResult = permission ? can(user?.role, permission) : 'allowed';
+  const permissionResult = permission ? can(user?.role, permission) : 'allowed';
 
   const handleConfirm = () => {
     setLoading(true);
@@ -51,7 +62,7 @@ export function ConfirmDialog({
       onConfirm();
       setLoading(false);
       close();
-    }, 300);
+    }, 220);
   };
 
   const handleRequestApproval = () => {
@@ -60,76 +71,72 @@ export function ConfirmDialog({
       requestedBy: user?.id,
       ...approvalPayload,
     });
+
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
       close();
-    }, 400);
+    }, 320);
   };
 
   return (
     <RouteDialog dialogId={dialogId} title={title} size="sm">
-      <div className="flex flex-col items-center text-center gap-5 py-2">
-
-        {/* Icon */}
-        <div className={cn('w-14 h-14 rounded-2xl border flex items-center justify-center', style.iconBg, style.iconColor)}>
-          <span className="material-symbols-outlined text-[28px]">{style.icon}</span>
+      <div className="flex flex-col items-center text-center gap-6 py-2">
+        <div
+          className={cn(
+            'w-16 h-16 rounded-full flex items-center justify-center',
+            style.iconWrap
+          )}
+        >
+          <span className="material-symbols-outlined text-[30px]">{style.icon}</span>
         </div>
 
-        {/* Message */}
-        <p className="text-sm text-text-sub font-medium leading-relaxed max-w-xs">{description}</p>
+        <p className="text-base text-text-muted leading-relaxed max-w-sm">{description}</p>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-2 w-full mt-2">
-          {rbacResult === 'allowed' ? (
+        <div className="flex flex-col gap-3 w-full mt-1">
+          {permissionResult === 'allowed' ? (
             <button
               onClick={handleConfirm}
               disabled={loading}
               className={cn(
-                'w-full h-12 rounded-xl font-bold text-sm border transition-all flex items-center justify-center gap-2',
-                style.btn,
+                'w-full h-14 rounded-full font-semibold text-lg transition-all flex items-center justify-center',
+                style.button,
                 loading && 'opacity-70 cursor-not-allowed'
               )}
             >
               {loading ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
-                <>
-                  <span className="material-symbols-outlined text-[18px]">{style.icon}</span>
-                  {confirmLabel}
-                </>
+                confirmLabel
               )}
             </button>
-          ) : rbacResult === 'requires_approval' ? (
+          ) : permissionResult === 'requires_approval' ? (
             <button
               onClick={handleRequestApproval}
               disabled={loading}
-              className="w-full h-12 rounded-xl font-bold text-sm border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center gap-2"
+              className="w-full h-14 rounded-full font-semibold text-lg border border-amber-300 bg-amber-50 text-amber-700 hover:bg-amber-500 hover:text-white transition-all flex items-center justify-center"
             >
               {loading ? (
-                <span className="w-4 h-4 border-2 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
+                <span className="w-5 h-5 border-2 border-amber-400/30 border-t-amber-500 rounded-full animate-spin" />
               ) : (
-                <>
-                  <span className="material-symbols-outlined text-[18px]">admin_panel_settings</span>
-                  Request Approval
-                </>
+                'Request approval'
               )}
             </button>
           ) : null}
 
           <button
             onClick={close}
-            className="w-full h-12 rounded-xl font-bold text-sm border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all"
+            className="w-full h-14 rounded-full border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-semibold text-lg"
           >
             Cancel
           </button>
         </div>
 
-        {rbacResult === 'requires_approval' && !loading && (
-          <p className="text-xs text-text-muted">
-            This action requires admin review before it can be executed.
+        {permissionResult === 'requires_approval' && !loading ? (
+          <p className="text-sm text-text-muted">
+            This action needs approval before it can be completed.
           </p>
-        )}
+        ) : null}
       </div>
     </RouteDialog>
   );

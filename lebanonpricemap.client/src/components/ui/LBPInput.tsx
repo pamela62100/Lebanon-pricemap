@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { cn, formatNumber } from '@/lib/utils';
+import { useState, useCallback, useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface LBPInputProps {
   value: number | '';
@@ -10,45 +10,66 @@ interface LBPInputProps {
   autoFocus?: boolean;
 }
 
-export function LBPInput({ value, onChange, placeholder = '0', error, className, autoFocus }: LBPInputProps) {
-  const [displayValue, setDisplayValue] = useState(typeof value === 'number' && value > 0 ? formatNumber(value) : '');
+export function LBPInput({
+  value,
+  onChange,
+  placeholder = '0',
+  error,
+  className,
+  autoFocus,
+}: LBPInputProps) {
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/[^0-9]/g, '');
-    if (raw === '') {
-      setDisplayValue('');
-      onChange(0);
-      return;
-    }
-    const num = parseInt(raw, 10);
-    setDisplayValue(formatNumber(num));
-    onChange(num);
-  }, [onChange]);
+  // While typing: show raw digits. While blurred: show formatted with commas.
+  const displayValue = focused
+    ? value === '' ? '' : String(value)
+    : value === '' ? '' : Number(value).toLocaleString();
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const digits = e.target.value.replace(/[^0-9]/g, '');
+      if (digits === '') {
+        onChange('');
+      } else {
+        onChange(parseInt(digits, 10));
+      }
+    },
+    [onChange]
+  );
 
   return (
-    <div className={cn('flex flex-col gap-3', className)}>
-      <div className={cn(
-        'relative group bg-bg-base border border-border-primary px-6 py-4 rounded-md shadow-card transition-all',
-        error 
-          ? 'border-status-flagged ring-4 ring-status-flagged/5' 
-          : 'focus-within:border-primary/50 focus-within:ring-4 focus-within:ring-primary/5'
-      )}>
-        <div className="flex items-center gap-4">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={displayValue}
-            onChange={handleChange}
-            placeholder={placeholder}
-            autoFocus={autoFocus}
-            className="flex-1 bg-transparent border-none outline-none font-data text-3xl font-black text-text-main text-center placeholder:text-text-muted/20"
-            aria-label="Price in Lebanese Pounds"
-          />
-          <div className="h-8 w-px bg-border-primary" />
-          <span className="text-[10px] font-data font-black text-primary uppercase tracking-[0.2em] whitespace-nowrap">LBP_Fixed</span>
-        </div>
+    <div className={cn('flex flex-col gap-1.5', className)}>
+      <div
+        className={cn(
+          'flex items-center gap-3 px-4 h-11 rounded-xl border transition-all cursor-text',
+          focused ? 'border-text-main/30 bg-white' : 'border-border-soft bg-bg-muted',
+          error && 'border-red-400 ring-2 ring-red-400/10'
+        )}
+        onClick={() => inputRef.current?.focus()}
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={displayValue}
+          onChange={handleChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          className="flex-1 bg-transparent border-none outline-none text-base font-bold text-text-main placeholder:text-text-muted/40 min-w-0"
+          aria-label="Price in Lebanese pounds"
+        />
+        <div className="h-5 w-px bg-border-soft shrink-0" />
+        <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest shrink-0">
+          LBP
+        </span>
       </div>
-      {error && <p className="text-[9px] font-data font-black text-status-flagged uppercase tracking-widest mt-2 px-1">Critical_Error // {error}</p>}
+
+      {error && (
+        <p className="text-xs font-medium text-red-500 px-1">{error}</p>
+      )}
     </div>
   );
 }
