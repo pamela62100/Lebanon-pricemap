@@ -13,17 +13,17 @@ const TRUST_BULLETS = [
   {
     icon: 'verified',
     label: 'Verified prices',
-    desc: 'Official prices from store owners and trusted community reports.',
+    desc: 'Official store prices and trusted community updates.',
   },
   {
     icon: 'security',
-    label: 'Reliable data',
-    desc: 'Trust scores help reduce false reports and surface better updates.',
+    label: 'More reliable reports',
+    desc: 'Trust scores help surface better price information.',
   },
   {
     icon: 'groups',
     label: 'Built for Lebanon',
-    desc: 'Created to help shoppers compare prices and availability across Lebanon.',
+    desc: 'Compare prices, track stock, and shop with more confidence.',
   },
 ];
 
@@ -93,20 +93,20 @@ export function LoginPage() {
           <div>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-1.5 h-6 bg-primary" />
-              <p className="text-overline tracking-[0.4em]">Live price intelligence</p>
+              <p className="text-overline tracking-[0.4em]">Welcome back</p>
             </div>
 
             <h1
               className="text-5xl font-display text-text-main leading-[1.1] mb-6"
               style={{ fontFamily: "'DM Serif Display', serif" }}
             >
-              Welcome back to
+              Sign in to
               <br />
               <span className="italic">WenArkhass.</span>
             </h1>
 
             <p className="text-lg text-text-sub font-medium leading-relaxed max-w-sm">
-              Check real-time prices, compare stores, and make smarter shopping decisions before leaving home.
+              Check prices, compare stores, and stay updated before you leave home.
             </p>
           </div>
 
