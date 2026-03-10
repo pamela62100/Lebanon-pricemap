@@ -9,7 +9,7 @@ interface ReportPriceDialogProps {
   onSubmit: (type: FeedbackType, note: string) => void;
 }
 
-const reportOptions: { value: FeedbackType; label: string; icon: string }[] = [
+const REPORT_OPTIONS: { value: FeedbackType; label: string; icon: string }[] = [
   { value: 'wrong_price', label: 'Wrong price', icon: 'sell' },
   { value: 'wrong_store', label: 'Wrong store', icon: 'storefront' },
   { value: 'outdated', label: 'Outdated information', icon: 'schedule' },
@@ -23,11 +23,11 @@ export function ReportPriceDialog({
   onSubmit,
 }: ReportPriceDialogProps) {
   const [selectedType, setSelectedType] = useState<FeedbackType>('wrong_price');
-  const [reportNote, setReportNote] = useState('');
+  const [note, setNote] = useState('');
 
   const handleSubmit = () => {
-    onSubmit(selectedType, reportNote.trim());
-    setReportNote('');
+    onSubmit(selectedType, note.trim());
+    setNote('');
     onClose();
   };
 
@@ -39,20 +39,22 @@ export function ReportPriceDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/45 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/22 z-40"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ y: 24, opacity: 0 }}
+            initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 24, opacity: 0 }}
+            exit={{ y: 12, opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
           >
-            <div className="w-full max-w-lg rounded-3xl bg-bg-surface border border-border-primary shadow-glass overflow-hidden max-h-[92dvh] flex flex-col">
-              <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border-soft text-center">
+            <div className="w-full max-w-lg rounded-[28px] bg-bg-surface border border-border-primary shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden max-h-[92dvh] flex flex-col">
+              <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-5 border-b border-border-soft text-center">
                 <div className="w-12 h-12 rounded-2xl bg-red-600/10 border border-red-600/20 flex items-center justify-center mx-auto mb-4">
-                  <span className="material-symbols-outlined text-red-600 text-[28px]">report_problem</span>
+                  <span className="material-symbols-outlined text-red-600 text-[28px]">
+                    report_problem
+                  </span>
                 </div>
                 <h2 className="text-2xl font-black text-text-main">Report a problem</h2>
                 <p className="text-sm text-text-muted mt-1">
@@ -60,8 +62,8 @@ export function ReportPriceDialog({
                 </p>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6">
-                <div className="rounded-2xl bg-bg-muted border border-border-soft p-5 text-center mb-6">
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+                <div className="rounded-3xl bg-bg-muted border border-border-soft p-5 text-center mb-6">
                   <p className="text-xs font-bold text-text-muted mb-2">Current listed price</p>
                   <p className="text-3xl font-black text-text-main">
                     LBP {currentPrice.toLocaleString()}
@@ -70,7 +72,7 @@ export function ReportPriceDialog({
 
                 <p className="text-xs font-bold text-text-muted mb-3">What is wrong?</p>
                 <div className="grid grid-cols-1 gap-2 mb-6">
-                  {reportOptions.map((option) => (
+                  {REPORT_OPTIONS.map((option) => (
                     <button
                       key={option.value}
                       onClick={() => setSelectedType(option.value)}
@@ -100,24 +102,24 @@ export function ReportPriceDialog({
                     Additional details (optional)
                   </label>
                   <textarea
-                    value={reportNote}
-                    onChange={(e) => setReportNote(e.target.value)}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
                     placeholder="Add any extra details that can help us review this report."
-                    className="w-full h-28 p-4 rounded-2xl border border-border-soft bg-bg-base text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-red-500 transition-all"
+                    className="w-full h-28 p-4 rounded-3xl border border-border-soft bg-bg-base text-sm text-text-main placeholder:text-text-muted resize-none outline-none focus:border-red-500 transition-all"
                   />
                 </div>
               </div>
 
-              <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={onClose}
-                  className="w-full sm:flex-1 h-12 rounded-2xl border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-bold"
+                  className="w-full sm:flex-1 h-12 rounded-full border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="w-full sm:flex-1 h-12 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 transition-all"
+                  className="w-full sm:flex-1 h-12 rounded-full bg-red-600 text-white font-semibold hover:bg-red-700 transition-all"
                 >
                   Submit Report
                 </button>

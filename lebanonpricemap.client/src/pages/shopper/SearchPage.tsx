@@ -110,7 +110,7 @@ export function SearchPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-[9px] font-bold text-text-muted uppercase tracking-[0.2em] mb-1 opacity-60">Market_Intelligence</p>
-              <h1 className="text-2xl font-bold text-text-main tracking-tighter leading-none">Scout_Sector.</h1>
+              <h1 className="text-2xl font-bold text-text-main tracking-tighter leading-none">Scout Sector.</h1>
             </div>
             <div className="px-2.5 py-1 bg-text-main text-white rounded-full text-[8px] font-bold uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-text-main/10">
                <span className="w-1 h-1 rounded-full bg-white animate-pulse" /> Live

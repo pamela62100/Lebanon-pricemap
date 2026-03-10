@@ -182,7 +182,7 @@ export function LoginPage() {
             <code className="text-primary">admin@test.com</code> for testing.
           </div>
 
-          {error && (
+          {error ? (
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -191,7 +191,7 @@ export function LoginPage() {
               <span className="material-symbols-outlined text-red-500 text-[18px]">error</span>
               <p className="text-red-500 text-sm font-medium">{error}</p>
             </motion.div>
-          )}
+          ) : null}
 
           <div className="space-y-5">
             <div className="space-y-2">
@@ -214,10 +214,7 @@ export function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-[11px] font-bold text-text-muted">Password</label>
-                <button
-                  type="button"
-                  className="text-[11px] font-bold text-primary hover:underline"
-                >
+                <button type="button" className="text-[11px] font-bold text-primary hover:underline">
                   Forgot password?
                 </button>
               </div>
@@ -265,7 +262,7 @@ export function LoginPage() {
               ) : (
                 <>
                   <span className="material-symbols-outlined text-[18px]">login</span>
-                  Sign In
+                  Sign in
                 </>
               )}
             </button>

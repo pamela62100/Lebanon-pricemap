@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { PriceEntry } from '@/types';
-import { formatLBP, timeAgo, cn } from '@/lib/utils';
+import { timeAgo } from '@/lib/utils';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
@@ -14,65 +14,72 @@ interface PriceResultCardProps {
 const PriceResultCardBase = ({ entry, index }: PriceResultCardProps) => {
   const navigate = useNavigate();
   const { rateLbpPerUsd } = useExchangeRateStore();
-  const addItem = useCartStore(s => s.addItem);
-  const addToast = useToastStore(s => s.addToast);
+  const addItem = useCartStore((state) => state.addItem);
+  const addToast = useToastStore((state) => state.addToast);
 
   const usdPrice = (entry.priceLbp / rateLbpPerUsd).toFixed(2);
-  const isHero = index === 0;
+  const isFeatured = index === 0;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleAddToCart = (event: React.MouseEvent) => {
+    event.stopPropagation();
     addItem(entry.productId);
-    addToast(`${entry.product?.name ?? 'Item'} added to dossier ✓`, 'success');
+    addToast(`${entry.product?.name ?? 'Item'} added to cart`);
   };
 
-  const storeInitials = entry.store?.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || 'SN';
+  const storeInitials =
+    entry.store?.name
+      ?.split(' ')
+      .map((name: string) => name[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'SN';
 
-  if (isHero) {
+  if (isFeatured) {
     return (
-      <div 
-        className="card-dark p-8 cursor-pointer group relative overflow-hidden transition-all duration-500 hover:scale-[1.01]" 
+      <div
+        className="rounded-[32px] bg-[linear-gradient(135deg,#17181f_0%,#101116_100%)] p-6 sm:p-8 cursor-pointer group relative overflow-hidden border border-white/5 shadow-[0_18px_60px_rgba(0,0,0,0.18)]"
         onClick={() => navigate(`/app/price/${entry.id}`)}
       >
-        <div className="absolute inset-0 opacity-10 pointer-events-none bg-gradient-to-br from-primary/20 to-transparent" />
-        
-        <div className="relative z-10 flex items-start justify-between mb-8">
+        <div className="absolute inset-0 opacity-20 pointer-events-none bg-gradient-to-br from-primary/10 to-transparent" />
+
+        <div className="relative z-10 flex items-start justify-between gap-4 mb-8">
           <div>
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em] mb-4">
-              Best_Market_Entry // {entry.product?.category}
+            <p className="text-xs font-semibold text-white/55 mb-3">
+              Best price in {entry.product?.category?.toLowerCase() || 'this category'}
             </p>
-            <h3 className="text-3xl font-bold text-white tracking-tighter leading-none mb-2 group-hover:text-primary transition-colors">
+            <h3 className="text-3xl sm:text-4xl font-bold text-white leading-tight mb-2">
               {entry.store?.name}
             </h3>
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{entry.store?.district}</p>
+            <p className="text-sm text-white/60">{entry.store?.district}</p>
           </div>
-          {entry.source === 'official' && (
-            <div className="px-4 py-1.5 rounded-full bg-white/10 border border-white/10 shadow-2xl flex items-center gap-2">
+
+          {entry.source === 'official' ? (
+            <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 flex items-center gap-2 shrink-0">
               <span className="material-symbols-outlined text-white text-sm">verified</span>
-              <span className="text-[9px] font-bold text-white uppercase tracking-widest">Verified_Source</span>
+              <span className="text-xs font-semibold text-white">Verified source</span>
             </div>
-          )}
+          ) : null}
         </div>
 
-        <div className="relative z-10 flex flex-col gap-1">
-          <div className="flex items-baseline gap-3">
-            <span className="font-data text-6xl text-white tracking-tighter leading-none">
+        <div className="relative z-10">
+          <div className="flex items-end gap-3 flex-wrap">
+            <span className="font-data text-5xl sm:text-7xl text-white font-bold tracking-tight leading-none">
               {entry.priceLbp.toLocaleString()}
             </span>
-            <span className="text-xl font-bold text-white/40 uppercase tracking-widest">LBP</span>
+            <span className="text-xl sm:text-2xl font-semibold text-white/55 mb-1">LBP</span>
           </div>
-          <p className="text-lg font-bold text-white/30 font-data tracking-tight">≈ ${usdPrice}</p>
+          <p className="text-lg text-white/45 mt-3">About ${usdPrice}</p>
         </div>
 
-        <div className="relative z-10 flex items-center justify-between mt-12 pt-8 border-t border-white/5">
-          <p className="text-[9px] font-bold text-white/40 uppercase tracking-[0.2em]">
-            Broadcasted // {timeAgo(entry.createdAt)}
-          </p>
-          <button 
-            className="w-14 h-14 rounded-2xl bg-white text-text-main flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-2xl"
+        <div className="relative z-10 flex items-center justify-between gap-4 mt-10 pt-6 border-t border-white/10">
+          <p className="text-sm text-white/45">Updated {timeAgo(entry.createdAt)}</p>
+
+          <button
+            className="w-14 h-14 rounded-full bg-white text-text-main flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"
             onClick={handleAddToCart}
+            type="button"
           >
-             <span className="material-symbols-outlined text-2xl">add_shopping_cart</span>
+            <span className="material-symbols-outlined text-2xl">add_shopping_cart</span>
           </button>
         </div>
       </div>
@@ -80,36 +87,38 @@ const PriceResultCardBase = ({ entry, index }: PriceResultCardProps) => {
   }
 
   return (
-    <div 
-      className="card p-6 cursor-pointer group hover:bg-bg-muted/50 transition-all duration-300" 
+    <div
+      className="bg-white border border-border-soft rounded-[28px] p-5 sm:p-6 cursor-pointer group hover:border-text-main/10 hover:shadow-sm transition-all duration-200"
       onClick={() => navigate(`/app/price/${entry.id}`)}
     >
-      <div className="flex items-center justify-between gap-6">
-        <div className="flex items-center gap-6">
-          <div className="w-14 h-14 rounded-2xl bg-bg-muted flex items-center justify-center text-xs font-bold text-text-muted transition-all group-hover:bg-text-main group-hover:text-white group-hover:rotate-12">
+      <div className="flex items-center justify-between gap-5">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="w-14 h-14 rounded-2xl bg-bg-muted flex items-center justify-center text-sm font-bold text-text-muted shrink-0">
             {storeInitials}
           </div>
-          <div>
-            <div className="flex items-center gap-3">
-              <p className="text-lg font-bold text-text-main tracking-tight group-hover:text-primary transition-colors">{entry.store?.name}</p>
-              {entry.source === 'official' && (
-                 <span className="material-symbols-outlined text-text-muted text-base">verified</span>
-              )}
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-lg font-semibold text-text-main truncate">{entry.store?.name}</p>
+              {entry.source === 'official' ? (
+                <span className="material-symbols-outlined text-text-muted text-base">verified</span>
+              ) : null}
             </div>
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1 opacity-50">
-              {entry.store?.district} · {timeAgo(entry.createdAt)}
+
+            <p className="text-sm text-text-muted mt-1">
+              {entry.store?.district} • {timeAgo(entry.createdAt)}
             </p>
           </div>
         </div>
-        
-        <div className="text-right">
-          <div className="flex items-baseline gap-2 justify-end">
-            <span className="font-data text-3xl text-text-main font-bold tracking-tighter">
+
+        <div className="text-right shrink-0">
+          <div className="flex items-end gap-2 justify-end flex-wrap">
+            <span className="font-data text-2xl sm:text-3xl text-text-main font-bold tracking-tight">
               {entry.priceLbp.toLocaleString()}
             </span>
-            <span className="text-[10px] font-bold text-text-muted uppercase tracking-widest">LBP</span>
+            <span className="text-xs sm:text-sm font-semibold text-text-muted mb-1">LBP</span>
           </div>
-          <p className="text-sm font-bold text-text-muted font-data opacity-40">≈ ${usdPrice}</p>
+          <p className="text-sm text-text-muted mt-1">About ${usdPrice}</p>
         </div>
       </div>
     </div>

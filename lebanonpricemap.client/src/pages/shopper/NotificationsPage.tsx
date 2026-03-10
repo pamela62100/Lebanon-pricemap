@@ -6,26 +6,26 @@ import type { Notification as NotifType } from '@/types';
 
 export function NotificationsPage() {
   const allNotifications = useMemo(() => getEnrichedNotifications(), []);
-  const [readIds, setReadIds] = useState<Set<number>>(new Set());
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
 
-  const markAllRead = () => setReadIds(new Set(allNotifications.map((notification: any) => Number(notification.id))));
+  const markAllRead = () => setReadIds(new Set(allNotifications.map((n: NotifType) => n.id)));
 
-  const markAsRead = (id: any) => {
-    setReadIds((previousIds) => {
-      const newSet = new Set(previousIds);
-      newSet.add(Number(id));
-      return newSet;
+  const markAsRead = (id: string) => {
+    setReadIds(prev => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
     });
   };
 
   const notificationsWithReadStatus = useMemo(() => {
-    return allNotifications.map((notification: any) => ({
-      ...notification,
-      isRead: readIds.has(Number(notification.id)),
+    return allNotifications.map((n: NotifType) => ({
+      ...n,
+      isRead: readIds.has(n.id),
     }));
   }, [allNotifications, readIds]);
 
-  const unreadCount = notificationsWithReadStatus.filter((notification) => !notification.isRead).length;
+  const unreadCount = notificationsWithReadStatus.filter(n => !n.isRead).length;
 
   return (
     <div className="animate-page max-w-4xl mx-auto px-5 py-12 md:py-20 flex flex-col gap-12">
@@ -36,7 +36,9 @@ export function NotificationsPage() {
           </p>
           <h1 className="text-5xl font-bold text-text-main tracking-tighter leading-none">
             Updates
-            {unreadCount > 0 && <span className="text-primary font-data ml-2">({unreadCount})</span>}
+            {unreadCount > 0 && (
+              <span className="text-primary font-data ml-2">({unreadCount})</span>
+            )}
           </h1>
           <p className="text-sm font-medium text-text-muted mt-4 opacity-60">
             Important alerts from your price network and trusted updates.
@@ -45,7 +47,8 @@ export function NotificationsPage() {
 
         <button
           onClick={markAllRead}
-          className="h-12 px-6 rounded-2xl bg-bg-muted font-bold text-[10px] text-text-muted uppercase tracking-widest hover:bg-text-main hover:text-white transition-all flex items-center gap-2 shrink-0 group"
+          disabled={unreadCount === 0}
+          className="h-12 px-6 rounded-2xl bg-bg-muted font-bold text-[10px] text-text-muted uppercase tracking-widest hover:bg-text-main hover:text-white transition-all flex items-center gap-2 shrink-0 group disabled:opacity-40 disabled:cursor-not-allowed"
         >
           <span className="material-symbols-outlined text-lg group-hover:animate-pulse">done_all</span>
           Mark all as read
@@ -65,7 +68,7 @@ export function NotificationsPage() {
           <EmptyState
             icon="notifications_off"
             title="No notifications yet"
-            subtitle="You’re all caught up."
+            subtitle="You're all caught up."
           />
         )}
       </div>

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { getEnrichedPriceEntries, getEnrichedFeedback } from '@/api/mockData';
-import { timeAgo, formatLBP } from '@/lib/utils';
+import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
 import { FeedbackCard } from '@/components/cards/FeedbackCard';
@@ -13,13 +13,12 @@ import { useExchangeRateStore } from '@/store/useExchangeRateStore';
 export function PriceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const addItem = useCartStore((s) => s.addItem);
-  const addToast = useToastStore((s) => s.addToast);
+  const addItem = useCartStore((state) => state.addItem);
+  const addToast = useToastStore((state) => state.addToast);
   const { rateLbpPerUsd } = useExchangeRateStore();
 
-  const entry = getEnrichedPriceEntries().find((e) => e.id === id);
-  const feedbacks = getEnrichedFeedback().filter((f) => f.priceEntryId === id);
+  const entry = getEnrichedPriceEntries().find((priceEntry) => priceEntry.id === id);
+  const feedbacks = getEnrichedFeedback().filter((feedback) => feedback.priceEntryId === id);
 
   if (!entry) return <NotFoundPage />;
 
@@ -31,49 +30,40 @@ export function PriceDetailPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-12 md:py-16 animate-page">
-      <div className="flex flex-col lg:flex-row gap-10">
-
-        {/* MAIN CONTENT */}
+    <div className="max-w-7xl mx-auto px-5 py-12 md:py-20 animate-page">
+      <div className="flex flex-col lg:flex-row gap-12">
         <div className="flex-1 flex flex-col gap-8">
-
-          {/* HEADER */}
           <header className="flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-lg bg-bg-muted border border-border-soft flex items-center justify-center hover:bg-bg-surface transition"
+              className="w-11 h-11 rounded-full bg-bg-muted text-text-muted hover:text-text-main flex items-center justify-center transition-all border border-border-soft"
             >
-              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
             </button>
 
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-              Verified entry
-            </p>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-xs font-semibold text-text-muted">Verified price entry</p>
+            </div>
           </header>
 
-          {/* PRODUCT CARD */}
           <section className="card p-8 md:p-10">
-            <div className="flex flex-col md:flex-row gap-8">
-
-              {/* IMAGE */}
-              <div className="w-36 h-36 md:w-44 md:h-44 bg-bg-muted rounded-2xl flex items-center justify-center border border-border-soft">
-                <span className="material-symbols-outlined text-5xl text-text-muted/30">
+            <div className="flex flex-col md:flex-row gap-10">
+              <div className="w-40 h-40 md:w-48 md:h-48 bg-bg-muted rounded-[2rem] flex items-center justify-center shrink-0 border border-border-soft">
+                <span className="material-symbols-outlined text-6xl text-text-muted/20">
                   inventory_2
                 </span>
               </div>
 
-              {/* INFO */}
               <div className="flex-1 flex flex-col">
-
-                <div className="flex items-center gap-2 mb-4">
-                  <span className="px-3 py-1 bg-bg-muted text-text-sub text-xs font-semibold rounded-full">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  <div className="px-3 py-1 bg-text-main text-white text-[10px] font-bold rounded-full">
                     {entry.product?.category}
-                  </span>
-
+                  </div>
                   <StatusBadge status={entry.status} />
                 </div>
 
-                <h1 className="text-3xl md:text-4xl font-bold text-text-main mb-2">
+                <h1 className="text-3xl md:text-4xl font-bold text-text-main tracking-tight mb-3">
                   {entry.product?.name}
                 </h1>
 
@@ -81,62 +71,45 @@ export function PriceDetailPage() {
                   {entry.product?.unit}
                 </p>
 
-                <div className="flex items-center gap-3 mb-6">
-                  <span className="material-symbols-outlined text-text-muted">
-                    storefront
-                  </span>
-
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-text-main">
-                      {entry.store?.name}
-                    </span>
+                <div className="flex items-center gap-3 text-text-main font-bold mb-8 p-4 bg-bg-muted/50 rounded-2xl border border-border-soft w-fit">
+                  <span className="material-symbols-outlined text-xl opacity-50">storefront</span>
+                  <div className="flex flex-col gap-0">
+                    <span className="text-base">{entry.store?.name}</span>
                     <span className="text-xs text-text-muted">
-                      {entry.store?.district}
+                      {entry.store?.district} · Beirut
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-auto flex items-end justify-between">
-
+                <div className="mt-auto pt-8 border-t border-border-soft/60 flex flex-col md:flex-row md:items-end justify-between gap-6">
                   <div>
-                    <p className="text-xs text-text-muted mb-1">
-                      Observed price
-                    </p>
-
+                    <p className="text-xs font-semibold text-text-muted mb-2">Price</p>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl font-bold font-data text-text-main">
+                      <span className="text-5xl font-bold text-text-main font-data leading-none">
                         {entry.priceLbp.toLocaleString()}
                       </span>
-
-                      <span className="text-sm text-text-muted">LBP</span>
+                      <span className="text-lg font-bold text-text-muted">LBP</span>
                     </div>
-
-                    <p className="text-sm text-text-muted">
-                      ≈ ${usdPrice}
-                    </p>
+                    <p className="text-xl font-semibold text-text-muted mt-2">≈ ${usdPrice}</p>
                   </div>
 
-                  <span className="text-xs text-text-muted">
+                  <div className="text-sm text-text-muted">
                     Updated {timeAgo(entry.createdAt)}
-                  </span>
+                  </div>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* PRICE HISTORY */}
           <section className="card p-8">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-text-main">
-                Price trend
-              </h2>
-
-              <span className="text-xs text-green-600 font-semibold">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-xl font-bold text-text-main">Price history</h2>
+              <div className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
                 Stable
-              </span>
+              </div>
             </div>
 
-            <div className="h-[200px]">
+            <div className="h-[220px]">
               <PriceHistoryChart
                 data={[
                   { date: 'Feb 10', price: 120000 },
@@ -151,72 +124,66 @@ export function PriceDetailPage() {
           </section>
         </div>
 
-        {/* SIDEBAR */}
-        <aside className="w-full lg:w-[340px] flex flex-col gap-6">
+        <aside className="w-full lg:w-[360px] flex flex-col gap-6">
+          <div className="card p-8">
+            <h2 className="text-2xl font-bold text-text-main mb-6">Price details</h2>
 
-          {/* ACTION CARD */}
-          <div className="card-dark p-8">
-            <h2 className="text-lg font-bold text-white mb-6">
-              Verification
-            </h2>
-
-            <div className="space-y-4 mb-8">
-
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <p className="text-xs text-white/50 mb-1">
-                  Community confirmations
-                </p>
-
-                <p className="text-2xl font-bold text-white">
-                  {entry.upvotes}
-                </p>
+            <div className="grid grid-cols-1 gap-3 mb-8">
+              <div className="p-5 bg-bg-muted rounded-2xl border border-border-soft">
+                <p className="text-xs font-semibold text-text-muted mb-1">Community confirmations</p>
+                <p className="text-2xl font-bold text-text-main">{entry.upvotes ?? 0}</p>
               </div>
 
-              <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                <p className="text-xs text-white/50 mb-1">
-                  Trust level
-                </p>
-
-                <p className="text-xl font-bold text-green-400">
-                  High
-                </p>
+              <div className="p-5 bg-bg-muted rounded-2xl border border-border-soft">
+                <p className="text-xs font-semibold text-text-muted mb-1">Trust level</p>
+                <p className="text-2xl font-bold text-green-600">High</p>
               </div>
             </div>
 
-            <button
-              onClick={handleAddToCart}
-              className="w-full h-12 rounded-xl bg-white text-text-main font-semibold hover:opacity-90 transition"
-            >
-              Add to cart
-            </button>
-          </div>
+            <div className="space-y-3">
+              <button
+                onClick={handleAddToCart}
+                className="w-full h-14 rounded-full bg-text-main text-white font-semibold text-lg hover:opacity-95 transition-all"
+              >
+                Add to cart
+              </button>
 
-          {/* FEEDBACK */}
-          <div>
-            <p className="text-xs font-semibold text-text-muted mb-4">
-              Community notes
-            </p>
-
-            <div className="space-y-4">
-              {feedbacks.length > 0 ? (
-                feedbacks.map((fb, i) => (
-                  <motion.div
-                    key={fb.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.06 }}
-                  >
-                    <FeedbackCard feedback={fb} />
-                  </motion.div>
-                ))
-              ) : (
-                <div className="text-center py-10 text-text-muted">
-                  No community feedback yet.
-                </div>
-              )}
+              <div className="grid grid-cols-2 gap-3">
+                <button className="w-full h-12 rounded-full border border-border-soft text-text-main font-semibold hover:bg-bg-muted transition-all">
+                  Verify
+                </button>
+                <button className="w-full h-12 rounded-full border border-border-soft text-text-main font-semibold hover:bg-bg-muted transition-all">
+                  Report
+                </button>
+              </div>
             </div>
           </div>
 
+          <div className="space-y-4">
+            <p className="text-xs font-semibold text-text-muted">Notes and reports</p>
+
+            {feedbacks.length > 0 ? (
+              feedbacks.map((feedback, index) => (
+                <motion.div
+                  key={feedback.id}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.08 }}
+                >
+                  <FeedbackCard feedback={feedback} />
+                </motion.div>
+              ))
+            ) : (
+              <div className="py-16 flex flex-col items-center text-center bg-bg-muted/30 rounded-[2rem] border border-dashed border-border-soft">
+                <span className="material-symbols-outlined text-4xl mb-3 text-text-muted/40">
+                  chat
+                </span>
+                <p className="text-sm font-medium text-text-muted">
+                  No notes or reports yet.
+                </p>
+              </div>
+            )}
+          </div>
         </aside>
       </div>
     </div>

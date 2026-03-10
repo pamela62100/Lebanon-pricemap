@@ -10,10 +10,10 @@ export function PriceChip({ price, variant = 'default', className }: PriceChipPr
   return (
     <span
       className={cn(
-        'inline-flex items-center font-bold rounded-full',
-        variant === 'default' && 'px-3 py-1 bg-bg-muted text-text-main text-sm',
-        variant === 'orange' && 'px-3 py-1 bg-primary text-white text-sm',
-        variant === 'large' && 'px-5 py-2 bg-bg-muted text-text-main text-2xl',
+        'inline-flex items-center font-bold rounded-lg tabular-nums',
+        variant === 'default' && 'px-2.5 py-1 bg-bg-muted text-text-main text-xs',
+        variant === 'orange'  && 'px-2.5 py-1 bg-primary/10 text-primary text-xs',
+        variant === 'large'   && 'px-4 py-2 bg-bg-muted text-text-main text-xl',
         className
       )}
     >

@@ -1,4 +1,3 @@
-
 import type { Feedback } from '@/types';
 import { cn, timeAgo, getFeedbackIcon, getFeedbackLabel } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -11,37 +10,46 @@ interface FeedbackCardProps {
 
 export function FeedbackCard({ feedback, onResolve }: FeedbackCardProps) {
   return (
-    <Card className="flex gap-5">
-      <span className="text-2xl flex-shrink-0">{getFeedbackIcon(feedback.type)}</span>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-3 border-b border-border-soft pb-2">
-          <span className="text-[11px] font-black text-text-main uppercase tracking-[0.2em]">
-            {getFeedbackLabel(feedback.type)}
-          </span>
-          <StatusBadge status={feedback.status} />
+    <Card className="p-0">
+      <div className="flex gap-4 sm:gap-5">
+        <div className="w-12 h-12 rounded-2xl bg-bg-muted flex items-center justify-center shrink-0 text-2xl">
+          {getFeedbackIcon(feedback.type)}
         </div>
 
-        {feedback.note && (
-          <p className="font-serif text-lg font-bold text-text-main mb-4 leading-tight">
-            {feedback.note}
-          </p>
-        )}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-3 mb-4 pb-3 border-b border-border-soft flex-wrap">
+            <span className="text-xs font-bold text-text-main tracking-wide">
+              {getFeedbackLabel(feedback.type)}
+            </span>
+            <StatusBadge status={feedback.status} />
+          </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-dashed border-border-soft">
-          <span className="text-[9px] font-bold text-text-muted uppercase tracking-[0.3em]">
-            SRC // {feedback.submitter?.name || 'ANONYMOUS'} • {timeAgo(feedback.createdAt)}
-          </span>
-          {onResolve && feedback.status !== 'resolved' && (
-            <button
-              onClick={() => onResolve(feedback.id)}
-              className={cn(
-                'text-[9px] font-black px-4 py-2 border uppercase tracking-widest transition-all rounded-md',
-                'bg-green-600 border-green-600 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.1)] hover:bg-green-700'
-              )}
-            >
-              FINALIZE_RESOLVE
-            </button>
+          {feedback.note ? (
+            <p className="text-base sm:text-lg font-semibold text-text-main mb-4 leading-relaxed">
+              {feedback.note}
+            </p>
+          ) : (
+            <p className="text-sm text-text-muted mb-4">No additional details were provided.</p>
           )}
+
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-dashed border-border-soft flex-wrap">
+            <span className="text-xs text-text-muted">
+              {timeAgo(feedback.createdAt)}
+            </span>
+
+            {onResolve && feedback.status !== 'resolved' ? (
+              <button
+                onClick={() => onResolve(feedback.id)}
+                className={cn(
+                  'px-4 py-2 rounded-full text-sm font-semibold transition-all',
+                  'bg-green-600 text-white hover:bg-green-700'
+                )}
+                type="button"
+              >
+                Mark as resolved
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
     </Card>

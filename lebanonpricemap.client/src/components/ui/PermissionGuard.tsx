@@ -1,82 +1,118 @@
-import { useAuthStore } from '@/store/useAuthStore';
-import { useApprovalStore } from '@/store/useApprovalStore';
-import { can } from '@/lib/permissions';
-import type { Permission } from '@/lib/permissions';
-import { motion } from 'framer-motion';
+import { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
+import { cn } from '@/lib/utils';
 
-interface PermissionGuardProps {
-  /** The permission scope being checked (e.g. 'account:delete') */
-  permission: Permission;
-  /** Content to show when user has direct access */
+interface RouteDialogProps {
+  dialogId: string;
+  title: string;
+  description?: string;
+  size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
-  /** Optional: Content to show when fully denied (default: hidden) */
-  fallback?: React.ReactNode;
-  /** Action label used in the approval request description */
-  actionLabel?: string;
-  /** Payload to include in the approval request */
-  payload?: Record<string, unknown>;
+  onClose?: () => void;
 }
 
-/**
- * PermissionGuard — wraps any action behind an RBAC check.
- *
- * - allowed        → renders children directly
- * - requires_approval → renders a "Request Approval" button
- * - denied         → renders `fallback` or nothing
- */
-export function PermissionGuard({
-  permission,
+const SIZE_MAP = {
+  sm: 'max-w-md',
+  md: 'max-w-2xl',
+  lg: 'max-w-4xl',
+};
+
+export function RouteDialog({
+  dialogId,
+  title,
+  description,
+  size = 'md',
   children,
-  fallback = null,
-  actionLabel = 'this action',
-  payload = {},
-}: PermissionGuardProps) {
-  const user = useAuthStore(s => s.user);
-  const submitRequest = useApprovalStore(s => s.submitRequest);
+  onClose,
+}: RouteDialogProps) {
+  const { isOpen, close } = useRouteDialog();
+  const open = isOpen(dialogId);
 
-  const result = can(user?.role, permission);
+  useEffect(() => {
+    if (!open) return;
 
-  if (result === 'allowed') {
-    return <>{children}</>;
-  }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        close();
+        onClose?.();
+      }
+    };
 
-  if (result === 'requires_approval') {
-    return (
-      <RequestApprovalButton
-        actionLabel={actionLabel}
-        onRequest={() =>
-          submitRequest(permission, {
-            label: actionLabel,
-            requestedBy: user?.id,
-            ...payload,
-          })
-        }
-      />
-    );
-  }
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
 
-  return <>{fallback}</>;
-}
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, close, onClose]);
 
-// ─── Request Approval Atom ────────────────────────────────────────────────────
-function RequestApprovalButton({
-  actionLabel,
-  onRequest,
-}: {
-  actionLabel: string;
-  onRequest: () => void;
-}) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.97 }}
-      onClick={onRequest}
-      className="h-10 px-4 border border-amber-400/40 bg-amber-400/5 hover:bg-amber-400/10 text-amber-600 text-xs font-bold rounded-xl flex items-center gap-2 transition-all"
-      title={`You need approval to ${actionLabel}`}
-    >
-      <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>
-        admin_panel_settings
-      </span>
-      Request Approval
-    </motion.button>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[90]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <motion.button
+            type="button"
+            aria-label="Close dialog"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"
+            onClick={() => {
+              close();
+              onClose?.();
+            }}
+          />
+
+          <div className="absolute inset-0 overflow-y-auto">
+            <div className="min-h-full px-4 py-24 sm:px-6 sm:py-28 flex items-start justify-center">
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                className={cn(
+                  'relative w-full rounded-[28px] bg-white border border-border-soft shadow-[0_24px_80px_rgba(15,23,42,0.16)] overflow-hidden',
+                  SIZE_MAP[size]
+                )}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-start justify-between gap-4 px-6 sm:px-8 pt-6 sm:pt-7 pb-5 border-b border-border-soft bg-white">
+                  <div className="min-w-0">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-text-main tracking-tight">
+                      {title}
+                    </h2>
+                    {description ? (
+                      <p className="text-sm sm:text-base text-text-muted mt-2 leading-relaxed max-w-2xl">
+                        {description}
+                      </p>
+                    ) : null}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      onClose?.();
+                    }}
+                    className="w-11 h-11 rounded-full border border-border-soft flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-muted transition-all shrink-0"
+                    aria-label="Close dialog"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
+
+                <div className="px-6 sm:px-8 py-6 sm:py-8 max-h-[calc(100vh-220px)] overflow-y-auto">
+                  {children}
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }

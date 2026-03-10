@@ -68,16 +68,16 @@ export function AlertsPage() {
   const activeAlert = alerts.find((alert) => alert.id === activeAlertId);
 
   const toggleActive = (id: string) => {
-    setAlerts((previousAlerts) =>
-      previousAlerts.map((alert) =>
+    setAlerts((currentAlerts) =>
+      currentAlerts.map((alert) =>
         alert.id === id ? { ...alert, active: !alert.active } : alert
       )
     );
   };
 
   const deleteAlert = (id: string) => {
-    setAlerts((previousAlerts) => previousAlerts.filter((alert) => alert.id !== id));
-    addToast('Alert deleted', 'info');
+    setAlerts((currentAlerts) => currentAlerts.filter((alert) => alert.id !== id));
+    addToast('Alert removed');
     close();
   };
 
@@ -96,29 +96,29 @@ export function AlertsPage() {
       createdAt: new Date().toISOString(),
     };
 
-    setAlerts((previousAlerts) => [alert, ...previousAlerts]);
+    setAlerts((currentAlerts) => [alert, ...currentAlerts]);
     close();
     setNewProduct('');
     setNewThreshold('');
     setNewRegions(['Beirut']);
     setVerifiedOnly(true);
-    addToast('Price alert created!', 'success');
+    addToast('Price alert created');
   };
 
   const activeCount = alerts.filter((alert) => alert.active).length;
 
   return (
-    <div className="max-w-4xl mx-auto px-5 py-12 md:py-20 animate-page">
-      <div className="flex flex-col gap-12">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+    <div className="max-w-5xl mx-auto px-4 sm:px-5 py-10 sm:py-12 md:py-16 animate-page">
+      <div className="flex flex-col gap-10 sm:gap-12">
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 sm:gap-8">
           <div>
-            <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-4">
+            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.18em] mb-3">
               Price alerts
             </p>
-            <h1 className="text-5xl md:text-6xl font-bold text-text-main tracking-tighter">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-main tracking-tighter">
               Stay updated.
             </h1>
-            <p className="text-sm font-medium text-text-muted mt-4 opacity-60">
+            <p className="text-sm sm:text-base font-medium text-text-muted mt-4 opacity-80">
               <span className="text-text-main font-bold font-data">{activeCount}</span> active
               alerts out of {alerts.length}
             </p>
@@ -126,7 +126,8 @@ export function AlertsPage() {
 
           <button
             onClick={() => open('new-alert')}
-            className="btn-primary h-14 px-8 rounded-2xl shadow-lg shadow-text-main/10"
+            className="btn-primary h-12 sm:h-14 px-6 sm:px-8 rounded-full shadow-lg shadow-text-main/10 self-start md:self-auto"
+            type="button"
           >
             <span className="material-symbols-outlined">add</span>
             Create Alert
@@ -143,131 +144,135 @@ export function AlertsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  'card p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 group transition-all',
-                  !alert.active && 'opacity-40 grayscale-[0.8]'
+                  'card p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6 group transition-all',
+                  !alert.active && 'opacity-60'
                 )}
               >
-                <div className="flex items-center gap-6 flex-1">
-                  <div className="w-14 h-14 rounded-2xl bg-bg-muted flex items-center justify-center text-text-muted shrink-0 group-hover:bg-bg-base transition-colors">
-                    <span className="material-symbols-outlined text-2xl">notifications</span>
+                <div className="flex items-center gap-4 sm:gap-5 flex-1 min-w-0">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-3xl bg-bg-muted flex items-center justify-center text-text-muted shrink-0">
+                    <span className="material-symbols-outlined text-[26px] sm:text-[28px]">
+                      notifications
+                    </span>
                   </div>
 
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="text-lg font-bold text-text-main truncate">{alert.productName}</h3>
-                      {alert.verifiedOnly && (
-                        <div className="px-2 py-0.5 bg-text-main/10 text-text-main text-[8px] font-bold uppercase tracking-widest rounded-full">
+                      <h3 className="text-lg sm:text-2xl font-bold text-text-main truncate">
+                        {alert.productName}
+                      </h3>
+                      {alert.verifiedOnly ? (
+                        <div className="px-3 py-1 bg-text-main/8 text-text-main text-[10px] font-bold uppercase tracking-widest rounded-full">
                           Verified only
                         </div>
-                      )}
+                      ) : null}
                     </div>
 
-                    <div className="flex items-center gap-3 text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                    <div className="flex items-center gap-3 text-sm text-text-muted flex-wrap">
                       <span>
                         Below{' '}
-                        <span className="text-text-main font-data text-xs">
-                          {alert.thresholdLbp.toLocaleString()}
-                        </span>{' '}
-                        LBP
+                        <span className="text-text-main font-bold">
+                          {alert.thresholdLbp.toLocaleString()} LBP
+                        </span>
                       </span>
-                      <span className="opacity-20">•</span>
+                      <span className="opacity-30">•</span>
                       <span>{alert.regions.join(', ')}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-3 shrink-0">
                   <button
                     onClick={() => toggleActive(alert.id)}
                     className={cn(
-                      'px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all',
+                      'px-5 h-10 sm:h-11 rounded-full text-sm font-semibold transition-all',
                       alert.active
-                        ? 'bg-text-main text-white shadow-lg shadow-text-main/10'
+                        ? 'bg-text-main text-white'
                         : 'bg-bg-muted text-text-muted hover:text-text-main'
                     )}
+                    type="button"
                   >
                     {alert.active ? 'Active' : 'Paused'}
                   </button>
 
                   <button
                     onClick={() => open('delete-alert', { id: alert.id })}
-                    className="w-11 h-11 rounded-xl bg-bg-muted flex items-center justify-center text-text-muted hover:text-red-500 hover:bg-red-500/5 transition-all"
+                    className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-bg-muted flex items-center justify-center text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
+                    type="button"
+                    aria-label="Delete alert"
                   >
-                    <span className="material-symbols-outlined text-xl">delete</span>
+                    <span className="material-symbols-outlined text-[20px]">delete</span>
                   </button>
                 </div>
               </motion.div>
             ))}
           </AnimatePresence>
 
-          {alerts.length === 0 && (
+          {alerts.length === 0 ? (
             <EmptyState
               icon="notifications_off"
               title="No alerts yet"
-              subtitle="Create a price alert and WenArkhass will notify you when prices drop."
+              subtitle="Create a price alert and WenArkhas will notify you when prices drop."
             />
-          )}
+          ) : null}
         </section>
 
         <RouteDialog
           dialogId="new-alert"
           title="Create a price alert"
-          description="Choose a product, set your target price, and select the regions you want to monitor."
+          description="Choose a product, set a target price, and select the regions you want to follow."
+          size="md"
         >
-          <div className="space-y-10 py-4">
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
-                Product
-              </p>
-
-              <div className="relative group">
+          <div className="space-y-6">
+            <div className="space-y-2.5">
+              <label className="text-sm font-semibold text-text-muted">Product</label>
+              <div className="relative">
                 <select
                   value={newProduct}
                   onChange={(event) => setNewProduct(event.target.value)}
-                  className="w-full h-14 pl-5 pr-12 rounded-2xl bg-bg-muted border-none text-sm font-bold text-text-main focus:ring-2 focus:ring-text-main/10 transition-all appearance-none cursor-pointer"
+                  className="w-full h-12 pl-4 pr-11 rounded-2xl bg-bg-muted border border-border-soft text-sm font-medium text-text-main outline-none focus:border-text-main transition-all appearance-none cursor-pointer"
                 >
-                  <option value="">Select a product...</option>
+                  <option value="">Select a product</option>
                   {MOCK_PRODUCTS.map((product) => (
                     <option key={product.id} value={product.id}>
                       {product.name}
                     </option>
                   ))}
                 </select>
-
-                <span className="material-symbols-outlined absolute right-5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none">
+                <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[20px]">
                   unfold_more
                 </span>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] text-center">
-                Target price (LBP)
-              </p>
-              <LBPInput value={newThreshold} onChange={(value) => setNewThreshold(value)} autoFocus />
+            <div className="space-y-2.5">
+              <label className="text-sm font-semibold text-text-muted">Target price</label>
+              <LBPInput
+                value={newThreshold}
+                onChange={(value) => setNewThreshold(value)}
+                autoFocus
+                className="max-w-none"
+              />
             </div>
 
-            <div className="space-y-4">
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
-                Regions
-              </p>
-
+            <div className="space-y-2.5">
+              <label className="text-sm font-semibold text-text-muted">Regions</label>
               <div className="flex flex-wrap gap-2">
                 {REGIONS.map((region) => (
                   <button
                     key={region}
+                    type="button"
                     onClick={() =>
-                      setNewRegions((previousRegions) =>
-                        previousRegions.includes(region)
-                          ? previousRegions.filter((item) => item !== region)
-                          : [...previousRegions, region]
+                      setNewRegions((currentRegions) =>
+                        currentRegions.includes(region)
+                          ? currentRegions.filter((item) => item !== region)
+                          : [...currentRegions, region]
                       )
                     }
                     className={cn(
-                      'px-5 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border',
+                      'px-4 py-2 rounded-full border text-sm font-medium transition-all',
                       newRegions.includes(region)
                         ? 'bg-text-main text-white border-text-main'
-                        : 'bg-white text-text-muted border-border-soft hover:border-text-main/20'
+                        : 'bg-white text-text-main border-border-soft hover:border-text-main/20'
                     )}
                   >
                     {region}
@@ -276,46 +281,53 @@ export function AlertsPage() {
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-bg-muted/50 border border-border-soft">
-              <label className="flex items-center gap-4 cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={verifiedOnly}
-                    onChange={(event) => setVerifiedOnly(event.target.checked)}
-                    className="w-6 h-6 rounded-lg bg-white border-border-soft text-text-main focus:ring-0 cursor-pointer"
-                  />
+            <div className="p-4 rounded-2xl bg-bg-muted/50 border border-border-soft">
+              <label className="flex items-start justify-between gap-4 cursor-pointer">
+                <div>
+                  <p className="text-sm font-semibold text-text-main">Verified data only</p>
+                  <p className="text-sm text-text-muted mt-1">
+                    Use trusted and verified price updates for this alert.
+                  </p>
                 </div>
 
-                <div>
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-text-main">
-                    Verified data only
-                  </p>
-                  <p className="text-[10px] text-text-muted font-medium mt-1 leading-tight opacity-60">
-                    Only use trusted and verified price updates for this alert.
-                  </p>
-                </div>
+                <input
+                  type="checkbox"
+                  checked={verifiedOnly}
+                  onChange={(event) => setVerifiedOnly(event.target.checked)}
+                  className="w-5 h-5 mt-0.5 shrink-0"
+                />
               </label>
             </div>
 
-            <button
-              onClick={saveNewAlert}
-              disabled={!newProduct || !newThreshold}
-              className="btn-primary w-full h-14 rounded-2xl shadow-xl shadow-text-main/10"
-            >
-              <span className="material-symbols-outlined">notifications_active</span>
-              Save Alert
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              <button
+                onClick={close}
+                className="w-full sm:flex-1 h-11 rounded-full border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-semibold"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNewAlert}
+                disabled={!newProduct || !newThreshold}
+                className="w-full sm:flex-1 h-11 rounded-full bg-text-main text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all"
+                type="button"
+              >
+                Save Alert
+              </button>
+            </div>
           </div>
         </RouteDialog>
 
         <ConfirmDialog
           dialogId="delete-alert"
-          title="Delete alert"
-          description={`Are you sure you want to stop tracking ${activeAlert?.productName}?`}
-          confirmLabel="Delete Alert"
-          variant="danger"
-          onConfirm={() => activeAlertId && deleteAlert(activeAlertId)}
+          title="Remove alert"
+          description={`You’ll stop receiving updates for “${activeAlert?.productName ?? 'this item'}”.`}
+          confirmLabel="Remove alert"
+          variant="primary"
+          onConfirm={() => {
+            if (activeAlertId) deleteAlert(activeAlertId);
+          }}
         />
       </div>
     </div>

@@ -20,23 +20,23 @@ export function PriceAlertDialog({
   currentAvgPrice,
   onSubmit,
 }: PriceAlertDialogProps) {
-  const [priceThresholdLbp, setPriceThresholdLbp] = useState(0);
+  const [thresholdLbp, setThresholdLbp] = useState(0);
   const [selectedRegions, setSelectedRegions] = useState<string[]>(['Beirut']);
-  const [showVerifiedReportsOnly, setShowVerifiedReportsOnly] = useState(true);
+  const [verifiedOnly, setVerifiedOnly] = useState(true);
 
   const toggleRegion = (region: string) => {
-    setSelectedRegions((currentRegions) =>
-      currentRegions.includes(region)
-        ? currentRegions.filter((currentRegion) => currentRegion !== region)
-        : [...currentRegions, region]
+    setSelectedRegions((current) =>
+      current.includes(region)
+        ? current.filter((item) => item !== region)
+        : [...current, region]
     );
   };
 
   const handleSubmit = () => {
     onSubmit({
-      thresholdLbp: priceThresholdLbp,
+      thresholdLbp,
       regions: selectedRegions,
-      verifiedOnly: showVerifiedReportsOnly,
+      verifiedOnly,
     });
     onClose();
   };
@@ -49,18 +49,18 @@ export function PriceAlertDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/45 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/22 z-40"
             onClick={onClose}
           />
 
           <motion.div
-            initial={{ y: 24, opacity: 0 }}
+            initial={{ y: 18, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 24, opacity: 0 }}
+            exit={{ y: 12, opacity: 0 }}
             className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
           >
-            <div className="w-full max-w-lg rounded-3xl bg-bg-surface border border-border-primary shadow-glass overflow-hidden max-h-[92dvh] flex flex-col">
-              <div className="px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border-soft">
+            <div className="w-full max-w-lg rounded-[28px] bg-bg-surface border border-border-primary shadow-[0_20px_60px_rgba(0,0,0,0.12)] overflow-hidden max-h-[92dvh] flex flex-col">
+              <div className="px-6 sm:px-8 pt-6 sm:pt-8 pb-5 border-b border-border-soft">
                 <p className="text-[11px] font-black text-primary uppercase tracking-[0.25em] mb-2">
                   Price Alert
                 </p>
@@ -70,10 +70,12 @@ export function PriceAlertDialog({
                 </p>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
-                <div className="flex items-center gap-4 p-4 rounded-2xl border border-border-soft bg-bg-base/40">
+              <div className="flex-1 overflow-y-auto p-6 sm:p-8 space-y-6">
+                <div className="flex items-center gap-4 p-4 rounded-3xl border border-border-soft bg-bg-base/40">
                   <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-[22px]">shopping_bag</span>
+                    <span className="material-symbols-outlined text-primary text-[22px]">
+                      shopping_bag
+                    </span>
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-black text-text-main truncate">{productName}</p>
@@ -91,8 +93,8 @@ export function PriceAlertDialog({
                     Alert me when the price reaches
                   </label>
                   <LBPInput
-                    value={priceThresholdLbp}
-                    onChange={(value) => setPriceThresholdLbp(value || 0)}
+                    value={thresholdLbp}
+                    onChange={(value) => setThresholdLbp(value || 0)}
                     placeholder="e.g. 95,000"
                     className="h-12 rounded-2xl border-border-soft focus:border-primary"
                   />
@@ -120,7 +122,7 @@ export function PriceAlertDialog({
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between gap-4 p-4 rounded-2xl border border-border-soft bg-bg-base/40">
+                <div className="flex items-center justify-between gap-4 p-4 rounded-3xl border border-border-soft bg-bg-base/40">
                   <div>
                     <p className="text-sm font-bold text-text-main">Verified reports only</p>
                     <p className="text-xs text-text-muted">
@@ -129,34 +131,34 @@ export function PriceAlertDialog({
                   </div>
 
                   <button
-                    onClick={() => setShowVerifiedReportsOnly(!showVerifiedReportsOnly)}
+                    onClick={() => setVerifiedOnly(!verifiedOnly)}
                     className={cn(
                       'relative w-12 h-7 rounded-full transition-all',
-                      showVerifiedReportsOnly ? 'bg-primary' : 'bg-bg-muted border border-border-soft'
+                      verifiedOnly ? 'bg-primary' : 'bg-bg-muted border border-border-soft'
                     )}
                     role="switch"
-                    aria-checked={showVerifiedReportsOnly}
+                    aria-checked={verifiedOnly}
                   >
                     <div
                       className={cn(
                         'absolute top-1 w-5 h-5 rounded-full bg-white transition-all',
-                        showVerifiedReportsOnly ? 'right-1' : 'left-1'
+                        verifiedOnly ? 'right-1' : 'left-1'
                       )}
                     />
                   </button>
                 </div>
               </div>
 
-              <div className="px-5 sm:px-6 pb-5 sm:pb-6 pt-2 flex flex-col sm:flex-row gap-3">
+              <div className="px-6 sm:px-8 pb-6 sm:pb-8 pt-2 flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={onClose}
-                  className="w-full sm:flex-1 h-12 rounded-2xl border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-bold"
+                  className="w-full sm:flex-1 h-12 rounded-full border border-border-soft text-text-muted hover:bg-bg-muted hover:text-text-main transition-all font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
-                  className="w-full sm:flex-1 h-12 rounded-2xl bg-primary text-white font-bold hover:opacity-90 transition-all"
+                  className="w-full sm:flex-1 h-12 rounded-full bg-primary text-white font-semibold hover:opacity-90 transition-all"
                 >
                   Save Alert
                 </button>

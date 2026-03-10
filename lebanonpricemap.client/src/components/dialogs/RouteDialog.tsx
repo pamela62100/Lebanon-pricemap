@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { cn } from '@/lib/utils';
@@ -28,24 +28,23 @@ export function RouteDialog({
 }: RouteDialogProps) {
   const { isOpen, close } = useRouteDialog();
   const open = isOpen(dialogId);
-  const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;
 
-    const handleEscape = (event: KeyboardEvent) => {
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         close();
         onClose?.();
       }
     };
 
-    window.addEventListener('keydown', handleEscape);
     document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      window.removeEventListener('keydown', handleEscape);
       document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKeyDown);
     };
   }, [open, close, onClose]);
 
@@ -53,62 +52,65 @@ export function RouteDialog({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-4"
+          className="fixed inset-0 z-[90]"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
         >
-          <motion.div
-            className="absolute inset-0 bg-black/45 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <button
+            type="button"
+            aria-label="Close dialog"
             onClick={() => {
               close();
               onClose?.();
             }}
+            className="absolute inset-0 bg-white/55"
           />
 
-          <motion.div
-            ref={panelRef}
-            className={cn(
-              'relative w-full rounded-2xl sm:rounded-3xl bg-white border border-border-primary shadow-glass overflow-hidden max-h-[92dvh]',
-              SIZE_MAP[size]
-            )}
-            initial={{ opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.98 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          >
-            <div className="flex items-start justify-between gap-4 px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-border-primary bg-bg-base/40">
-              <div className="min-w-0">
-                <h2 className="text-xl sm:text-2xl font-black text-text-main leading-tight">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="mt-1 text-sm text-text-muted leading-relaxed">
-                    {description}
-                  </p>
+          <div className="absolute inset-0 overflow-y-auto">
+            <div className="min-h-full flex items-center justify-center px-4 py-6 sm:px-6">
+              <motion.div
+                initial={{ opacity: 0, y: 12, scale: 0.985 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.985 }}
+                transition={{ duration: 0.18 }}
+                className={cn(
+                  'relative w-full rounded-[24px] bg-white border border-border-soft shadow-[0_20px_60px_rgba(15,23,42,0.10)] overflow-hidden',
+                  SIZE_MAP[size]
                 )}
-              </div>
-
-              <button
-                onClick={() => {
-                  close();
-                  onClose?.();
-                }}
-                className="w-10 h-10 rounded-full border border-border-soft flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-muted transition-all shrink-0"
-                aria-label="Close dialog"
+                onClick={(event) => event.stopPropagation()}
               >
-                <span className="material-symbols-outlined text-[18px]">close</span>
-              </button>
-            </div>
+                <div className="flex items-start justify-between gap-4 px-5 sm:px-6 pt-5 pb-4 border-b border-border-soft">
+                  <div className="min-w-0">
+                    <h2 className="text-2xl sm:text-[30px] font-bold text-text-main tracking-tight">
+                      {title}
+                    </h2>
+                    {description ? (
+                      <p className="text-sm sm:text-base text-text-muted mt-2 leading-relaxed">
+                        {description}
+                      </p>
+                    ) : null}
+                  </div>
 
-            <div className="px-5 sm:px-6 py-5 sm:py-6 overflow-y-auto max-h-[calc(92dvh-88px)]">
-              {children}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      close();
+                      onClose?.();
+                    }}
+                    className="w-10 h-10 rounded-full border border-border-soft flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-muted transition-all shrink-0"
+                    aria-label="Close dialog"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+
+                <div className="px-5 sm:px-6 py-5">
+                  {children}
+                </div>
+              </motion.div>
             </div>
-          </motion.div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>
