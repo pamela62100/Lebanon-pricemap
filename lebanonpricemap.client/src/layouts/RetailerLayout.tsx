@@ -81,7 +81,7 @@ export function RetailerLayout() {
               className="text-xs font-semibold text-text-muted hover:text-text-main transition-colors flex items-center gap-2"
             >
               <span className="material-symbols-outlined text-lg">visibility</span>
-              Shopper_View
+              Shopper View
             </button>
           </div>
         </header>

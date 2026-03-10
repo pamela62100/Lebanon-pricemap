@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import { cn, formatNumber } from '@/lib/utils';
+import { useState, useCallback, useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 interface LBPInputProps {
   value: number | '';
@@ -18,66 +18,58 @@ export function LBPInput({
   className,
   autoFocus,
 }: LBPInputProps) {
-  const [displayValue, setDisplayValue] = useState(
-    typeof value === 'number' && value > 0 ? formatNumber(value) : ''
-  );
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (typeof value === 'number' && value > 0) {
-      setDisplayValue(formatNumber(value));
-    } else if (value === '') {
-      setDisplayValue('');
-    }
-  }, [value]);
+  // While typing: show raw digits. While blurred: show formatted with commas.
+  const displayValue = focused
+    ? value === '' ? '' : String(value)
+    : value === '' ? '' : Number(value).toLocaleString();
 
   const handleChange = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const raw = event.target.value.replace(/[^0-9]/g, '');
-
-      if (raw === '') {
-        setDisplayValue('');
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const digits = e.target.value.replace(/[^0-9]/g, '');
+      if (digits === '') {
         onChange('');
-        return;
+      } else {
+        onChange(parseInt(digits, 10));
       }
-
-      const numberValue = parseInt(raw, 10);
-      setDisplayValue(formatNumber(numberValue));
-      onChange(numberValue);
     },
     [onChange]
   );
 
   return (
-    <div className={cn('flex flex-col gap-2', className)}>
+    <div className={cn('flex flex-col gap-1.5', className)}>
       <div
         className={cn(
-          'relative bg-white border px-4 sm:px-5 h-14 sm:h-16 rounded-2xl transition-all',
-          error
-            ? 'border-status-flagged ring-4 ring-status-flagged/5'
-            : 'border-border-soft focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/5'
+          'flex items-center gap-3 px-4 h-11 rounded-xl border transition-all cursor-text',
+          focused ? 'border-text-main/30 bg-white' : 'border-border-soft bg-bg-muted',
+          error && 'border-red-400 ring-2 ring-red-400/10'
         )}
+        onClick={() => inputRef.current?.focus()}
       >
-        <div className="flex items-center h-full gap-4">
-          <input
-            type="text"
-            inputMode="numeric"
-            value={displayValue}
-            onChange={handleChange}
-            placeholder={placeholder}
-            autoFocus={autoFocus}
-            className="flex-1 bg-transparent border-none outline-none text-2xl sm:text-3xl font-bold text-text-main placeholder:text-text-muted/30 text-center"
-            aria-label="Price in Lebanese pounds"
-          />
-          <div className="h-8 w-px bg-border-soft" />
-          <span className="text-xs font-bold text-text-main uppercase tracking-[0.18em] whitespace-nowrap">
-            LBP
-          </span>
-        </div>
+        <input
+          ref={inputRef}
+          type="text"
+          inputMode="numeric"
+          value={displayValue}
+          onChange={handleChange}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+          className="flex-1 bg-transparent border-none outline-none text-base font-bold text-text-main placeholder:text-text-muted/40 min-w-0"
+          aria-label="Price in Lebanese pounds"
+        />
+        <div className="h-5 w-px bg-border-soft shrink-0" />
+        <span className="text-[11px] font-bold text-text-muted uppercase tracking-widest shrink-0">
+          LBP
+        </span>
       </div>
 
-      {error ? (
-        <p className="text-xs font-medium text-status-flagged px-1">{error}</p>
-      ) : null}
+      {error && (
+        <p className="text-xs font-medium text-red-500 px-1">{error}</p>
+      )}
     </div>
   );
 }

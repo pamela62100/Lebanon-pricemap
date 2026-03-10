@@ -20,7 +20,6 @@ export function TopNavbar() {
         setProfileOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
@@ -28,7 +27,8 @@ export function TopNavbar() {
   const profilePath = user?.role === 'retailer' ? '/retailer/profile' : '/app/profile';
 
   return (
-    <div className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-border-soft">
+    // No sticky/z-index here — DesktopLayout wrapper handles that
+    <div className="w-full bg-white/95 backdrop-blur-md border-b border-border-soft">
       <nav className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
         <button
           type="button"
@@ -47,11 +47,11 @@ export function TopNavbar() {
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="hidden md:flex items-center gap-1">
               {[
-               { icon: 'storefront', path: '/app/catalog', title: 'Catalog' },
-                { icon: 'barcode_scanner', path: '/app/scan', title: 'Scanner' },
-                { icon: 'local_gas_station', path: '/app/fuel', title: 'Fuel' },
-                { icon: 'notifications_active', path: '/app/alerts', title: 'Price Alerts' },
-                { icon: 'notifications', path: '/app/notifications', title: 'Notifications' },
+                { icon: 'storefront',          path: '/app/catalog',       title: 'Catalog' },
+                { icon: 'barcode_scanner',     path: '/app/scan',          title: 'Scanner' },
+                { icon: 'local_gas_station',   path: '/app/fuel',          title: 'Fuel' },
+                { icon: 'notifications_active',path: '/app/alerts',        title: 'Price alerts' },
+                { icon: 'notifications',       path: '/app/notifications', title: 'Notifications' },
               ].map((item) => (
                 <button
                   key={item.path}
@@ -72,11 +72,11 @@ export function TopNavbar() {
               className="relative w-11 h-11 rounded-full flex items-center justify-center text-text-muted hover:text-text-main hover:bg-bg-muted transition-all"
             >
               <span className="material-symbols-outlined text-[20px]">shopping_cart</span>
-              {totalItems > 0 ? (
+              {totalItems > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 w-5 h-5 rounded-full bg-black text-white text-[10px] font-bold flex items-center justify-center">
                   {totalItems}
                 </span>
-              ) : null}
+              )}
             </button>
 
             <div className="w-px h-8 bg-border-soft mx-1 hidden sm:block" />
@@ -84,7 +84,7 @@ export function TopNavbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 type="button"
-                onClick={() => setProfileOpen((current) => !current)}
+                onClick={() => setProfileOpen((v) => !v)}
                 className={cn(
                   'h-12 pl-1.5 pr-4 rounded-full border flex items-center gap-3 transition-all bg-white',
                   profileOpen
@@ -101,7 +101,7 @@ export function TopNavbar() {
               </button>
 
               <AnimatePresence>
-                {profileOpen ? (
+                {profileOpen && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -112,7 +112,6 @@ export function TopNavbar() {
                     <div className="p-4 border-b border-border-soft">
                       <p className="font-bold text-text-main text-lg truncate">{user.name}</p>
                       <p className="text-sm text-text-muted truncate mt-1">{user.email}</p>
-
                       <div className="flex items-center gap-2 mt-4 flex-wrap">
                         <span className="px-3 py-1 rounded-full bg-bg-muted text-text-main text-xs font-bold capitalize">
                           {user.role}
@@ -134,18 +133,14 @@ export function TopNavbar() {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        logout();
-                        setProfileOpen(false);
-                        navigate('/login');
-                      }}
+                      onClick={() => { logout(); setProfileOpen(false); navigate('/login'); }}
                       className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-base text-red-600 hover:bg-red-50 transition-all"
                     >
                       <span className="material-symbols-outlined text-[20px]">logout</span>
                       Sign out
                     </button>
                   </motion.div>
-                ) : null}
+                )}
               </AnimatePresence>
             </div>
           </div>
