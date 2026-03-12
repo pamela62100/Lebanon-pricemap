@@ -89,7 +89,7 @@ export function RegisterPage() {
     setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 700));
 
-    const result = register(emailAddress, password, role, fullName);
+    const result = await register(emailAddress, password, role, fullName);
     setLoading(false);
 
     if (!result.success) {
