@@ -1,5 +1,5 @@
 -- =========================================================
--- WenArkhass (وين ورخص) — PostgreSQL Schema
+-- WenArkhass  — PostgreSQL Schema
 -- =========================================================
 
 BEGIN;
@@ -150,8 +150,8 @@ $$;
 
 CREATE TABLE IF NOT EXISTS users (
   id              UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  role            user_role    NOT NULL DEFAULT 'shopper',
-  status          user_status  NOT NULL DEFAULT 'active',
+  role            VARCHAR(20)    NOT NULL DEFAULT 'shopper',
+  status          VARCHAR(20)  NOT NULL DEFAULT 'active',
 
   email           CITEXT       NOT NULL UNIQUE,
   password_hash   TEXT         NOT NULL,
@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS users (
   district        VARCHAR(100),
 
   trust_score     SMALLINT     NOT NULL DEFAULT 50 CHECK (trust_score BETWEEN 0 AND 100),
-  trust_level     trust_level  NOT NULL DEFAULT 'medium',
+  trust_level     VARCHAR(20)  NOT NULL DEFAULT 'medium',
   upload_count    INTEGER      NOT NULL DEFAULT 0,
   verified_count  INTEGER      NOT NULL DEFAULT 0,
 

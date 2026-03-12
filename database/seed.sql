@@ -27,11 +27,11 @@ INSERT INTO users (
   id, role, status, email, password_hash, name, avatar_initials, city,
   trust_score, trust_level, upload_count, verified_count, joined_at
 ) VALUES
-  ('10000000-0000-0000-0000-000000000001', 'shopper',  'active',  'layla@test.com', 'PLACEHOLDER', 'Layla Khoury',  'LK', 'Beirut',  91,  'high',   42, 38, '2024-01-15T00:00:00Z'),
-  ('10000000-0000-0000-0000-000000000002', 'shopper',  'active',  'rima@test.com',  'PLACEHOLDER', 'Rima Karam',    'RK', 'Tripoli', 67,  'medium', 18, 11, '2024-03-10T00:00:00Z'),
-  ('10000000-0000-0000-0000-000000000003', 'shopper',  'warned',  'fouad@test.com', 'PLACEHOLDER', 'Fouad Gemayel', 'FG', 'Jounieh', 25,  'low',    6,  1,  '2024-05-20T00:00:00Z'),
-  ('10000000-0000-0000-0000-000000000004', 'retailer', 'active',  'habib@test.com', 'PLACEHOLDER', 'Habib Nassar',  'HN', 'Beirut',  92,  'high',   0,  0,  '2024-02-01T00:00:00Z'),
-  ('10000000-0000-0000-0000-000000000005', 'admin',    'active',  'admin@wein.app', 'PLACEHOLDER', 'Admin User',    'AU', 'Beirut',  100, 'high',   0,  0,  '2023-12-01T00:00:00Z')
+  ('10000000-0000-0000-0000-000000000001', 'shopper',  'active',  'layla@test.com', '$2a$11$pFP7BKMh2VD0DAxULp/FH.6YVN8xh50ZUoQmQA4XNAKKrgR6g3whO', 'Layla Khoury',  'LK', 'Beirut',  91,  'high',   42, 38, '2024-01-15T00:00:00Z'),
+  ('10000000-0000-0000-0000-000000000002', 'shopper',  'active',  'rima@test.com',  '$2a$11$pFP7BKMh2VD0DAxULp/FH.6YVN8xh50ZUoQmQA4XNAKKrgR6g3whO', 'Rima Karam',    'RK', 'Tripoli', 67,  'medium', 18, 11, '2024-03-10T00:00:00Z'),
+  ('10000000-0000-0000-0000-000000000003', 'shopper',  'warned',  'fouad@test.com', '$2a$11$pFP7BKMh2VD0DAxULp/FH.6YVN8xh50ZUoQmQA4XNAKKrgR6g3whO', 'Fouad Gemayel', 'FG', 'Jounieh', 25,  'low',    6,  1,  '2024-05-20T00:00:00Z'),
+  ('10000000-0000-0000-0000-000000000004', 'retailer', 'active',  'habib@test.com', '$2a$11$pFP7BKMh2VD0DAxULp/FH.6YVN8xh50ZUoQmQA4XNAKKrgR6g3whO', 'Habib Nassar',  'HN', 'Beirut',  92,  'high',   0,  0,  '2024-02-01T00:00:00Z'),
+  ('10000000-0000-0000-0000-000000000005', 'admin',    'active',  'admin@wein.app', '$2a$11$pFP7BKMh2VD0DAxULp/FH.6YVN8xh50ZUoQmQA4XNAKKrgR6g3whO', 'Admin User',    'AU', 'Beirut',  100, 'high',   0,  0,  '2023-12-01T00:00:00Z')
 ON CONFLICT DO NOTHING;
 
 -- =========================================================
