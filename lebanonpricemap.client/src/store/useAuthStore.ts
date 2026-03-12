@@ -1,63 +1,68 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, UserRole } from '@/types';
+import client from '@/api/axiosClient';
 
 interface AuthState {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => { success: boolean; error?: string };
+  token: string | null;
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
-  register: (email: string, password: string, role: UserRole, name: string) => { success: boolean; error?: string };
-}
-
-function detectRole(email: string): UserRole {
-  if (email.includes('@admin') || email.includes('admin@')) return 'admin';
-  if (email.includes('retailer') || email.includes('@store')) return 'retailer';
-  return 'shopper';
+  register: (email: string, password: string, role: UserRole, name: string) => Promise<{ success: boolean; error?: string }>;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      // Start logged-out — users must authenticate
       user: null,
       isLoading: false,
+      token: null,
 
-      login: (email: string, password: string) => {
+      login: async (email: string, password: string) => {
         if (!email || !password) {
           return { success: false, error: 'Please enter your email and password.' };
         }
-        if (password.length < 6) {
-          return { success: false, error: 'Password must be at least 6 characters.' };
+
+        try {
+          const response = await client.post('/auth/login', { email, password });
+          const data = response.data;
+
+          localStorage.setItem('rakis_token', data.token);
+
+          set({
+            token: data.token,
+            user: {
+              id: data.id,
+              name: data.name,
+              email: data.email,
+              role: data.role,
+              city: 'Beirut',
+              trustScore: data.trustScore,
+              trustLevel: data.trustLevel,
+              uploadCount: 0,
+              verifiedCount: 0,
+              avatarInitials: data.avatarInitials ?? data.name.slice(0, 2).toUpperCase(),
+              joinedAt: new Date().toISOString(),
+              status: 'active',
+              notifications: [],
+              alerts: [],
+            },
+          });
+
+          return { success: true };
+        } catch (err: any) {
+          const message = err.response?.data?.message ?? 'Invalid email or password.';
+          return { success: false, error: message };
         }
-
-        const role = detectRole(email);
-        const name = email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
-        set({
-          user: {
-            id: `user_${Date.now()}`,
-            name,
-            email,
-            role,
-            city: 'Beirut',
-            trustScore: role === 'admin' ? 100 : role === 'retailer' ? 85 : 70,
-            uploadCount: 0,
-            verifiedCount: 0,
-            avatarInitials: name.slice(0, 2).toUpperCase(),
-            joinedAt: new Date().toISOString(),
-            status: 'active',
-            notifications: [],
-            alerts: [],
-          },
-        });
-
-        return { success: true };
       },
 
-      logout: () => set({ user: null }),
+      logout: () => {
+        localStorage.removeItem('rakis_token');
+        set({ user: null, token: null });
+      },
 
-      register: (email: string, password: string, role: UserRole, name: string) => {
+      register: async (email: string, password: string, role: UserRole, name: string) => {
         if (!email || !password || !name) {
           return { success: false, error: 'All fields are required.' };
         }
@@ -65,25 +70,37 @@ export const useAuthStore = create<AuthState>()(
           return { success: false, error: 'Password must be at least 6 characters.' };
         }
 
-        set({
-          user: {
-            id: `user_${Date.now()}`,
-            name: name.trim(),
-            email,
-            role,
-            city: 'Beirut',
-            trustScore: 0,
-            uploadCount: 0,
-            verifiedCount: 0,
-            avatarInitials: name.trim().slice(0, 2).toUpperCase(),
-            joinedAt: new Date().toISOString(),
-            status: 'active',
-            notifications: [],
-            alerts: [],
-          },
-        });
+        try {
+          const response = await client.post('/auth/register', { email, password, name, role });
+          const data = response.data;
 
-        return { success: true };
+          localStorage.setItem('rakis_token', data.token);
+
+          set({
+            token: data.token,
+            user: {
+              id: data.id,
+              name: data.name,
+              email: data.email,
+              role: data.role,
+              city: 'Beirut',
+              trustScore: data.trustScore,
+              trustLevel: data.trustLevel,
+              uploadCount: 0,
+              verifiedCount: 0,
+              avatarInitials: data.avatarInitials ?? name.trim().slice(0, 2).toUpperCase(),
+              joinedAt: new Date().toISOString(),
+              status: 'active',
+              notifications: [],
+              alerts: [],
+            },
+          });
+
+          return { success: true };
+        } catch (err: any) {
+          const message = err.response?.data?.message ?? 'Registration failed. Please try again.';
+          return { success: false, error: message };
+        }
       },
     }),
     { name: 'wein_auth_v2' }
