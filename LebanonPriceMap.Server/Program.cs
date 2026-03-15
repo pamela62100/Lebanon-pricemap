@@ -5,14 +5,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);   
 
 // Connect to PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register AuthService
+// Register Services
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<PriceService>();
+builder.Services.AddScoped<StoreService>(); // New: powers /api/stores
 
 // Add CORS
 builder.Services.AddCors(options =>

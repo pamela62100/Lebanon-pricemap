@@ -29,7 +29,7 @@ export function TopNavbar() {
   return (
     // No sticky/z-index here — DesktopLayout wrapper handles that
     <div className="w-full bg-white/95 backdrop-blur-md border-b border-border-soft">
-      <nav className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <nav className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={() => navigate(user ? '/app' : '/')}

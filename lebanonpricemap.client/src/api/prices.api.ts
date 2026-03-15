@@ -2,7 +2,7 @@ import client from './axiosClient';
 import type { ApiResponse, PriceEntry } from '@/types';
 import { getEnrichedPriceEntries } from './mockData';
 
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 export const pricesApi = {
   search: async (params: { query?: string; city?: string; sort?: string; verifiedOnly?: boolean }) => {
@@ -53,6 +53,7 @@ export const pricesApi = {
         verifiedBy: null,
         upvotes: 0,
         downvotes: 0,
+        source: 'official'
       };
       return { data: { success: true, data: entry } };
     }
