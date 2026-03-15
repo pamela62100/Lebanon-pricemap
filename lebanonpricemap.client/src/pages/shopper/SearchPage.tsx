@@ -107,11 +107,11 @@ export function SearchPage() {
       style={{ height: `calc(100dvh - ${headerHeight}px)` }}
     >
       {/* ── Left sidebar ── */}
-      <div className="w-full lg:w-[400px] xl:w-[460px] flex flex-col overflow-hidden border-r border-border-soft bg-white/60 backdrop-blur-xl z-20">
+      <div className="w-full lg:w-[50%] xl:w-[55%] 2xl:w-[60%] flex flex-col overflow-hidden border-r border-border-soft bg-white/60 backdrop-blur-xl z-20">
 
         {/* Search header */}
-        <div className="bg-white/90 backdrop-blur-xl border-b border-border-soft px-5 py-4 shrink-0">
-          <div className="flex items-center justify-between mb-4">
+        <div className="bg-white/90 backdrop-blur-xl border-b border-border-soft px-5 py-2 shrink-0">
+          <div className="flex items-center justify-between mb-1">
             <div>
               <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-0.5">Live prices</p>
               <h1 className="text-xl font-bold text-text-main tracking-tight">Search</h1>

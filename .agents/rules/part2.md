@@ -11,3 +11,4 @@ The Cart Optimizer: Algorithmic Resilience in Practice
 The pinnacle of the Wein user experience is the StoreOptimizer.ts. This logic addresses the core pain point of the Lebanese shopper: "Where should I buy these items to spend the least amount of LBP today?".   
 
 Optimization Logic and Constraint Satisfaction
+
