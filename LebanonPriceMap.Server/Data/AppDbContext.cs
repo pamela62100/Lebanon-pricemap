@@ -22,22 +22,26 @@ public class AppDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 1. Map "User" model to "users" table
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.ToTable("users");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Email).HasColumnName("email");
-            entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
-            entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.Role).HasColumnName("role");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.TrustScore).HasColumnName("trust_score");
-            entity.Property(e => e.TrustLevel).HasColumnName("trust_level");
-            entity.Property(e => e.JoinedAt).HasColumnName("joined_at");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-
-        });
+       modelBuilder.Entity<User>(entity =>
+{
+    entity.ToTable("users");
+    entity.Property(e => e.Id).HasColumnName("id");
+    entity.Property(e => e.Email).HasColumnName("email");
+    entity.Property(e => e.PasswordHash).HasColumnName("password_hash");
+    entity.Property(e => e.Name).HasColumnName("name");
+    entity.Property(e => e.Role).HasColumnName("role");
+    entity.Property(e => e.Status).HasColumnName("status");
+    entity.Property(e => e.AvatarInitials).HasColumnName("avatar_initials");
+    entity.Property(e => e.City).HasColumnName("city");
+    entity.Property(e => e.TrustScore).HasColumnName("trust_score");
+    entity.Property(e => e.TrustLevel).HasColumnName("trust_level");
+    entity.Property(e => e.UploadCount).HasColumnName("upload_count");
+    entity.Property(e => e.VerifiedCount).HasColumnName("verified_count");
+    entity.Property(e => e.JoinedAt).HasColumnName("joined_at");
+    entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+    entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+    entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+});
 
         // 2. Map "Product" model to "products" table
         modelBuilder.Entity<Product>(entity =>
