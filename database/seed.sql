@@ -341,5 +341,19 @@ INSERT INTO system_broadcasts (id, type, message, severity, is_active, created_a
   ('20000000-0000-0000-0000-000000000001', 'stock_out', 'Warning: Bread is out of stock in 80% of Metn stores right now.',      'high',   true, NOW()),
   ('20000000-0000-0000-0000-000000000002', 'news',      'Ministry of Energy: Official fuel prices will be updated in 4 hours.', 'medium', true, NOW())
 ON CONFLICT DO NOTHING;
+INSERT INTO current_store_product_prices (id, store_id, product_id, current_price_lbp, source, confidence_score, is_verified, is_in_stock, updated_at)
+SELECT 
+    gen_random_uuid(),
+    ps.store_id,
+    ps.product_id,
+    ps.price_lbp,
+    ps.source,
+    80,
+    ps.submission_status = 'verified',
+    true,
+    ps.created_at
+FROM price_submissions ps
+WHERE ps.submission_status = 'verified'
+ON CONFLICT DO NOTHING;
 
 COMMIT;

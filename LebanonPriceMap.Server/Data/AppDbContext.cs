@@ -18,6 +18,7 @@ public class AppDbContext : DbContext
     public DbSet<Category> Categories { get; set; }
     public DbSet<CurrentStoreProductPrice> CurrentStoreProductPrices { get; set; }
     public DbSet<PriceSubmission> PriceSubmissions { get; set; }
+    public DbSet<ProductAlias> ProductAliases { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,9 +56,12 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Unit).HasColumnName("unit");
             entity.Property(e => e.Brand).HasColumnName("brand");
             entity.Property(e => e.Barcode).HasColumnName("barcode");
-            entity.Property(e => e.IsArchived).HasColumnName("is_archived");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.UploadCount).HasColumnName("upload_count");
+entity.Property(e => e.IsArchived).HasColumnName("is_archived");
+entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+entity.Property(e => e.MergedIntoProductId).HasColumnName("merged_into_product_id");
+entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
         // 3. Map "Store" model to "stores" table
@@ -82,13 +86,14 @@ public class AppDbContext : DbContext
 
         // 4. Map "Category" model to "categories" table
         modelBuilder.Entity<Category>(entity =>
-        {
-            entity.ToTable("categories");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.Name).HasColumnName("name");
-            entity.Property(e => e.SortOrder).HasColumnName("sort_order");
-        });
-
+{
+    entity.ToTable("categories");
+    entity.Property(e => e.Id).HasColumnName("id");
+    entity.Property(e => e.Name).HasColumnName("name");
+    entity.Property(e => e.SortOrder).HasColumnName("sort_order");
+    entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+    entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+});
         // 5. Map "CurrentStoreProductPrice" model to "current_store_product_prices" table
         modelBuilder.Entity<CurrentStoreProductPrice>(entity =>
         {
@@ -115,6 +120,15 @@ public class AppDbContext : DbContext
             entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
         });
+        modelBuilder.Entity<ProductAlias>(entity =>
+{
+    entity.ToTable("product_aliases");
+    entity.Property(e => e.Id).HasColumnName("id");
+    entity.Property(e => e.ProductId).HasColumnName("product_id");
+    entity.Property(e => e.Alias).HasColumnName("alias");
+    entity.Property(e => e.LanguageCode).HasColumnName("language_code");
+    entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+});
         
     }
 }
