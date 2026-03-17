@@ -1,12 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { getEnrichedPriceEntries } from '@/api/mockData';
+import { pricesApi } from '@/api/prices.api';
 import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { useLocationStore } from '@/store/useLocationStore';
-import { useOfflineSync } from '@/hooks/useOfflineSync';
-import { useOfflineStore } from '@/store/useOfflineStore';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { ReportRealityDialog } from '@/components/dialogs/ReportRealityDialog';
@@ -22,7 +20,6 @@ const CATEGORIES = [
   { id: 'Fuel',    label: 'Fuel',    icon: 'local_gas_station' },
 ];
 
-// Measure the actual sticky header height at runtime so we never hardcode pixels
 function useStickyHeaderHeight() {
   const [height, setHeight] = useState(136);
   useMemo(() => {
@@ -36,34 +33,36 @@ export function SearchPage() {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'near' | 'price' | 'date'>('date');
+  const [allEntries, setAllEntries] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const { isOnline } = useOfflineStore();
-  const { getCachedPrices } = useOfflineSync();
   const { lat, lng, city, requestLocation } = useLocationStore();
   const { getParam } = useRouteDialog();
   const headerHeight = useStickyHeaderHeight();
 
-  const allEntries = useMemo(() =>
-    isOnline ? getEnrichedPriceEntries() : getCachedPrices(),
-  [isOnline]);
+  useEffect(() => {
+    setLoading(true);
+    pricesApi.search({
+      query: query || undefined,
+      city: undefined,
+      sort: sortBy === 'date' ? undefined : sortBy,
+      verifiedOnly: false,
+    })
+      .then(res => setAllEntries((res as any).data?.data ?? []))
+      .catch(() => setAllEntries([]))
+      .finally(() => setLoading(false));
+  }, [query, activeCategory, sortBy]);
 
   const activeEntryId = getParam('id');
   const activeEntry = allEntries.find((e: any) => e.id === activeEntryId);
 
   const filteredEntries = useMemo(() => {
-    let results = [...allEntries].filter(
-      (e: any) => (e.status === 'verified' || e.source === 'official') && !e.isDisputed
-    );
-    if (query) {
-      const q = query.toLowerCase();
-      results = results.filter((e: any) =>
-        e.product?.name.toLowerCase().includes(q) ||
-        e.store?.name.toLowerCase().includes(q)
-      );
-    }
+    let results = [...allEntries];
+
     if (activeCategory !== 'All') {
       results = results.filter((e: any) => e.product?.category === activeCategory);
     }
+
     if (sortBy === 'near' && lat && lng) {
       results.sort((a: any, b: any) =>
         distanceKm(lat, lng, a.store?.latitude ?? 0, a.store?.longitude ?? 0) -
@@ -76,8 +75,9 @@ export function SearchPage() {
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
     }
+
     return results;
-  }, [allEntries, query, activeCategory, sortBy, lat, lng]);
+  }, [allEntries, activeCategory, sortBy, lat, lng]);
 
   const mapMarkers = useMemo(() => {
     const cheapest: Record<string, number> = {};
@@ -101,7 +101,6 @@ export function SearchPage() {
     : 0;
 
   return (
-    // This page manages its own height — fills viewport minus the sticky navbar
     <div
       className="flex flex-col lg:flex-row overflow-hidden bg-bg-base"
       style={{ height: `calc(100dvh - ${headerHeight}px)` }}
@@ -156,7 +155,11 @@ export function SearchPage() {
         <div className="flex-1 overflow-y-auto px-5 py-4">
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-text-muted">
-              <span className="font-bold text-text-main">{filteredEntries.length}</span> results
+              {loading ? (
+                <span className="text-text-muted">Loading...</span>
+              ) : (
+                <><span className="font-bold text-text-main">{filteredEntries.length}</span> results</>
+              )}
             </p>
             <div className="flex p-0.5 bg-bg-muted rounded-lg border border-border-soft">
               {(['date', 'price', 'near'] as const).map((s) => (
@@ -187,7 +190,7 @@ export function SearchPage() {
             ))}
           </div>
 
-          {filteredEntries.length === 0 && (
+          {!loading && filteredEntries.length === 0 && (
             <div className="py-20 flex flex-col items-center text-center">
               <span className="material-symbols-outlined text-4xl text-text-muted/20 mb-3">search_off</span>
               <p className="text-sm text-text-muted">No results found.</p>

@@ -14,16 +14,22 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Register Services
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<PriceService>();
-builder.Services.AddScoped<StoreService>(); // New: powers /api/stores
+builder.Services.AddScoped<StoreService>();
+builder.Services.AddScoped<ProductService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:5175",
+            "http://localhost:3000"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 
@@ -57,7 +63,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
-app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

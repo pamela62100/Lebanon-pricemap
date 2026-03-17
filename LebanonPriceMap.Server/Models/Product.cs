@@ -17,19 +17,19 @@ namespace LebanonPriceMap.Server.Models
         public string Name { get; set; }
 
         [MaxLength(255)]
-        public string NameAr { get; set; }
+        public string? NameAr { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         [MaxLength(100)]
         public string Unit { get; set; }
 
         [MaxLength(150)]
-        public string Brand { get; set; }
+        public string? Brand { get; set; }
 
         [MaxLength(100)]
-        public string Barcode { get; set; }
+        public string? Barcode { get; set; }
 
         public int UploadCount { get; set; } = 0;
 
