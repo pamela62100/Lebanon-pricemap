@@ -2814,23 +2814,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\96171\\.nuget\\packages\\": {},
+    "C:\\Users\\HP UAE\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\96171\\Lebanon-pricemap\\LebanonPriceMap.server\\LebanonPriceMap.Server.csproj",
+      "projectUniqueName": "C:\\fyp\\Lebanon-pricemap\\LebanonPriceMap.Server\\LebanonPriceMap.Server.csproj",
       "projectName": "LebanonPriceMap.Server",
-      "projectPath": "C:\\Users\\96171\\Lebanon-pricemap\\LebanonPriceMap.server\\LebanonPriceMap.Server.csproj",
-      "packagesPath": "C:\\Users\\96171\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\96171\\Lebanon-pricemap\\LebanonPriceMap.server\\obj\\",
+      "projectPath": "C:\\fyp\\Lebanon-pricemap\\LebanonPriceMap.Server\\LebanonPriceMap.Server.csproj",
+      "packagesPath": "C:\\Users\\HP UAE\\.nuget\\packages\\",
+      "outputPath": "C:\\fyp\\Lebanon-pricemap\\LebanonPriceMap.Server\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\96171\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\HP UAE\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -2857,7 +2857,7 @@
         "auditLevel": "low",
         "auditMode": "all"
       },
-      "SdkAnalysisLevel": "10.0.100"
+      "SdkAnalysisLevel": "10.0.200"
     },
     "frameworks": {
       "net10.0": {
@@ -2917,7 +2917,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.200-preview.0.26103.119/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

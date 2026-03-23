@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<CurrentStoreProductPrice> CurrentStoreProductPrices { get; set; }
     public DbSet<PriceSubmission> PriceSubmissions { get; set; }
     public DbSet<ProductAlias> ProductAliases { get; set; }
+    public DbSet<StoreCatalogItem> StoreCatalogItems { get; set; }
+    public DbSet<CatalogAuditEntry> CatalogAuditEntries { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -129,6 +131,42 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
     entity.Property(e => e.LanguageCode).HasColumnName("language_code");
     entity.Property(e => e.CreatedAt).HasColumnName("created_at");
 });
+
+        // 7. Map "StoreCatalogItem" model to "store_catalog_items" table
+        modelBuilder.Entity<StoreCatalogItem>(entity =>
+        {
+            entity.ToTable("store_catalog_items");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.OfficialPriceLbp).HasColumnName("official_price_lbp");
+            entity.Property(e => e.PromoPriceLbp).HasColumnName("promo_price_lbp");
+            entity.Property(e => e.PromoEndsAt).HasColumnName("promo_ends_at");
+            entity.Property(e => e.IsInStock).HasColumnName("is_in_stock");
+            entity.Property(e => e.IsPromotion).HasColumnName("is_promotion");
+            entity.Property(e => e.LastUpdatedBy).HasColumnName("last_updated_by");
+            entity.Property(e => e.LastUpdatedAt).HasColumnName("last_updated_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            
+            entity.HasIndex(e => new { e.StoreId, e.ProductId }).IsUnique();
+        });
+
+        // 8. Map "CatalogAuditEntry" model to "catalog_audit_entries" table
+        modelBuilder.Entity<CatalogAuditEntry>(entity =>
+        {
+            entity.ToTable("catalog_audit_entries");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CatalogItemId).HasColumnName("catalog_item_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.ChangedBy).HasColumnName("changed_by");
+            entity.Property(e => e.Reason).HasColumnType("catalog_change_reason").HasColumnName("reason");
+            entity.Property(e => e.RelatedReportId).HasColumnName("related_report_id");
+            entity.Property(e => e.PreviousPriceLbp).HasColumnName("previous_price_lbp");
+            entity.Property(e => e.NewPriceLbp).HasColumnName("new_price_lbp");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
         
     }
 }
