@@ -21,7 +21,7 @@ public class AppDbContext : DbContext
     public DbSet<ProductAlias> ProductAliases { get; set; }
     public DbSet<StoreCatalogItem> StoreCatalogItems { get; set; }
     public DbSet<CatalogAuditEntry> CatalogAuditEntries { get; set; }
-
+    public DbSet<Alert> Alerts { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 1. Map "User" model to "users" table
@@ -167,6 +167,26 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Note).HasColumnName("note");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
         });
-        
+        modelBuilder.Entity<Alert>(entity =>
+{
+    entity.ToTable("price_alerts");
+
+    entity.Property(e => e.Id).HasColumnName("id");
+    entity.Property(e => e.UserId).HasColumnName("user_id");
+    entity.Property(e => e.ProductId).HasColumnName("product_id");
+    entity.Property(e => e.TargetPriceLbp).HasColumnName("threshold_lbp");
+    entity.Property(e => e.VerifiedOnly).HasColumnName("verified_only");
+
+    entity.Property(e => e.Status)
+        .HasColumnName("status")
+        .HasColumnType("alert_status");
+
+    entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+    entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+    entity.HasOne(e => e.Product)
+        .WithMany()
+        .HasForeignKey(e => e.ProductId);
+});
     }
 }
