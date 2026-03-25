@@ -1,15 +1,19 @@
 using LebanonPriceMap.Server.Data;
 using LebanonPriceMap.Server.Services;
+using LebanonPriceMap.Server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-WebApplicationBuilder builder = WebApplication.CreateBuilder(args);   
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Connect to PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        o => o.MapEnum<AlertStatus>("alert_status")
+    ));
 
 // Register Services
 builder.Services.AddScoped<AuthService>();
@@ -17,6 +21,7 @@ builder.Services.AddScoped<PriceService>();
 builder.Services.AddScoped<StoreService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<AlertService>();
 
 // Add CORS
 builder.Services.AddCors(options =>
