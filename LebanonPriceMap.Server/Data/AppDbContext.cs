@@ -21,7 +21,10 @@ public class AppDbContext : DbContext
     public DbSet<ProductAlias> ProductAliases { get; set; }
     public DbSet<StoreCatalogItem> StoreCatalogItems { get; set; }
     public DbSet<CatalogAuditEntry> CatalogAuditEntries { get; set; }
+    public DbSet<CatalogDiscrepancyReport> CatalogDiscrepancyReports { get; set; }
     public DbSet<Alert> Alerts { get; set; }
+
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // 1. Map "User" model to "users" table
@@ -167,7 +170,7 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Note).HasColumnName("note");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
         });
-        modelBuilder.Entity<Alert>(entity =>
+            modelBuilder.Entity<Alert>(entity =>
 {
     entity.ToTable("price_alerts");
 
@@ -188,5 +191,26 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         .WithMany()
         .HasForeignKey(e => e.ProductId);
 });
+// 9. Map "CatalogDiscrepancyReport" model to "catalog_discrepancy_reports" table
+        modelBuilder.Entity<CatalogDiscrepancyReport>(entity =>
+        {
+            entity.ToTable("catalog_discrepancy_reports");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CatalogItemId).HasColumnName("catalog_item_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.ReportedBy).HasColumnName("reported_by");
+            entity.Property(e => e.ReporterTrustScore).HasColumnName("reporter_trust_score");
+            entity.Property(e => e.ReportType).HasColumnName("report_type");
+            entity.Property(e => e.ObservedPriceLbp).HasColumnName("observed_price_lbp");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.ApprovedNewPriceLbp).HasColumnName("approved_new_price_lbp");
+            entity.Property(e => e.ReviewNote).HasColumnName("review_note");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+        });
     }
+    
 }

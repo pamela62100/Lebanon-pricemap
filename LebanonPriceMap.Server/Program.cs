@@ -21,7 +21,9 @@ builder.Services.AddScoped<PriceService>();
 builder.Services.AddScoped<StoreService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CatalogService>();
+builder.Services.AddScoped<DiscrepancyService>();
 builder.Services.AddScoped<AlertService>();
+
 
 // Add CORS
 builder.Services.AddCors(options =>

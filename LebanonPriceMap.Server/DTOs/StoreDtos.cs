@@ -22,3 +22,24 @@ public class StoreResponse
     public string PowerStatus { get; set; } = "stable";
     public string? LogoUrl { get; set; }
 }
+
+public class StoreUpdateRequest
+{
+    public string Name { get; set; }
+    public string Chain { get; set; }
+    public string City { get; set; }
+    public string District { get; set; }
+    public string Region { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+}
+
+public class StoreStatusUpdateRequest
+{
+    public string Status { get; set; } // 'active', 'suspended', 'flagged'
+}
+
+public class StorePowerStatusUpdateRequest
+{
+    public string PowerStatus { get; set; } // 'stable', 'unstable', 'reported_warm'
+}

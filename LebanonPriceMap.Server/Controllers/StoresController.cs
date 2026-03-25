@@ -1,4 +1,5 @@
 using LebanonPriceMap.Server.Services;
+using LebanonPriceMap.Server.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LebanonPriceMap.Server.Controllers;
@@ -39,5 +40,32 @@ public class StoresController : ControllerBase
         var store = await _storeService.GetByIdAsync(id);
         if (store == null) return NotFound(new { success = false, message = "Store not found" });
         return Ok(new { success = true, data = store });
+    }
+
+    [HttpPut("{id}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] StoreUpdateRequest request)
+    {
+        var success = await _storeService.UpdateStoreAsync(id, request);
+        if (!success) return NotFound(new { success = false, message = "Store not found" });
+        return Ok(new { success = true });
+    }
+
+    [HttpPatch("{id}/power")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> UpdatePower(Guid id, [FromBody] StorePowerStatusUpdateRequest request)
+    {
+        var success = await _storeService.UpdatePowerStatusAsync(id, request.PowerStatus);
+        if (!success) return NotFound(new { success = false, message = "Store not found" });
+        return Ok(new { success = true });
+    }
+
+    [HttpPatch("{id}/status")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] StoreStatusUpdateRequest request)
+    {
+        var success = await _storeService.UpdateStoreStatusAsync(id, request.Status);
+        if (!success) return NotFound(new { success = false, message = "Store not found" });
+        return Ok(new { success = true });
     }
 }

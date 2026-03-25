@@ -90,4 +90,46 @@ public class StoreService
             LogoUrl = store.LogoUrl
         };
     }
+
+    public async Task<bool> UpdateStoreAsync(Guid id, StoreUpdateRequest request)
+    {
+        var store = await _db.Stores.FindAsync(id);
+        if (store == null) return false;
+
+        store.Name = request.Name;
+        store.Chain = request.Chain;
+        store.City = request.City;
+        store.District = request.District;
+        store.Region = request.Region;
+        store.Latitude = request.Latitude;
+        store.Longitude = request.Longitude;
+        store.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdatePowerStatusAsync(Guid id, string powerStatus)
+    {
+        var store = await _db.Stores.FindAsync(id);
+        if (store == null) return false;
+
+        store.PowerStatus = powerStatus;
+        store.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> UpdateStoreStatusAsync(Guid id, string status)
+    {
+        var store = await _db.Stores.FindAsync(id);
+        if (store == null) return false;
+
+        store.Status = status;
+        store.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }
