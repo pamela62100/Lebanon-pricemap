@@ -24,6 +24,8 @@ builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<DiscrepancyService>();
 builder.Services.AddScoped<AlertService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<FuelService>();
+builder.Services.AddScoped<CartService>();
 
 
 // Add CORS

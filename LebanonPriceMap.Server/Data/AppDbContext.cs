@@ -24,6 +24,11 @@ public class AppDbContext : DbContext
     public DbSet<CatalogDiscrepancyReport> CatalogDiscrepancyReports { get; set; }
     public DbSet<Alert> Alerts { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<FuelPrice> FuelPrices { get; set; }
+    public DbSet<StationReport> StationReports { get; set; }
+    public DbSet<StationReportConfirmation> StationReportConfirmations { get; set; }
+    public DbSet<Cart> Carts { get; set; }
+    public DbSet<CartItem> CartItems { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -229,6 +234,71 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+        });
+
+        // 11. Map "FuelPrice" model to "fuel_prices" table
+        modelBuilder.Entity<FuelPrice>(entity =>
+        {
+            entity.ToTable("fuel_prices");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.FuelType).HasColumnName("fuel_type");
+            entity.Property(e => e.OfficialPriceLbp).HasColumnName("official_price_lbp");
+            entity.Property(e => e.ReportedPriceLbp).HasColumnName("reported_price_lbp");
+            entity.Property(e => e.EffectiveFrom).HasColumnName("effective_from");
+            entity.Property(e => e.EffectiveTo).HasColumnName("effective_to");
+            entity.Property(e => e.Source).HasColumnName("source");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+        // 12. Map "StationReport" model to "station_reports" table
+        modelBuilder.Entity<StationReport>(entity =>
+        {
+            entity.ToTable("station_reports");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.FuelType).HasColumnName("fuel_type");
+            entity.Property(e => e.IsOpen).HasColumnName("is_open");
+            entity.Property(e => e.HasStock).HasColumnName("has_stock");
+            entity.Property(e => e.QueueMinutes).HasColumnName("queue_minutes");
+            entity.Property(e => e.QueueDepth).HasColumnName("queue_depth");
+            entity.Property(e => e.IsRationed).HasColumnName("is_rationed");
+            entity.Property(e => e.LimitAmountLbp).HasColumnName("limit_amount_lbp");
+            entity.Property(e => e.ReportedBy).HasColumnName("reported_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+        // 13. Map "StationReportConfirmation" to "station_report_confirmations" table
+        modelBuilder.Entity<StationReportConfirmation>(entity =>
+        {
+            entity.ToTable("station_report_confirmations");
+            entity.HasKey(e => new { e.ReportId, e.UserId });
+            entity.Property(e => e.ReportId).HasColumnName("report_id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+        });
+
+        // 14. Map "Cart" model to "carts" table
+        modelBuilder.Entity<Cart>(entity =>
+        {
+            entity.ToTable("carts");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+
+            entity.HasIndex(e => e.UserId).IsUnique();
+        });
+
+        // 15. Map "CartItem" model to "cart_items" table
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.ToTable("cart_items");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.CartId).HasColumnName("cart_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.Quantity).HasColumnName("quantity");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
     }
     
