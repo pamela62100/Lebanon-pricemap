@@ -23,6 +23,7 @@ builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CatalogService>();
 builder.Services.AddScoped<DiscrepancyService>();
 builder.Services.AddScoped<AlertService>();
+builder.Services.AddScoped<UserService>();
 
 
 // Add CORS

@@ -1,5 +1,8 @@
+using LebanonPriceMap.Server.DTOs;
 using LebanonPriceMap.Server.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LebanonPriceMap.Server.Controllers;
 
@@ -34,6 +37,22 @@ public class ProductsController : ControllerBase
     {
         var result = await _productService.GetByBarcodeAsync(code);
         if (result == null) return NotFound(new { success = false, message = "Product not found" });
+        return Ok(new { success = true, data = result });
+    }
+
+    /// <summary>
+    /// POST /api/products
+    /// Create a new master product in the global dictionary. Admin only.
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim.Value);
+        var result = await _productService.CreateAsync(request, userId);
         return Ok(new { success = true, data = result });
     }
 }

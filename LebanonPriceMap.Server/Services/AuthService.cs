@@ -91,6 +91,28 @@ public class AuthService
         };
     }
 
+    /// <summary>
+    /// Returns the current user's profile from their JWT-extracted ID.
+    /// Used by GET /api/auth/me.
+    /// </summary>
+    public async Task<AuthResponse?> GetCurrentUserAsync(Guid userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) return null;
+
+        return new AuthResponse
+        {
+            Token = "", // Not re-issued on /me
+            Id = user.Id.ToString(),
+            Email = user.Email,
+            Name = user.Name ?? "",
+            Role = user.Role,
+            AvatarInitials = user.AvatarInitials,
+            TrustScore = user.TrustScore,
+            TrustLevel = user.TrustLevel
+        };
+    }
+
     private string GenerateToken(User user)
     {
         var secret = _config["Jwt:Secret"]!;

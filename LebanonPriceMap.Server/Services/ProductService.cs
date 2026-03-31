@@ -1,5 +1,6 @@
 using LebanonPriceMap.Server.Data;
 using LebanonPriceMap.Server.DTOs;
+using LebanonPriceMap.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LebanonPriceMap.Server.Services;
@@ -98,6 +99,50 @@ public class ProductService
             UploadCount = p.UploadCount,
             IsArchived = p.IsArchived,
             Aliases = p.Aliases.Select(a => a.Alias).ToList()
+        };
+    }
+
+    /// <summary>
+    /// Creates a new master product in the global dictionary. Admin only.
+    /// </summary>
+    public async Task<ProductResponse> CreateAsync(CreateProductRequest request, Guid createdBy)
+    {
+        var product = new Product
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            NameAr = request.NameAr,
+            Description = request.Description,
+            Unit = request.Unit,
+            Brand = request.Brand,
+            Barcode = request.Barcode,
+            CategoryId = request.CategoryId,
+            CreatedBy = createdBy,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _db.Products.Add(product);
+        await _db.SaveChangesAsync();
+
+        // Reload with category for the response
+        var loaded = await _db.Products
+            .Include(p => p.Category)
+            .Include(p => p.Aliases)
+            .FirstAsync(p => p.Id == product.Id);
+
+        return new ProductResponse
+        {
+            Id = loaded.Id.ToString(),
+            Name = loaded.Name,
+            NameAr = loaded.NameAr,
+            Category = loaded.Category != null ? loaded.Category.Name : null,
+            Unit = loaded.Unit,
+            Brand = loaded.Brand,
+            Barcode = loaded.Barcode,
+            UploadCount = loaded.UploadCount,
+            IsArchived = loaded.IsArchived,
+            Aliases = loaded.Aliases.Select(a => a.Alias).ToList()
         };
     }
 }

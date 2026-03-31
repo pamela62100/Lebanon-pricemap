@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<CatalogAuditEntry> CatalogAuditEntries { get; set; }
     public DbSet<CatalogDiscrepancyReport> CatalogDiscrepancyReports { get; set; }
     public DbSet<Alert> Alerts { get; set; }
+    public DbSet<Notification> Notifications { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -191,7 +192,25 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         .WithMany()
         .HasForeignKey(e => e.ProductId);
 });
-// 9. Map "CatalogDiscrepancyReport" model to "catalog_discrepancy_reports" table
+// 9. Map "Notification" model to "notifications" table
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.ToTable("notifications");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Title).HasColumnName("title");
+            entity.Property(e => e.Message).HasColumnName("message");
+            entity.Property(e => e.RelatedPriceEntryId).HasColumnName("related_price_entry_id");
+            entity.Property(e => e.RelatedStoreId).HasColumnName("related_store_id");
+            entity.Property(e => e.RelatedProductId).HasColumnName("related_product_id");
+            entity.Property(e => e.RelatedAlertId).HasColumnName("related_alert_id");
+            entity.Property(e => e.IsRead).HasColumnName("is_read");
+            entity.Property(e => e.ReadAt).HasColumnName("read_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+        });
+
+// 10. Map "CatalogDiscrepancyReport" model to "catalog_discrepancy_reports" table
         modelBuilder.Entity<CatalogDiscrepancyReport>(entity =>
         {
             entity.ToTable("catalog_discrepancy_reports");
