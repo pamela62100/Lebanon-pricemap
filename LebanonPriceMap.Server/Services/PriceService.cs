@@ -155,8 +155,34 @@ public class PriceService
         _db.PriceSubmissions.Add(submission);
         await _db.SaveChangesAsync();
 
-        // In a real app, you would also update CurrentStoreProductPrices here!
-        
+        // Upsert into CurrentStoreProductPrices so searches immediately reflect new prices
+        var existing = await _db.CurrentStoreProductPrices
+            .FirstOrDefaultAsync(c => c.StoreId == submission.StoreId && c.ProductId == submission.ProductId);
+
+        if (existing != null)
+        {
+            existing.CurrentPriceLbp = submission.PriceLbp;
+            existing.Source = "community";
+            existing.IsVerified = false;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
+            {
+                Id = Guid.NewGuid(),
+                StoreId = submission.StoreId,
+                ProductId = submission.ProductId,
+                CurrentPriceLbp = submission.PriceLbp,
+                Source = "community",
+                IsVerified = false,
+                IsInStock = true,
+                UpdatedAt = DateTime.UtcNow
+            });
+        }
+
+        await _db.SaveChangesAsync();
+
         return new PriceEntryResponse
         {
             Id = submission.Id.ToString(),
