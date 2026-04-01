@@ -470,24 +470,9 @@ CREATE TABLE IF NOT EXISTS price_submissions (
   is_promotion          BOOLEAN            NOT NULL DEFAULT FALSE,
   promo_ends_at         TIMESTAMPTZ,
 
-  receipt_image_url     TEXT,
   note                  TEXT,
 
   submitter_trust_score SMALLINT,
-  upvotes               INTEGER            NOT NULL DEFAULT 0,
-  downvotes             INTEGER            NOT NULL DEFAULT 0,
-
-  is_disputed           BOOLEAN            NOT NULL DEFAULT FALSE,
-  dispute_reason        TEXT,
-
-  ocr_store_name        VARCHAR(255),
-  ocr_product_name      VARCHAR(255),
-  ocr_barcode           VARCHAR(100),
-  ocr_price_lbp         NUMERIC(12,2),
-  ocr_payload           JSONB,
-
-  mismatch_detected     BOOLEAN            NOT NULL DEFAULT FALSE,
-  mismatch_reason       TEXT,
 
   verified_by           UUID               REFERENCES users(id) ON DELETE SET NULL,
   verified_at           TIMESTAMPTZ,

@@ -1,15 +1,13 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { KpiCard } from '@/components/cards/KpiCard';
-import { FeedbackCard } from '@/components/cards/FeedbackCard';
-import { getEnrichedFeedback, MOCK_STORES } from '@/api/mockData';
+import { getEnrichedFeedback } from '@/api/mockData';
 import { useApprovalStore } from '@/store/useApprovalStore';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 const STATS = [
   { icon: 'group', label: 'Total Users', value: 12840, trend: 12 },
-  { icon: 'cloud_upload', label: 'Uploads', value: 45201, trend: 5 },
   { icon: 'flag', label: 'Flagged', value: 128, trend: -2 },
   { icon: 'storefront', label: 'Active Stores', value: 842, trend: 8 },
 ];

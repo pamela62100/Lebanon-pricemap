@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MOCK_PRODUCTS } from '@/api/mockData';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
@@ -73,7 +73,6 @@ export function AdminProductsPage() {
                   <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Arabic</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Category</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Unit</th>
-                  <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Uploads</th>
                   <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Actions</th>
                 </tr>
               </thead>
@@ -89,7 +88,6 @@ export function AdminProductsPage() {
                       <span className="px-3 py-1 rounded-full text-xs font-semibold bg-primary-soft text-primary">{product.category}</span>
                     </td>
                     <td className="py-4 px-4 text-sm text-text-sub">{product.unit}</td>
-                    <td className="py-4 px-4 text-sm text-text-sub">{product.uploadCount}</td>
                     <td className="py-4 px-4">
                       <div className="flex gap-1">
                         <button

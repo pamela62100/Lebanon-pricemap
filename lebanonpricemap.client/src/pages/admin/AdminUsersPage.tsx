@@ -54,7 +54,6 @@ export function AdminUsersPage() {
               <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Role</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">City</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Trust</th>
-              <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Uploads</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Status</th>
               <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Actions</th>
             </tr>
@@ -76,7 +75,6 @@ export function AdminUsersPage() {
                 <td className="py-4 px-4 text-sm text-text-sub capitalize">{user.role}</td>
                 <td className="py-4 px-4 text-sm text-text-sub">{user.city}</td>
                 <td className="py-4 px-4"><TrustBadge score={user.trustScore} size="sm" /></td>
-                <td className="py-4 px-4 text-sm text-text-sub">{user.uploadCount}</td>
                 <td className="py-4 px-4"><StatusBadge status={user.status} /></td>
                 <td className="py-4 px-4">
                   <div className="flex gap-1">

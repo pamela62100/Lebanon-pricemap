@@ -1,13 +1,10 @@
-import { motion } from 'framer-motion';
-import { TrustBadge } from '@/components/ui/TrustBadge';
 import { useAuthStore } from '@/store/useAuthStore';
-import { cn, formatLBP } from '@/lib/utils';
-import { MOCK_PRODUCTS, getEnrichedPriceEntries } from '@/api/mockData';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useMemo, useState } from 'react';
+import { getEnrichedPriceEntries, MOCK_PRODUCTS } from '@/api/mockData';
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
@@ -92,17 +89,6 @@ export function ProfilePage() {
 
         {/* Stats grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="card p-5 md:p-6 group hover:bg-text-main hover:text-white transition-all duration-300">
-            <p className="text-[10px] font-semibold text-text-muted group-hover:text-white/50 uppercase tracking-widest mb-1.5">
-              Price reports
-            </p>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold font-data tracking-tight">
-                {user.uploadCount}
-              </span>
-              <span className="text-xs font-medium opacity-40 uppercase">total</span>
-            </div>
-          </div>
 
           <div className="card p-5 md:p-6 border-green-400/20 bg-green-500/5 group hover:bg-green-500 hover:text-white transition-all duration-300">
             <p className="text-[10px] font-semibold text-green-600 group-hover:text-white/50 uppercase tracking-widest mb-1.5">
@@ -231,9 +217,7 @@ export function ProfilePage() {
                       </p>
                       <p className="text-[10px] text-text-muted mt-0.5">Active alert</p>
                     </div>
-                    <span className="material-symbols-outlined text-base text-text-muted/30 group-hover:text-text-muted transition-colors shrink-0">
-                      arrow_forward_ios
-                    </span>
+                    <span className="material-symbols-outlined text-base text-text-muted/30 group-hover:text-text-muted transition-colors shrink-0">arrow_forward_ios</span>
                   </div>
                 ))}
               </div>
