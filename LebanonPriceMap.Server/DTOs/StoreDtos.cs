@@ -43,3 +43,33 @@ public class StorePowerStatusUpdateRequest
 {
     public string PowerStatus { get; set; } // 'stable', 'unstable', 'reported_warm'
 }
+
+public class ApiKeyResponse
+{
+    public string Id { get; set; } = string.Empty;
+    public string KeyLabel { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? LastUsedAt { get; set; }
+    public DateTime? RevokedAt { get; set; }
+    // Only populated on creation — never again (we store only the hash)
+    public string? PlainKey { get; set; }
+}
+
+public class CreateApiKeyRequest
+{
+    public string KeyLabel { get; set; } = string.Empty;
+}
+
+public class SyncRunResponse
+{
+    public string Id { get; set; } = string.Empty;
+    public string Method { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public int? RecordsReceived { get; set; }
+    public int? RecordsProcessed { get; set; }
+    public int? RecordsFailed { get; set; }
+    public string? Message { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
+}

@@ -1,22 +1,20 @@
 import client from './axiosClient';
 
 export const cartApi = {
-  // GET /api/cart — get the logged-in user's cart
-  getCart: async () => {
-    return client.get('/cart');
-  },
+  getCart: async () => client.get('/cart'),
 
-  // POST /api/cart/items — add a product to the cart
-  addItem: async (data: {
-    productId: string;
-    quantity: number;
-    storeId?: string;
-  }) => {
-    return client.post('/cart/items', data);
-  },
+  addItem: async (data: { productId: string; quantity: number; storeId?: string }) =>
+    client.post('/cart/items', data),
 
-  // GET /api/cart/optimize — get cheapest store breakdown for the cart
-  optimize: async () => {
-    return client.get('/cart/optimize');
-  },
+  removeItem: async (itemId: string) =>
+    client.delete(`/cart/items/${itemId}`),
+
+  updateQuantity: async (itemId: string, quantity: number) =>
+    client.patch(`/cart/items/${itemId}`, { quantity }),
+
+  clearCart: async () =>
+    client.delete('/cart'),
+
+  optimize: async () =>
+    client.get('/cart/optimize'),
 };

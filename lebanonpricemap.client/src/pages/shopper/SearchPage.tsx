@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { pricesApi } from '@/api/prices.api';
+import { useToastStore } from '@/store/useToastStore';
 import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { useLocationStore } from '@/store/useLocationStore';
@@ -38,6 +39,7 @@ export function SearchPage() {
 
   const { lat, lng, city, requestLocation } = useLocationStore();
   const { getParam } = useRouteDialog();
+  const addToast = useToastStore(s => s.addToast);
   const headerHeight = useStickyHeaderHeight();
 
   useEffect(() => {
@@ -256,7 +258,15 @@ export function SearchPage() {
         description={`Flag the price for ${activeEntry?.product?.name} at ${activeEntry?.store?.name}? It will be sent for manual verification.`}
         confirmLabel="Submit report"
         variant="warning"
-        onConfirm={() => console.log('Flagged:', activeEntryId)}
+        onConfirm={async () => {
+          if (!activeEntryId) return;
+          try {
+            await pricesApi.vote(activeEntryId, -1);
+            addToast('Price reported — thank you!', 'success');
+          } catch {
+            addToast('Could not submit report', 'error');
+          }
+        }}
       />
     </div>
   );

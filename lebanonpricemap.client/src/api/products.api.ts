@@ -21,4 +21,12 @@ export const productsApi = {
     const response = await client.get(`/products/barcode/${barcode}`);
     return response;
   },
+
+  update: async (id: string, data: { name?: string; nameAr?: string; unit?: string; brand?: string; barcode?: string }) => {
+    return client.put(`/products/${id}`, data);
+  },
+
+  archive: async (id: string) => {
+    return client.patch(`/products/${id}/archive`, {});
+  },
 };

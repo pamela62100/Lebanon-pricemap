@@ -1,12 +1,7 @@
-import { useMemo } from 'react';
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  useCartStore,
-  calculateStoreComparisons,
-  getSplitTripSuggestion,
-} from '@/store/useCartStore';
+import { useCartStore } from '@/store/useCartStore';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
-import { getEnrichedPriceEntries } from '@/api/mockData';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
@@ -14,24 +9,16 @@ import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useNavigate } from 'react-router-dom';
 
 export function CartPage() {
-  const { items, removeItem, updateQuantity, clearCart, getEnrichedItems } = useCartStore();
+  const { items, isLoading, optimization, fetchCart, removeItem, updateQuantity, clearCart, optimizeCart } = useCartStore();
   const { rateLbpPerUsd } = useExchangeRateStore();
   const { open, getParam } = useRouteDialog();
   const navigate = useNavigate();
-  const enrichedItems = getEnrichedItems();
-  const allPrices = useMemo(() => getEnrichedPriceEntries(), []);
 
-  const comparisons = useMemo(
-    () => calculateStoreComparisons(items, allPrices, [], rateLbpPerUsd),
-    [items, allPrices, rateLbpPerUsd]
-  );
+  useEffect(() => {
+    fetchCart();
+  }, []);
 
-  const splitSuggestion = useMemo(
-    () => getSplitTripSuggestion(comparisons, allPrices),
-    [comparisons, allPrices]
-  );
-
-  if (items.length === 0) {
+  if (!isLoading && items.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <EmptyState
@@ -68,7 +55,7 @@ export function CartPage() {
 
             <div className="flex items-center gap-3 flex-wrap">
               <button
-                onClick={() => navigate('/app/cart/optimize', { state: { cartItems: items } })}
+                onClick={() => navigate('/app/cart/optimize')}
                 className="btn-primary h-12 px-6 rounded-xl shadow-lg shadow-text-main/5 text-xs"
               >
                 <span className="material-symbols-outlined text-lg">analytics</span>
@@ -86,9 +73,9 @@ export function CartPage() {
 
           <section className="space-y-4">
             <AnimatePresence mode="popLayout">
-              {enrichedItems.map((item) => (
+              {items.map((item) => (
                 <motion.div
-                  key={item.productId}
+                  key={item.id}
                   layout
                   initial={{ opacity: 0, scale: 0.98 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -101,16 +88,18 @@ export function CartPage() {
 
                   <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-bold text-text-main truncate mb-1">
-                      {item.product?.name ?? item.productId}
+                      {item.productName}
                     </h3>
-                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest leading-none">
-                      {item.product?.unit} • {item.product?.category}
-                    </p>
+                    {item.storeName && (
+                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest leading-none">
+                        {item.storeName}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1 bg-bg-muted p-1 rounded-xl">
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
                       className="w-10 h-10 rounded-lg bg-white border border-border-soft flex items-center justify-center hover:bg-text-main hover:text-white transition-all shadow-sm"
                     >
                       <span className="material-symbols-outlined text-lg">remove</span>
@@ -121,7 +110,7 @@ export function CartPage() {
                     </span>
 
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
                       className="w-10 h-10 rounded-lg bg-white border border-border-soft flex items-center justify-center hover:bg-text-main hover:text-white transition-all shadow-sm"
                     >
                       <span className="material-symbols-outlined text-lg">add</span>
@@ -129,7 +118,7 @@ export function CartPage() {
                   </div>
 
                   <button
-                    onClick={() => open('remove-item', { id: item.productId })}
+                    onClick={() => open('remove-item', { id: item.id })}
                     className="w-10 h-10 rounded-xl flex items-center justify-center text-text-muted hover:text-red-500 hover:bg-red-500/5 transition-all"
                   >
                     <span className="material-symbols-outlined text-xl">close</span>
@@ -148,74 +137,78 @@ export function CartPage() {
             <h2 className="text-3xl font-bold text-text-main tracking-tight">Compare totals</h2>
           </div>
 
-          {splitSuggestion && (
-            <div className="p-6 rounded-2xl bg-text-main text-white shadow-xl shadow-text-main/10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <span className="material-symbols-outlined text-6xl">insights</span>
-              </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest mb-2 opacity-60">
-                Suggestion
+          {!optimization ? (
+            <div className="p-6 rounded-2xl border border-dashed border-border-soft flex flex-col items-center text-center gap-4">
+              <span className="material-symbols-outlined text-4xl text-text-muted/30">analytics</span>
+              <p className="text-sm font-semibold text-text-muted">
+                Click "Optimize Cart" to compare store totals and find the best prices.
               </p>
-              <p className="text-sm font-bold leading-relaxed">{splitSuggestion}</p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            {comparisons.slice(0, 4).map((comparison, index) => (
-              <motion.div
-                key={comparison.store.id}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className={cn(
-                  'p-6 rounded-2xl border transition-all',
-                  index === 0
-                    ? 'bg-green-500/10 border-green-500/20 shadow-lg shadow-green-500/5'
-                    : 'bg-white border-border-soft'
-                )}
+              <button
+                onClick={optimizeCart}
+                className="btn-primary h-10 px-5 rounded-xl text-xs"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="font-bold text-text-main">{comparison.store.name}</h4>
-                      {index === 0 && (
-                        <span className="px-2 py-0.5 bg-green-500 text-white rounded text-[8px] font-bold uppercase tracking-widest">
-                          Best
-                        </span>
-                      )}
+                Compare stores
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {optimization.recommendedStoreName && (
+                <div className="p-5 rounded-2xl bg-text-main text-white shadow-xl shadow-text-main/10">
+                  <p className="text-[10px] font-bold uppercase tracking-widest mb-1 opacity-60">
+                    Best pick
+                  </p>
+                  <p className="text-base font-bold">{optimization.recommendedStoreName}</p>
+                  <p className="text-2xl font-bold font-data mt-1">
+                    {optimization.recommendedTotalLbp.toLocaleString()}
+                    <span className="text-xs font-semibold ml-1 opacity-60">LBP</span>
+                  </p>
+                  <p className="text-[10px] mt-0.5 opacity-50">
+                    ≈ ${(optimization.recommendedTotalLbp / rateLbpPerUsd).toFixed(2)}
+                  </p>
+                </div>
+              )}
+
+              {optimization.stores.slice(0, 4).map((store, index) => (
+                <motion.div
+                  key={store.storeId}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className={cn(
+                    'p-6 rounded-2xl border transition-all',
+                    index === 0
+                      ? 'bg-green-500/10 border-green-500/20 shadow-lg shadow-green-500/5'
+                      : 'bg-white border-border-soft'
+                  )}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-bold text-text-main">{store.storeName}</h4>
+                        {index === 0 && (
+                          <span className="px-2 py-0.5 bg-green-500 text-white rounded text-[8px] font-bold uppercase tracking-widest">
+                            Best
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
+                        {store.itemsCovered} items found · {store.itemsMissing} missing
+                      </p>
                     </div>
 
-                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                      {comparison.store.district} • {comparison.itemsFound} found
-                    </p>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-text-main font-data leading-none mb-1">
+                        {store.totalLbp.toLocaleString()}
+                      </p>
+                      <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest">
+                        LBP
+                      </p>
+                    </div>
                   </div>
-
-                  <div className="text-right">
-                    <p className="text-xl font-bold text-text-main font-data leading-none mb-1">
-                      {comparison.totalLbp.toLocaleString()}
-                    </p>
-                    <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest">
-                      LBP
-                    </p>
-                  </div>
-                </div>
-
-                <div className="h-1 bg-bg-muted rounded-full overflow-hidden mb-4">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${comparison.coverage * 100}%` }}
-                    className={cn('h-full rounded-full', index === 0 ? 'bg-green-500' : 'bg-text-main')}
-                  />
-                </div>
-
-                {comparison.missingItems.length > 0 && (
-                  <p className="text-[9px] font-bold text-text-muted/60 uppercase tracking-widest truncate">
-                    Missing: {comparison.missingItems.join(', ')}
-                  </p>
-                )}
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </aside>
       </div>
 

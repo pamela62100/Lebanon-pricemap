@@ -9,6 +9,10 @@ export const storesApi = {
     return client.get(`/stores/${id}`);
   },
 
+  getMine: async () => {
+    return client.get('/stores/mine');
+  },
+
   update: async (id: string, data: {
     name?: string;
     city?: string;
@@ -29,4 +33,12 @@ export const storesApi = {
   updateStatus: async (id: string, status: string) => {
     return client.patch(`/stores/${id}/status`, { status });
   },
+
+  getApiKeys: async () => client.get('/stores/mine/api-keys'),
+
+  createApiKey: async (keyLabel: string) => client.post('/stores/mine/api-keys', { keyLabel }),
+
+  revokeApiKey: async (keyId: string) => client.delete(`/stores/mine/api-keys/${keyId}`),
+
+  getSyncRuns: async () => client.get('/stores/mine/sync-runs'),
 };

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
-import { MOCK_STORES } from '@/api/mockData';
+import { storesApi } from '@/api/stores.api';
 
 export function ReportRealityDialog() {
   const { isOpen, getParam, close } = useRouteDialog();
@@ -13,17 +13,24 @@ export function ReportRealityDialog() {
   const storeId = getParam('storeId');
   const reportType = getParam('type') as 'market' | 'fuel';
 
+  const [storeName, setStoreName] = useState<string>('');
   const [isFuelRationed, setIsFuelRationed] = useState(false);
   const [queueCount, setQueueCount] = useState('');
-
-  const store = MOCK_STORES.find((currentStore) => currentStore.id === storeId);
 
   useEffect(() => {
     if (!isVisible) {
       setIsFuelRationed(false);
       setQueueCount('');
+      setStoreName('');
+      return;
     }
-  }, [isVisible]);
+    if (storeId) {
+      storesApi.getById(storeId).then((res) => {
+        const store = res.data?.data ?? res.data;
+        if (store?.name) setStoreName(store.name);
+      }).catch(() => {});
+    }
+  }, [isVisible, storeId]);
 
   const handleSubmit = () => {
     addToast('Thanks for the update.');
@@ -38,8 +45,8 @@ export function ReportRealityDialog() {
       title={reportType === 'fuel' ? 'Report fuel station status' : 'Report store status'}
       description={
         reportType === 'fuel'
-          ? `Share what is happening now at ${store?.name ?? 'this station'}.`
-          : `Share what is happening now at ${store?.name ?? 'this store'}.`
+          ? `Share what is happening now at ${storeName || 'this station'}.`
+          : `Share what is happening now at ${storeName || 'this store'}.`
       }
       size="md"
     >

@@ -1,5 +1,4 @@
 import client from './axiosClient';
-import { MOCK_MISSING_PRODUCT_REQUESTS } from './mockCatalogData';
 import type { MissingProductRequest } from '@/types/catalog.types';
 
 // ─── Catalog API ──────────────────────────────────────────────────────────────
@@ -81,52 +80,25 @@ export const discrepancyApi = {
   },
 };
 
-// ─── Missing Product Request API (no backend yet — local state) ───────────────
-let missingProductRequests = [...MOCK_MISSING_PRODUCT_REQUESTS];
-
+// ─── Missing Product Request API (placeholder — no backend endpoint yet) ─────
 export const missingProductApi = {
   getAll(): MissingProductRequest[] {
-    return [...missingProductRequests].sort(
-      (a, b) => b.requesterTrustScore - a.requesterTrustScore
-    );
+    return [];
   },
 
   getPending(): MissingProductRequest[] {
-    return missingProductRequests.filter(r => r.status === 'pending');
+    return [];
   },
 
-  submit(req: Omit<MissingProductRequest, 'id' | 'status' | 'createdAt'>): MissingProductRequest {
-    const newReq: MissingProductRequest = {
-      ...req,
-      id: `mp${Date.now()}`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    missingProductRequests = [newReq, ...missingProductRequests];
-    return newReq;
+  submit(_req: Omit<MissingProductRequest, 'id' | 'status' | 'createdAt'>): MissingProductRequest {
+    throw new Error('Missing product request submission not yet implemented.');
   },
 
-  forward(id: string, note?: string): boolean {
-    const idx = missingProductRequests.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-    missingProductRequests[idx] = {
-      ...missingProductRequests[idx],
-      status: 'forwarded',
-      reviewNote: note,
-      resolvedAt: new Date().toISOString(),
-    };
-    return true;
+  forward(_id: string, _note?: string): boolean {
+    return false;
   },
 
-  decline(id: string, note?: string): boolean {
-    const idx = missingProductRequests.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-    missingProductRequests[idx] = {
-      ...missingProductRequests[idx],
-      status: 'declined',
-      reviewNote: note,
-      resolvedAt: new Date().toISOString(),
-    };
-    return true;
+  decline(_id: string, _note?: string): boolean {
+    return false;
   },
 };

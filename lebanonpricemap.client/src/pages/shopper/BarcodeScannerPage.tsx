@@ -1,37 +1,51 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_PRODUCTS, getEnrichedPriceEntries } from '@/api/mockData';
 import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { productsApi } from '@/api/products.api';
+import { pricesApi } from '@/api/prices.api';
+import type { Product } from '@/types';
 
 type ScanPhase = 'scanner' | 'result' | 'not_found';
 
 export function BarcodeScannerPage() {
   const [phase, setPhase] = useState<ScanPhase>('scanner');
   const [manualInput, setManualInput] = useState('');
-  const [foundProduct, setFoundProduct] = useState<any>(null);
+  const [foundProduct, setFoundProduct] = useState<Product | null>(null);
   const [priceEntries, setPriceEntries] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const addItem = useCartStore((state) => state.addItem);
   const addToast = useToastStore((state) => state.addToast);
 
-  const handleScan = (barcode: string) => {
-    const product = MOCK_PRODUCTS.find((item) => (item as any).barcode === barcode);
+  const handleScan = async (barcode: string) => {
+    if (!barcode.trim() || isSearching) return;
+    setIsSearching(true);
+    try {
+      const res = await productsApi.getByBarcode(barcode.trim());
+      const product: Product = res.data?.data ?? res.data;
+      if (!product?.id) {
+        setPhase('not_found');
+        return;
+      }
 
-    if (product) {
-      const entries = getEnrichedPriceEntries()
-        .filter((entry) => entry.productId === product.id && entry.status === 'verified')
-        .sort((first, second) => first.priceLbp - second.priceLbp);
+      const priceRes = await pricesApi.getByProduct(product.id);
+      const data = priceRes.data?.data ?? priceRes.data;
+      const entries = (Array.isArray(data) ? data : [])
+        .filter((e: any) => e.status === 'verified')
+        .sort((a: any, b: any) => a.priceLbp - b.priceLbp);
 
       setFoundProduct(product);
       setPriceEntries(entries);
 
       if (navigator.vibrate) navigator.vibrate(200);
       setPhase('result');
-    } else {
+    } catch {
       setPhase('not_found');
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -114,20 +128,14 @@ export function BarcodeScannerPage() {
 
                   <button
                     onClick={() => manualInput && handleScan(manualInput)}
-                    className="h-14 px-8 bg-text-main text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2"
+                    disabled={isSearching}
+                    className="h-14 px-8 bg-text-main text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     <span className="material-symbols-outlined text-xl">search</span>
-                    Search
+                    {isSearching ? 'Searching…' : 'Search'}
                   </button>
                 </div>
               </div>
-
-              <button
-                onClick={() => handleScan('6221012345001')}
-                className="w-full py-4 rounded-2xl bg-primary/5 border border-primary/10 text-[10px] font-bold text-primary uppercase tracking-widest hover:bg-primary/10 transition-all"
-              >
-                Demo scan: Whole Milk TL 1L
-              </button>
             </div>
           </motion.div>
         )}
@@ -228,7 +236,7 @@ export function BarcodeScannerPage() {
               Product not found
             </p>
             <h2 className="text-4xl font-bold text-text-main tracking-tighter mb-4">
-              We don’t know this barcode yet.
+              We don't know this barcode yet.
             </h2>
             <p className="text-sm text-text-muted opacity-60 max-w-xs leading-relaxed mb-12">
               This barcode is not yet registered in the WenArkhass product database.

@@ -1,23 +1,60 @@
-import { motion } from 'framer-motion';
-import { TrustBadge } from '@/components/ui/TrustBadge';
 import { useAuthStore } from '@/store/useAuthStore';
-import { cn, formatLBP } from '@/lib/utils';
-import { MOCK_PRODUCTS, getEnrichedPriceEntries } from '@/api/mockData';
+import { cn } from '@/lib/utils';
+import { pricesApi } from '@/api/prices.api';
+import { alertsApi } from '@/api/alerts.api';
+import { usersApi } from '@/api/users.api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
-import { useMemo, useState } from 'react';
+import { useToastStore } from '@/store/useToastStore';
+import { useEffect, useState } from 'react';
+import type { PriceEntry } from '@/types';
+
+interface TrackedAlert {
+  id: string;
+  productName: string;
+}
 
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
-  const myEntries = useMemo(
-    () => getEnrichedPriceEntries().filter((e) => e.submittedBy === user?.id),
-    [user]
-  );
-  const { open } = useRouteDialog();
+  const updateUser = useAuthStore((s) => s.updateUser);
+  const { open, close } = useRouteDialog();
+  const addToast = useToastStore((s) => s.addToast);
+
+  const [myEntries, setMyEntries] = useState<PriceEntry[]>([]);
+  const [trackedAlerts, setTrackedAlerts] = useState<TrackedAlert[]>([]);
   const [editName, setEditName] = useState(user?.name ?? '');
   const [editCity, setEditCity] = useState(user?.city ?? '');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    pricesApi.getByUser(user.id).then((res) => {
+      const data = res.data?.data ?? res.data;
+      setMyEntries(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+
+    alertsApi.getAll().then((res) => {
+      const data = res.data?.data ?? res.data;
+      setTrackedAlerts(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, [user?.id]);
+
+  const saveProfile = async () => {
+    if (!user?.id) return;
+    setIsSaving(true);
+    try {
+      await usersApi.update(user.id, { name: editName, city: editCity });
+      updateUser({ name: editName, city: editCity });
+      addToast('Profile updated');
+      close();
+    } catch {
+      addToast('Failed to update profile');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -33,7 +70,6 @@ export function ProfilePage() {
             </svg>
           </div>
 
-          {/* Avatar */}
           <div className="relative z-10 shrink-0">
             <div className="w-20 h-20 md:w-28 md:h-28 bg-white text-text-main rounded-2xl flex items-center justify-center text-2xl md:text-3xl font-bold shadow-xl">
               {user.avatarInitials}
@@ -47,7 +83,6 @@ export function ProfilePage() {
             </button>
           </div>
 
-          {/* Info */}
           <div className="flex-1 text-center md:text-left relative z-10">
             <div className="flex flex-col md:flex-row md:items-start justify-between gap-5 mb-5">
               <div>
@@ -131,7 +166,7 @@ export function ProfilePage() {
 
         {/* Main content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
+
           {/* Submission history */}
           <section className="lg:col-span-8 space-y-4">
             <div className="flex items-center justify-between">
@@ -220,14 +255,14 @@ export function ProfilePage() {
                 Tracked products
               </h3>
               <div className="space-y-2">
-                {MOCK_PRODUCTS.slice(0, 4).map((product) => (
+                {trackedAlerts.slice(0, 4).map((alert) => (
                   <div
-                    key={product.id}
+                    key={alert.id}
                     className="p-3.5 rounded-xl bg-white border border-border-soft flex items-center justify-between hover:border-text-main/20 transition-all cursor-pointer group shadow-sm"
                   >
                     <div className="min-w-0">
                       <p className="text-[12px] font-semibold text-text-main truncate">
-                        {product.name}
+                        {alert.productName}
                       </p>
                       <p className="text-[10px] text-text-muted mt-0.5">Active alert</p>
                     </div>
@@ -236,6 +271,9 @@ export function ProfilePage() {
                     </span>
                   </div>
                 ))}
+                {trackedAlerts.length === 0 && (
+                  <p className="text-xs text-text-muted/60 py-2">No active alerts.</p>
+                )}
               </div>
             </div>
 
@@ -291,8 +329,12 @@ export function ProfilePage() {
               className="w-full h-12 bg-bg-muted border-none rounded-xl px-4 text-sm font-semibold focus:ring-2 focus:ring-text-main/10 transition-all"
             />
           </div>
-          <button className="btn-primary w-full h-12 rounded-xl shadow-lg shadow-text-main/10 mt-2">
-            Save changes
+          <button
+            onClick={saveProfile}
+            disabled={isSaving}
+            className="btn-primary w-full h-12 rounded-xl shadow-lg shadow-text-main/10 mt-2 disabled:opacity-60"
+          >
+            {isSaving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
       </RouteDialog>

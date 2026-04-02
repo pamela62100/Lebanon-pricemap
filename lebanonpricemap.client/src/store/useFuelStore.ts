@@ -1,45 +1,95 @@
 import { create } from 'zustand';
-import { getEnrichedStationReports } from '@/api/mockData';
-import type { StationReport, FuelType } from '@/types';
+import { fuelApi } from '@/api/fuel.api';
+
+interface FuelPrice {
+  id: string;
+  fuelType: string;
+  officialPriceLbp: number;
+  reportedPriceLbp?: number;
+  effectiveFrom: string;
+  effectiveTo?: string;
+  source?: string;
+}
+
+interface StationReport {
+  storeId: string;
+  storeName: string;
+  city?: string;
+  district?: string;
+  latitude?: number;
+  longitude?: number;
+  powerStatus?: string;
+  isOpen?: boolean;
+  hasStock?: boolean;
+  queueMinutes?: number;
+  queueDepth?: number;
+  isRationed?: boolean;
+  lastReportedAt?: string;
+}
 
 interface FuelState {
-  reports: StationReport[];
+  prices: FuelPrice[];
+  stations: StationReport[];
   isLoading: boolean;
-  addReport: (report: Omit<StationReport, 'id' | 'createdAt' | 'confirmedBy'>) => void;
-  confirmReport: (reportId: string, userId: string) => void;
-  getReportsByType: (type: FuelType) => StationReport[];
+  fetchPrices: () => Promise<void>;
+  fetchStations: (city?: string) => Promise<void>;
+  reportStation: (stationId: string, data: {
+    fuelType: string;
+    isOpen: boolean;
+    hasStock: boolean;
+    queueMinutes?: number;
+    queueDepth?: number;
+    isRationed?: boolean;
+    limitAmountLbp?: number;
+  }) => Promise<void>;
+  getPriceByType: (fuelType: string) => FuelPrice | undefined;
+  getStationsByType: (fuelType: string) => StationReport[];
 }
 
 export const useFuelStore = create<FuelState>((set, get) => ({
-  reports: getEnrichedStationReports(),
+  prices: [],
+  stations: [],
   isLoading: false,
 
-  addReport: (report) => {
-    const newReport: StationReport = {
-      ...report,
-      id: `sr_${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      confirmedBy: [],
-    };
-    set(state => ({ reports: [newReport, ...state.reports] }));
+  fetchPrices: async () => {
+    set({ isLoading: true });
+    try {
+      const res = await fuelApi.getPrices();
+      const data = res.data?.data ?? res.data;
+      set({ prices: Array.isArray(data) ? data : [] });
+    } finally {
+      set({ isLoading: false });
+    }
   },
 
-  // Weighted confidence: each confirm = +1. 3+ = "High Confidence"
-  confirmReport: (reportId, userId) => {
+  fetchStations: async (city) => {
+    set({ isLoading: true });
+    try {
+      const res = await fuelApi.getStations(city ? { city } : undefined);
+      const data = res.data?.data ?? res.data;
+      set({ stations: Array.isArray(data) ? data : [] });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  reportStation: async (stationId, data) => {
+    const res = await fuelApi.reportStation(stationId, data);
+    const updated: StationReport = res.data?.data ?? res.data;
     set(state => ({
-      reports: state.reports.map(r =>
-        r.id === reportId && !r.confirmedBy.includes(userId)
-          ? { ...r, confirmedBy: [...r.confirmedBy, userId] }
-          : r
-      )
+      stations: state.stations.some(s => s.storeId === updated.storeId)
+        ? state.stations.map(s => s.storeId === updated.storeId ? updated : s)
+        : [updated, ...state.stations],
     }));
   },
 
-  // Sort by recency — newest reports first
-  getReportsByType: (type) =>
-    get().reports
-      .filter(r => r.fuelType === type)
-      .sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      ),
+  getPriceByType: (fuelType) =>
+    get().prices.find(p => p.fuelType === fuelType),
+
+  getStationsByType: (fuelType) =>
+    get().stations.filter(s => {
+      // backend doesn't filter by fuelType per station in the response,
+      // so we return all stations when a type is selected
+      return true;
+    }),
 }));

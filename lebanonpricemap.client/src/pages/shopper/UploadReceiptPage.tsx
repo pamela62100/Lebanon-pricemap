@@ -1,14 +1,22 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { UploadHistoryCard } from '@/components/cards/UploadHistoryCard';
 import { UploadSuccessDialog } from '@/components/dialogs/UploadSuccessDialog';
-import { getEnrichedPriceEntries } from '@/api/mockData';
+import { pricesApi } from '@/api/prices.api';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export function UploadReceiptPage() {
   const user = useAuthStore(s => s.user);
   const [showSuccess, setShowSuccess] = useState(false);
-  const entries = useMemo(() => getEnrichedPriceEntries().filter(e => e.submittedBy === (user?.id ?? '')), [user?.id]);
+  const [entries, setEntries] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    pricesApi.getByUser(user.id).then((res) => {
+      const data = res.data?.data ?? res.data;
+      setEntries(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, [user?.id]);
 
   const handleUpload = () => setShowSuccess(true);
 

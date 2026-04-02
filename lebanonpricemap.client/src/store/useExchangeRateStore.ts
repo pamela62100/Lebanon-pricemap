@@ -9,39 +9,25 @@ interface ExchangeRateState {
   fetchRate: () => Promise<void>;
 }
 
-const USE_MOCK = true;
-
 export const useExchangeRateStore = create<ExchangeRateState>()(
   persist(
     (set) => ({
       rateLbpPerUsd: 89500,
       lastUpdated: "2025-03-08T07:00:00Z",
-      source: "lirarate.org (cached)",
+      source: "database (cached)",
       isLoading: false,
 
       fetchRate: async () => {
         set({ isLoading: true });
-        if (USE_MOCK) {
-          await new Promise(r => setTimeout(r, 800));
-          // Simulate realistic LBP fluctuation
-          const mockRate = 89500 + Math.floor((Math.random() - 0.5) * 500);
-          set({
-            rateLbpPerUsd: mockRate,
-            lastUpdated: new Date().toISOString(),
-            source: "lirarate.org (mock)",
-            isLoading: false,
-          });
-          return;
-        }
         try {
-          // Production: proxy through ASP.NET to avoid CORS
-          // GET /api/exchange-rate → your backend fetches lirarate.org
-          const res = await fetch('/api/exchange-rate');
-          const data = await res.json();
+          const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5223/api';
+          const res = await fetch(`${base}/settings/exchange-rate`);
+          const json = await res.json();
+          const rate = json?.data?.rate ?? 89500;
           set({
-            rateLbpPerUsd: data.buy ?? data.rate ?? 89500,
+            rateLbpPerUsd: Number(rate),
             lastUpdated: new Date().toISOString(),
-            source: "lirarate.org",
+            source: json?.data?.source ?? "database",
             isLoading: false,
           });
         } catch {

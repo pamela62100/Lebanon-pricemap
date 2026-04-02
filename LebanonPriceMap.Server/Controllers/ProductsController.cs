@@ -55,4 +55,30 @@ public class ProductsController : ControllerBase
         var result = await _productService.CreateAsync(request, userId);
         return Ok(new { success = true, data = result });
     }
+
+    /// <summary>
+    /// PUT /api/products/{id}
+    /// Update an existing product. Admin only.
+    /// </summary>
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Update(string id, [FromBody] UpdateProductRequest request)
+    {
+        var success = await _productService.UpdateAsync(id, request);
+        if (!success) return NotFound(new { success = false, message = "Product not found" });
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// PATCH /api/products/{id}/archive
+    /// Archive (soft-delete) a product. Admin only.
+    /// </summary>
+    [HttpPatch("{id}/archive")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> Archive(string id)
+    {
+        var success = await _productService.ArchiveAsync(id);
+        if (!success) return NotFound(new { success = false, message = "Product not found" });
+        return Ok(new { success = true });
+    }
 }

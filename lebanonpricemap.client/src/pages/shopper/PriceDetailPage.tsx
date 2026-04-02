@@ -19,8 +19,10 @@ export function PriceDetailPage() {
   const { rateLbpPerUsd } = useExchangeRateStore();
 
   const [entry, setEntry] = useState<PriceEntry | null>(null);
+  const [history, setHistory] = useState<{ date: string; price: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [voting, setVoting] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -28,8 +30,18 @@ export function PriceDetailPage() {
     pricesApi.getById(id)
       .then(res => {
         const data = (res as any).data?.data;
-        if (data) setEntry(data);
-        else setNotFound(true);
+        if (data) {
+          setEntry(data);
+          // Fetch history after we have the productId
+          pricesApi.getHistory(data.productId)
+            .then(hr => {
+              const pts = (hr as any).data?.data ?? [];
+              setHistory(Array.isArray(pts) ? pts.map((p: any) => ({ date: p.date, price: Number(p.price) })) : []);
+            })
+            .catch(() => {});
+        } else {
+          setNotFound(true);
+        }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -48,6 +60,21 @@ export function PriceDetailPage() {
   const handleAddToCart = () => {
     addItem(entry.productId);
     addToast(`${entry.product?.name ?? 'Item'} added to cart`);
+  };
+
+  const handleVote = async (value: 1 | -1) => {
+    if (voting) return;
+    setVoting(true);
+    try {
+      await pricesApi.vote(entry.id, value);
+      addToast(value === 1 ? 'Price confirmed — thanks!' : 'Report submitted', value === 1 ? 'success' : 'info');
+      // Optimistically update upvotes display
+      setEntry(prev => prev ? { ...prev, upvotes: (prev.upvotes ?? 0) + (value === 1 ? 1 : 0) } : prev);
+    } catch {
+      addToast('Could not record vote', 'error');
+    } finally {
+      setVoting(false);
+    }
   };
 
   return (
@@ -116,20 +143,22 @@ export function PriceDetailPage() {
           <section className="card p-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main">Price history</h2>
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Stable</span>
+              {history.length > 0 && (
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  {history.length} submissions
+                </span>
+              )}
             </div>
-            <div className="h-[200px]">
-              <PriceHistoryChart
-                data={[
-                  { date: 'Feb 10', price: 120000 },
-                  { date: 'Feb 15', price: 135000 },
-                  { date: 'Feb 20', price: 130000 },
-                  { date: 'Feb 25', price: 128000 },
-                  { date: 'Mar 01', price: 125000 },
-                  { date: 'Mar 06', price: 125000 },
-                ]}
-              />
-            </div>
+            {history.length > 0 ? (
+              <div className="h-[200px]">
+                <PriceHistoryChart data={history} />
+              </div>
+            ) : (
+              <div className="h-[200px] flex flex-col items-center justify-center text-center gap-2">
+                <span className="material-symbols-outlined text-3xl text-text-muted/30">show_chart</span>
+                <p className="text-sm text-text-muted">Not enough data yet for a price history chart.</p>
+              </div>
+            )}
           </section>
         </div>
 
@@ -155,10 +184,18 @@ export function PriceDetailPage() {
                 Add to cart
               </button>
               <div className="grid grid-cols-2 gap-2.5">
-                <button className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-bg-muted transition-all">
+                <button
+                  onClick={() => handleVote(1)}
+                  disabled={voting}
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50"
+                >
                   Verify
                 </button>
-                <button className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-bg-muted transition-all">
+                <button
+                  onClick={() => handleVote(-1)}
+                  disabled={voting}
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all disabled:opacity-50"
+                >
                   Report
                 </button>
               </div>

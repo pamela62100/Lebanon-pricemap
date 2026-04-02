@@ -51,6 +51,17 @@ public class PricesController : ControllerBase
     }
 
     /// <summary>
+    /// GET /api/prices/product/{id}/history
+    /// Returns chronological price submissions for a product (powers the history chart).
+    /// </summary>
+    [HttpGet("product/{id}/history")]
+    public async Task<IActionResult> GetHistory(string id)
+    {
+        var results = await _priceService.GetHistoryByProductAsync(id);
+        return Ok(new { success = true, data = results });
+    }
+
+    /// <summary>
     /// GET /api/prices/{id}
     /// Returns details for a specific price entry.
     /// </summary>
@@ -60,6 +71,21 @@ public class PricesController : ControllerBase
         var result = await _priceService.GetByIdAsync(id);
         if (result == null) return NotFound(new { success = false, message = "Price entry not found" });
         return Ok(new { success = true, data = result });
+    }
+
+    /// <summary>
+    /// GET /api/prices/user/{userId}
+    /// Returns all price submissions by a specific user.
+    /// </summary>
+    [HttpGet("user/{userId}")]
+    [Microsoft.AspNetCore.Authorization.Authorize]
+    public async Task<IActionResult> GetByUser(string userId)
+    {
+        if (!Guid.TryParse(userId, out var userGuid))
+            return BadRequest(new { success = false, message = "Invalid user ID" });
+
+        var results = await _priceService.GetByUserAsync(userGuid);
+        return Ok(new { success = true, data = results });
     }
 
     /// <summary>

@@ -10,6 +10,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (email: string, password: string, role: UserRole, name: string) => Promise<{ success: boolean; error?: string }>;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -60,6 +61,12 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('rakis_token');
         set({ user: null, token: null });
+      },
+
+      updateUser: (patch) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...patch } : null,
+        }));
       },
 
       register: async (email: string, password: string, role: UserRole, name: string) => {

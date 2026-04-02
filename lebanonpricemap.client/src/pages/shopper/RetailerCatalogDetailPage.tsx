@@ -1,15 +1,25 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMemo } from 'react';
-import { MOCK_STORES } from '@/api/mockData';
+import { useState, useEffect } from 'react';
+import { storesApi } from '@/api/stores.api';
 import { StoreCatalogView } from '@/components/catalog/StoreCatalogView';
+import type { Store } from '@/types';
 
 export function RetailerCatalogDetailPage() {
   const { storeId } = useParams<{ storeId: string }>();
   const navigate = useNavigate();
+  const [store, setStore] = useState<Store | null>(null);
+  const [notFound, setNotFound] = useState(false);
 
-  const store = useMemo(() => MOCK_STORES.find(s => s.id === storeId), [storeId]);
+  useEffect(() => {
+    if (!storeId) return;
+    storesApi.getById(storeId).then((res) => {
+      const data = res.data?.data ?? res.data;
+      if (data?.id) setStore(data);
+      else setNotFound(true);
+    }).catch(() => setNotFound(true));
+  }, [storeId]);
 
-  if (!store) {
+  if (notFound) {
     return (
       <div className="p-20 text-center opacity-40">
         <h2 className="text-2xl font-bold text-text-main mb-4">Store not found</h2>
@@ -23,20 +33,23 @@ export function RetailerCatalogDetailPage() {
     );
   }
 
+  if (!store) {
+    return (
+      <div className="p-20 text-center">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+      </div>
+    );
+  }
+
   const initials = store.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
   return (
     <div className="bg-bg-base animate-page">
-      {/* Store hero */}
       <header className="card-dark rounded-none border-x-0 border-t-0 py-14 px-8 md:px-12">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8">
           <div className="flex flex-col md:flex-row items-center md:items-end gap-8">
             <div className="w-28 h-28 rounded-3xl bg-white border-4 border-white/10 shadow-xl flex items-center justify-center shrink-0">
-              {store.logoUrl ? (
-                <img src={store.logoUrl} alt={store.name} className="w-20 h-20 object-contain" />
-              ) : (
-                <span className="font-bold text-4xl text-text-main/20 italic">{initials}</span>
-              )}
+              <span className="font-bold text-4xl text-text-main/20 italic">{initials}</span>
             </div>
 
             <div className="text-center md:text-left">
@@ -69,27 +82,23 @@ export function RetailerCatalogDetailPage() {
       </header>
 
       <div className="max-w-7xl mx-auto px-8 md:px-12 py-10 flex flex-col lg:flex-row gap-8 items-start">
-        {/* Left sidebar — fixed width, never stretches */}
         <aside className="w-full lg:w-56 shrink-0 space-y-6">
-          {/* Metrics — horizontal 3-across on mobile, vertical on desktop */}
           <div>
             <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3">
               Store metrics
             </p>
             <div className="grid grid-cols-3 lg:grid-cols-1 gap-2">
-              {/* Store rate */}
               <div className="card p-3 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px] text-text-muted">payments</span>
                   <span className="text-[10px] font-semibold text-text-muted">Store rate</span>
                 </div>
                 <p className="text-base font-bold text-text-main font-data leading-tight">
-                  {store.internalRateLbp.toLocaleString()}
+                  {store.internalRateLbp?.toLocaleString() ?? '—'}
                   <span className="text-[10px] font-semibold text-text-muted ml-1">LBP</span>
                 </p>
               </div>
 
-              {/* Trust score */}
               <div className="card p-3 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px] text-text-muted">verified</span>
@@ -100,7 +109,6 @@ export function RetailerCatalogDetailPage() {
                 </p>
               </div>
 
-              {/* Power status */}
               <div className="card p-3 flex flex-col gap-1">
                 <div className="flex items-center gap-1.5">
                   <span className="material-symbols-outlined text-[14px] text-text-muted">
@@ -109,13 +117,12 @@ export function RetailerCatalogDetailPage() {
                   <span className="text-[10px] font-semibold text-text-muted">Power</span>
                 </div>
                 <p className="text-sm font-bold text-text-main leading-tight capitalize">
-                  {store.powerStatus.replace(/_/g, ' ')}
+                  {(store.powerStatus ?? 'unknown').replace(/_/g, ' ')}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Location */}
           <div className="pt-4 border-t border-border-soft space-y-3">
             <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest">
               Location
@@ -127,13 +134,12 @@ export function RetailerCatalogDetailPage() {
             <div>
               <p className="text-[10px] font-semibold text-text-muted uppercase mb-0.5">Coordinates</p>
               <p className="text-xs font-semibold text-text-main font-data">
-                {store.latitude.toFixed(4)}, {store.longitude.toFixed(4)}
+                {store.latitude?.toFixed(4) ?? '—'}, {store.longitude?.toFixed(4) ?? '—'}
               </p>
             </div>
           </div>
         </aside>
 
-        {/* Main catalog — takes remaining space */}
         <div className="flex-1 min-w-0">
           <StoreCatalogView
             storeId={store.id}

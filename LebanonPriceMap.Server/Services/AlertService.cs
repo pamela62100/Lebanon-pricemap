@@ -22,7 +22,7 @@ public class AlertService
             UserId = userId,
             ProductId = request.ProductId,
             TargetPriceLbp = request.TargetPriceLbp,
-            VerifiedOnly = true,
+            VerifiedOnly = request.VerifiedOnly,
             Status = AlertStatus.active,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -63,7 +63,8 @@ public class AlertService
         ProductId = alert.ProductId,
         ProductName = productName,
         TargetPriceLbp = alert.TargetPriceLbp,
-        IsActive = alert.Status == AlertStatus.active,
+        Active = alert.Status == AlertStatus.active,
+        VerifiedOnly = alert.VerifiedOnly,
         CreatedAt = alert.CreatedAt
     };
 }

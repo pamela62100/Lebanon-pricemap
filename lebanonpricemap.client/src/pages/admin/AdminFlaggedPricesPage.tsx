@@ -1,51 +1,58 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ModerationCard, type ModerationEntry } from '@/components/admin/ModerationCard';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
-
-const MOCK_ENTRIES: ModerationEntry[] = [
-  {
-    id: 'm1',
-    submittedBy: 'Fouad G.',
-    submittedAt: new Date(Date.now() - 2 * 3600000).toISOString(),
-    storeName: 'Carrefour Dora',
-    productName: 'Eggs 30 Pack',
-    submittedPrice: 420000,
-    extractedPrice: 480000,
-    mismatch: true,
-    receiptNote: 'Receipt shows a different barcode — might be a different package size.',
-  },
-  {
-    id: 'm2',
-    submittedBy: 'Layla K.',
-    submittedAt: new Date(Date.now() - 5 * 3600000).toISOString(),
-    storeName: 'Bou Khalil Hamra',
-    productName: 'Diesel Fuel per Liter',
-    submittedPrice: 108000,
-    extractedPrice: 108000,
-    mismatch: false,
-  },
-  {
-    id: 'm3',
-    submittedBy: 'Rima K.',
-    submittedAt: new Date(Date.now() - 10 * 3600000).toISOString(),
-    storeName: 'Happy Supermarket Mar Mkhael',
-    productName: 'Olive Oil 750ml',
-    submittedPrice: 320000,
-    extractedPrice: 320000,
-    mismatch: false,
-  },
-];
+import { discrepancyApi } from '@/api/catalog.api';
+import { useToastStore } from '@/store/useToastStore';
 
 export function AdminFlaggedPricesPage() {
-  const [entries, setEntries] = useState(MOCK_ENTRIES);
+  const [entries, setEntries] = useState<ModerationEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { open, getParam } = useRouteDialog();
+  const addToast = useToastStore(s => s.addToast);
+
+  useEffect(() => {
+    discrepancyApi.getPending().then((res) => {
+      const data = res.data?.data ?? res.data;
+      const raw = Array.isArray(data) ? data : [];
+      const mapped: ModerationEntry[] = raw.map((r: any) => ({
+        id: r.id,
+        submittedBy: r.reporterTrustScore ? `Trust score: ${r.reporterTrustScore}` : 'Community Reporter',
+        submittedAt: r.createdAt ?? new Date().toISOString(),
+        storeName: r.store?.name ?? r.storeId,
+        productName: r.product?.name ?? r.productId,
+        submittedPrice: r.observedPriceLbp ?? 0,
+        extractedPrice: r.catalogPriceLbp ?? 0,
+        mismatch: r.observedPriceLbp != null && r.catalogPriceLbp != null && r.observedPriceLbp !== r.catalogPriceLbp,
+        receiptNote: r.note,
+      }));
+      setEntries(mapped);
+    }).catch(() => {}).finally(() => setIsLoading(false));
+  }, []);
 
   const remove = (id: string) => setEntries(prev => prev.filter(e => e.id !== id));
-  
+
   const activeId = getParam('id');
   const activeEntry = entries.find(e => e.id === activeId);
+
+  const handleVerify = async () => {
+    if (!activeId) return;
+    try {
+      await discrepancyApi.approve(activeId, {});
+      remove(activeId);
+      addToast('Price verified', 'success');
+    } catch { addToast('Action failed'); }
+  };
+
+  const handleReject = async () => {
+    if (!activeId) return;
+    try {
+      await discrepancyApi.reject(activeId, { note: 'Rejected by admin' });
+      remove(activeId);
+      addToast('Submission rejected', 'success');
+    } catch { addToast('Action failed'); }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -62,7 +69,11 @@ export function AdminFlaggedPricesPage() {
         )}
       </motion.div>
 
-      {entries.length === 0 ? (
+      {isLoading ? (
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => <div key={i} className="h-32 rounded-2xl bg-bg-muted animate-pulse" />)}
+        </div>
+      ) : entries.length === 0 ? (
         <div className="flex flex-col items-center py-20 text-center gap-3 bg-bg-surface rounded-2xl border border-border-soft">
           <span className="material-symbols-outlined text-green-500" style={{ fontSize: '48px' }}>check_circle</span>
           <p className="text-base font-bold text-text-main">Queue is clear!</p>
@@ -83,23 +94,22 @@ export function AdminFlaggedPricesPage() {
         </div>
       )}
 
-      {/* URL-Driven Moderation Dialogs */}
       <ConfirmDialog
         dialogId="verify-moderation"
         title="Verify Price Submission"
-        description={`Confirm that the submitted price for ${activeEntry?.productName} matches the receipt and store data?`}
+        description={`Confirm that the submitted price for ${activeEntry?.productName} matches the store data?`}
         confirmLabel="Verify Price"
         variant="primary"
-        onConfirm={() => activeId && remove(activeId)}
+        onConfirm={handleVerify}
       />
 
       <ConfirmDialog
         dialogId="reject-moderation"
         title="Reject Submission"
-        description={`Reject this price submission for ${activeEntry?.productName}? This will notify the user but provide no penalty.`}
+        description={`Reject this price submission for ${activeEntry?.productName}?`}
         confirmLabel="Reject"
         variant="warning"
-        onConfirm={() => activeId && remove(activeId)}
+        onConfirm={handleReject}
       />
 
       <ConfirmDialog
@@ -108,7 +118,7 @@ export function AdminFlaggedPricesPage() {
         description={`Reject and issue a formal warning to ${activeEntry?.submittedBy} for incorrect data submission?`}
         confirmLabel="Warn & Reject"
         variant="danger"
-        onConfirm={() => activeId && remove(activeId)}
+        onConfirm={handleReject}
       />
     </div>
   );

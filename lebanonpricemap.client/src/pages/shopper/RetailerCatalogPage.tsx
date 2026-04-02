@@ -1,25 +1,27 @@
-import { useMemo } from 'react';
-import { MOCK_STORES } from '@/api/mockData';
+import { useState, useEffect } from 'react';
+import { storesApi } from '@/api/stores.api';
 import { StoreCard } from '@/components/cards/StoreCard';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { catalogApi } from '@/api/catalog.api';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import type { Store } from '@/types';
 
 export function RetailerCatalogPage() {
   const navigate = useNavigate();
-  const verifiedRetailers = useMemo(() =>
-    MOCK_STORES.filter(s => s.isVerifiedRetailer), []);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalCatalogItems = useMemo(() =>
-    verifiedRetailers.reduce((acc, s) => acc + catalogApi.getByStore(s.id).length, 0),
-    [verifiedRetailers]
-  );
+  useEffect(() => {
+    storesApi.getAll().then((res) => {
+      const data = res.data?.data ?? res.data;
+      const all = Array.isArray(data) ? data : [];
+      setStores(all.filter((s: Store) => s.isVerifiedRetailer));
+    }).catch(() => {}).finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-5 py-12 md:py-20 animate-page">
-      {/* Hero */}
       <header className="mb-12">
         <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3">
           Official store catalogs
@@ -32,30 +34,34 @@ export function RetailerCatalogPage() {
         </p>
       </header>
 
-      {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
-        <KpiCard icon="storefront" value={verifiedRetailers.length} label="Verified stores" />
-        <KpiCard icon="inventory_2" value={totalCatalogItems} label="Catalog items" />
+        <KpiCard icon="storefront" value={stores.length} label="Verified stores" />
+        <KpiCard icon="inventory_2" value="—" label="Catalog items" />
         <KpiCard icon="verified_user" value="100%" label="Official source" />
         <KpiCard icon="update" value="24h" label="Update cycle" />
       </div>
 
-      {/* Store grid */}
       <section>
         <div className="flex items-center justify-between mb-6 border-b border-border-soft pb-4">
           <h2 className="text-xl font-bold text-text-main">Partner supermarkets</h2>
           <span className="text-[10px] font-semibold text-text-muted uppercase tracking-widest">
-            {verifiedRetailers.length} active
+            {stores.length} active
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {verifiedRetailers.map((store, i) => (
-            <StoreCard key={store.id} store={store} index={i} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {[1, 2, 3].map(i => <div key={i} className="h-48 rounded-2xl bg-bg-muted animate-pulse" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {stores.map((store, i) => (
+              <StoreCard key={store.id} store={store} index={i} />
+            ))}
+          </div>
+        )}
 
-        {verifiedRetailers.length === 0 && (
+        {!isLoading && stores.length === 0 && (
           <EmptyState
             icon="storefront"
             title="No verified stores yet"

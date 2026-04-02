@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MOCK_PRODUCTS } from '@/api/mockData';
+import { alertsApi } from '@/api/alerts.api';
+import { productsApi } from '@/api/products.api';
 import { useToastStore } from '@/store/useToastStore';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
@@ -8,6 +9,7 @@ import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { LBPInput } from '@/components/ui/LBPInput';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
+import type { Product } from '@/types';
 
 const REGIONS = ['Beirut', 'Metn', 'Keserwan', 'Tripoli', 'Sidon', 'Zahle'];
 
@@ -15,33 +17,16 @@ interface Alert {
   id: string;
   productId: string;
   productName: string;
-  thresholdLbp: number;
-  regions: string[];
+  targetPriceLbp: number;
   verifiedOnly: boolean;
   active: boolean;
   createdAt: string;
 }
 
-const DEFAULT_ALERTS: Alert[] = [
-  {
-    id: 'a1', productId: 'p5', productName: 'Diesel Fuel per Liter',
-    thresholdLbp: 105000, regions: ['Beirut', 'Metn'], verifiedOnly: true,
-    active: true, createdAt: '2025-03-01T00:00:00Z',
-  },
-  {
-    id: 'a2', productId: 'p1', productName: 'Whole Milk TL 1L',
-    thresholdLbp: 120000, regions: ['Beirut'], verifiedOnly: false,
-    active: true, createdAt: '2025-03-03T00:00:00Z',
-  },
-  {
-    id: 'a3', productId: 'p2', productName: 'Eggs 30 Pack',
-    thresholdLbp: 380000, regions: ['Beirut', 'Sidon'], verifiedOnly: true,
-    active: false, createdAt: '2025-02-20T00:00:00Z',
-  },
-];
-
 export function AlertsPage() {
-  const [alerts, setAlerts] = useState<Alert[]>(DEFAULT_ALERTS);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { open, close, getParam } = useRouteDialog();
   const [newProduct, setNewProduct] = useState('');
   const [newThreshold, setNewThreshold] = useState<number | ''>('');
@@ -52,29 +37,69 @@ export function AlertsPage() {
   const activeAlertId = getParam('id');
   const activeAlert = alerts.find((a) => a.id === activeAlertId);
 
-  const toggleActive = (id: string) =>
-    setAlerts((prev) => prev.map((a) => a.id === id ? { ...a, active: !a.active } : a));
+  useEffect(() => {
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const [alertsRes, productsRes] = await Promise.all([
+          alertsApi.getAll(),
+          productsApi.getAll(),
+        ]);
+        const alertData = alertsRes.data?.data ?? alertsRes.data;
+        setAlerts(Array.isArray(alertData) ? alertData : []);
+        const productData = productsRes.data?.data ?? productsRes.data;
+        setProducts(Array.isArray(productData) ? productData : []);
+      } catch {
+        // errors handled by axios interceptor
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, []);
 
-  const deleteAlert = (id: string) => {
-    setAlerts((prev) => prev.filter((a) => a.id !== id));
-    addToast('Alert removed');
+  const deleteAlert = async (id: string) => {
+    try {
+      await alertsApi.delete(id);
+      setAlerts((prev) => prev.filter((a) => a.id !== id));
+      addToast('Alert removed');
+    } catch {
+      addToast('Failed to remove alert');
+    }
     close();
   };
 
-  const saveNewAlert = () => {
-    const product = MOCK_PRODUCTS.find((p) => p.id === newProduct);
-    if (!product || !newThreshold) return;
-    setAlerts((prev) => [{
-      id: `a${Date.now()}`, productId: product.id, productName: product.name,
-      thresholdLbp: Number(newThreshold), regions: newRegions,
-      verifiedOnly, active: true, createdAt: new Date().toISOString(),
-    }, ...prev]);
-    close();
-    setNewProduct(''); setNewThreshold(''); setNewRegions(['Beirut']); setVerifiedOnly(true);
-    addToast('Price alert created');
+  const saveNewAlert = async () => {
+    if (!newProduct || !newThreshold) return;
+    try {
+      const res = await alertsApi.create({
+        productId: newProduct,
+        targetPriceLbp: Number(newThreshold),
+        verifiedOnly,
+      });
+      const created: Alert = res.data?.data ?? res.data;
+      setAlerts((prev) => [created, ...prev]);
+      close();
+      setNewProduct(''); setNewThreshold(''); setNewRegions(['Beirut']); setVerifiedOnly(true);
+      addToast('Price alert created');
+    } catch {
+      addToast('Failed to create alert');
+    }
   };
 
   const activeCount = alerts.filter((a) => a.active).length;
+
+  if (isLoading) {
+    return (
+      <div className="max-w-5xl mx-auto px-4 sm:px-5 py-10 sm:py-12 md:py-16 animate-page">
+        <div className="flex flex-col gap-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="card p-5 h-20 animate-pulse bg-bg-muted/40" />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-5 py-10 sm:py-12 md:py-16 animate-page">
@@ -129,24 +154,18 @@ export function AlertsPage() {
                       )}
                     </div>
                     <p className="text-sm text-text-muted">
-                      Below <span className="text-text-main font-semibold">{alert.thresholdLbp.toLocaleString()} LBP</span>
-                      <span className="mx-2 opacity-30">·</span>
-                      {alert.regions.join(', ')}
+                      Below <span className="text-text-main font-semibold">{alert.targetPriceLbp.toLocaleString()} LBP</span>
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => toggleActive(alert.id)}
-                    className={cn(
-                      'px-4 h-9 rounded-full text-sm font-semibold transition-all',
-                      alert.active ? 'bg-text-main text-white' : 'bg-bg-muted text-text-muted hover:text-text-main'
-                    )}
-                    type="button"
-                  >
+                  <span className={cn(
+                    'px-4 h-9 rounded-full text-sm font-semibold flex items-center',
+                    alert.active ? 'bg-text-main text-white' : 'bg-bg-muted text-text-muted'
+                  )}>
                     {alert.active ? 'Active' : 'Paused'}
-                  </button>
+                  </span>
                   <button
                     onClick={() => open('delete-alert', { id: alert.id })}
                     className="w-9 h-9 rounded-full bg-bg-muted flex items-center justify-center text-text-muted hover:text-red-500 hover:bg-red-50 transition-all"
@@ -168,14 +187,12 @@ export function AlertsPage() {
           )}
         </section>
 
-        {/* Create alert dialog — compact, fits without scrolling */}
         <RouteDialog
           dialogId="new-alert"
           title="Create a price alert"
           size="sm"
         >
           <div className="space-y-4">
-            {/* Product */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Product</label>
               <div className="relative">
@@ -185,7 +202,7 @@ export function AlertsPage() {
                   className="w-full h-10 pl-3 pr-10 rounded-xl bg-bg-muted border border-border-soft text-sm font-medium text-text-main outline-none focus:border-text-main/30 appearance-none cursor-pointer"
                 >
                   <option value="">Select a product</option>
-                  {MOCK_PRODUCTS.map((p) => (
+                  {products.map((p) => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>
@@ -195,13 +212,11 @@ export function AlertsPage() {
               </div>
             </div>
 
-            {/* Target price */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Target price</label>
               <LBPInput value={newThreshold} onChange={setNewThreshold} className="max-w-none" />
             </div>
 
-            {/* Regions */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Regions</label>
               <div className="flex flex-wrap gap-1.5">
@@ -227,7 +242,6 @@ export function AlertsPage() {
               </div>
             </div>
 
-            {/* Verified only toggle */}
             <label className="flex items-center justify-between gap-3 p-3 rounded-xl bg-bg-muted cursor-pointer">
               <div>
                 <p className="text-sm font-semibold text-text-main">Verified data only</p>
@@ -247,7 +261,6 @@ export function AlertsPage() {
               </div>
             </label>
 
-            {/* Actions */}
             <div className="flex gap-2 pt-1">
               <button
                 onClick={close}

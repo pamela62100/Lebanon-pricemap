@@ -1,31 +1,51 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { NotificationCard } from '@/components/cards/NotificationCard';
-import { getEnrichedNotifications } from '@/api/mockData';
+import { usersApi } from '@/api/users.api';
+import { useAuthStore } from '@/store/useAuthStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { Notification as NotifType } from '@/types';
 
 export function NotificationsPage() {
-  const allNotifications = useMemo(() => getEnrichedNotifications(), []);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const user = useAuthStore((s) => s.user);
+  const [notifications, setNotifications] = useState<NotifType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const markAllRead = () => setReadIds(new Set(allNotifications.map((n: NotifType) => n.id)));
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await usersApi.getNotifications(user.id);
+        const data = res.data?.data ?? res.data;
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch {
+        // errors handled by axios interceptor
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [user?.id]);
 
-  const markAsRead = (id: string) => {
-    setReadIds(prev => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
-  };
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
-  const notificationsWithReadStatus = useMemo(() => {
-    return allNotifications.map((n: NotifType) => ({
-      ...n,
-      isRead: readIds.has(n.id),
-    }));
-  }, [allNotifications, readIds]);
+  const markAsRead = (id: string) =>
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
 
-  const unreadCount = notificationsWithReadStatus.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  if (isLoading) {
+    return (
+      <div className="animate-page max-w-4xl mx-auto px-5 py-12 md:py-20 flex flex-col gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="card p-5 h-20 animate-pulse bg-bg-muted/40" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="animate-page max-w-4xl mx-auto px-5 py-12 md:py-20 flex flex-col gap-12">
@@ -56,7 +76,7 @@ export function NotificationsPage() {
       </header>
 
       <div className="flex flex-col gap-3">
-        {notificationsWithReadStatus.map((notification: NotifType) => (
+        {notifications.map((notification) => (
           <NotificationCard
             key={notification.id}
             notification={notification}
@@ -64,7 +84,7 @@ export function NotificationsPage() {
           />
         ))}
 
-        {allNotifications.length === 0 && (
+        {notifications.length === 0 && (
           <EmptyState
             icon="notifications_off"
             title="No notifications yet"
