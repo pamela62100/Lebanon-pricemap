@@ -22,7 +22,7 @@ export function RetailerLayout() {
       <aside className="w-56 bg-white border-r border-border-soft flex flex-col sticky top-0 h-dvh shrink-0">
         {/* Brand */}
         <div className="h-14 flex items-center gap-3 px-5 border-b border-border-soft select-none">
-          <div className="w-8 h-8 bg-text-main rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
             <span className="text-white text-[10px] font-black">W.A</span>
           </div>
           <span className="text-sm font-bold text-text-main tracking-tight">WeinArkhas</span>
@@ -38,7 +38,7 @@ export function RetailerLayout() {
               className={({ isActive }) =>
                 cn('flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all',
                   isActive
-                    ? 'bg-text-main text-white font-semibold'
+                    ? 'bg-primary text-white font-semibold'
                     : 'font-medium text-text-muted hover:bg-bg-muted hover:text-text-main'
                 )
               }

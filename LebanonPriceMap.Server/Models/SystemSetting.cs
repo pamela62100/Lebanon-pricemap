@@ -14,9 +14,9 @@ namespace LebanonPriceMap.Server.Models
         public string Key { get; set; }
 
         [Required]
-        public decimal Value { get; set; }
+        public string Value { get; set; }
 
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         public Guid? UpdatedBy { get; set; }
 

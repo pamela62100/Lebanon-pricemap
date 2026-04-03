@@ -91,7 +91,7 @@ export function AlertsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-5xl mx-auto px-4 sm:px-5 py-10 sm:py-12 md:py-16 animate-page">
+      <div className="px-6 lg:px-8 py-8 animate-page">
         <div className="flex flex-col gap-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="card p-5 h-20 animate-pulse bg-bg-muted/40" />
@@ -102,26 +102,21 @@ export function AlertsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-5 py-10 sm:py-12 md:py-16 animate-page">
+    <div className="px-6 lg:px-8 py-8 animate-page">
       <div className="flex flex-col gap-10">
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.18em] mb-3">
-              Price alerts
-            </p>
-            <h1 className="text-4xl sm:text-5xl font-bold text-text-main tracking-tighter">
-              Stay updated
-            </h1>
-            <p className="text-sm font-medium text-text-muted mt-3">
-              <span className="text-text-main font-bold">{activeCount}</span> active alerts out of {alerts.length}
+            <h1 className="text-2xl font-bold text-text-main">Price Alerts</h1>
+            <p className="text-sm text-text-muted mt-0.5">
+              {activeCount} active · {alerts.length} total
             </p>
           </div>
           <button
             onClick={() => open('new-alert')}
-            className="btn-primary h-12 px-6 rounded-full self-start md:self-auto"
+            className="btn-primary h-10 px-5 rounded-xl text-sm self-start sm:self-auto"
             type="button"
           >
-            <span className="material-symbols-outlined">add</span>
+            <span className="material-symbols-outlined text-lg">add</span>
             Create Alert
           </button>
         </header>
@@ -162,7 +157,7 @@ export function AlertsPage() {
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={cn(
                     'px-4 h-9 rounded-full text-sm font-semibold flex items-center',
-                    alert.active ? 'bg-text-main text-white' : 'bg-bg-muted text-text-muted'
+                    alert.active ? 'bg-primary text-white' : 'bg-bg-muted text-text-muted'
                   )}>
                     {alert.active ? 'Active' : 'Paused'}
                   </span>
@@ -232,8 +227,8 @@ export function AlertsPage() {
                     className={cn(
                       'px-3 py-1.5 rounded-full border text-xs font-semibold transition-all',
                       newRegions.includes(region)
-                        ? 'bg-text-main text-white border-text-main'
-                        : 'bg-white text-text-muted border-border-soft hover:border-text-main/20 hover:text-text-main'
+                        ? 'bg-primary text-white border-primary'
+                        : 'bg-white text-text-muted border-border-soft hover:border-primary/20 hover:text-text-main'
                     )}
                   >
                     {region}
@@ -250,7 +245,7 @@ export function AlertsPage() {
               <div
                 className={cn(
                   'w-10 h-6 rounded-full transition-all shrink-0 relative',
-                  verifiedOnly ? 'bg-text-main' : 'bg-border-soft'
+                  verifiedOnly ? 'bg-primary' : 'bg-border-soft'
                 )}
                 onClick={() => setVerifiedOnly((v) => !v)}
               >
@@ -272,7 +267,7 @@ export function AlertsPage() {
               <button
                 onClick={saveNewAlert}
                 disabled={!newProduct || !newThreshold}
-                className="flex-1 h-10 rounded-full bg-text-main text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+                className="flex-1 h-10 rounded-full bg-primary text-white text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
                 type="button"
               >
                 Save alert

@@ -5,14 +5,14 @@ import { useAuthStore } from '@/store/useAuthStore';
 const STATS = [
   { value: '12K+', label: 'Shoppers' },
   { value: '800+', label: 'Stores' },
-  { value: '45K+', label: 'Prices' },
+  { value: '45K+', label: 'Prices tracked' },
   { value: 'Daily', label: 'Updates' },
 ];
 
-const TRUST_ITEMS = [
-  { icon: 'verified', text: 'Verified store prices and trusted community updates' },
-  { icon: 'security', text: 'Trust scores help reduce misleading reports' },
-  { icon: 'bolt', text: 'Real-time power and cold-chain status' },
+const PRODUCTS = [
+  { name: 'Full Cream Milk 1L', store: 'Spinneys Beirut', price: '145,000', trend: 'down', pct: '−3%' },
+  { name: 'Pita Bread (10 pcs)', store: 'Carrefour Dbayeh', price: '52,000', trend: 'up', pct: '+5%' },
+  { name: 'Olive Oil 750ml', store: 'Bou Khalil Hazmieh', price: '380,000', trend: 'stable', pct: '0%' },
 ];
 
 export default function HeroSection() {
@@ -21,178 +21,155 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-bg-base">
+      {/* Subtle background glow */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-[600px] h-[600px] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute -bottom-32 -left-32 w-[500px] h-[500px] rounded-full bg-indigo-500/8 blur-[100px]" />
-        <div className="absolute inset-0 blueprint-grid opacity-[0.03]" />
+        <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-text-main/5 blur-[120px]" />
+        <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] rounded-full bg-slate-400/8 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-10 lg:px-12 pt-32 pb-20 w-full">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-10 lg:px-12 pt-28 pb-20 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+
+          {/* Left: copy */}
           <div>
             <motion.div
-              initial={{ opacity: 0, y: -16 }}
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-8"
+              transition={{ duration: 0.4 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-full mb-8"
             >
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">
-                Lebanon&apos;s live price and availability map
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs font-semibold text-green-600">
+                Live prices across Lebanon
               </span>
             </motion.div>
 
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="text-5xl md:text-7xl font-black text-text-main leading-[1.0] mb-6"
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="text-4xl sm:text-5xl md:text-6xl font-bold text-text-main leading-[1.1] mb-5"
             >
-              Buy smarter.
+              Find the best prices
               <br />
-              <span className="text-primary">Spend less.</span>
+              <span className="text-text-muted font-normal">before you leave home.</span>
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-lg text-text-muted font-medium leading-relaxed mb-8 max-w-lg"
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="text-base text-text-muted leading-relaxed mb-8 max-w-md"
             >
-              Real prices from stores across Lebanon — updated by retailers and the community.
+              Real prices from stores across Lebanon — submitted by retailers and verified by the community. Compare, save, and shop smarter.
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="flex flex-col gap-2.5 mb-10"
+              className="flex flex-col sm:flex-row gap-3 mb-10"
             >
-              {TRUST_ITEMS.map((item) => (
-                <div key={item.icon} className="flex items-center gap-3 text-sm text-text-sub font-medium">
-                  <div className="w-6 h-6 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-[13px]">
-                      {item.icon}
-                    </span>
-                  </div>
+              <button
+                onClick={() => navigate(user ? '/app' : '/register')}
+                className="h-12 px-7 bg-primary text-white font-semibold rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm"
+              >
+                {user ? 'Open App' : 'Get Started — It\'s Free'}
+                <span className="material-symbols-outlined text-[17px]">arrow_forward</span>
+              </button>
+              <button
+                onClick={() => navigate('/map')}
+                className="h-12 px-7 border border-border-primary text-text-main font-semibold rounded-xl hover:border-primary transition-all text-sm flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[17px]">map</span>
+                View Price Map
+              </button>
+            </motion.div>
+
+            {/* Trust badges */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.45 }}
+              className="flex flex-wrap items-center gap-x-5 gap-y-2"
+            >
+              {[
+                { icon: 'verified', text: 'Verified prices' },
+                { icon: 'groups', text: 'Community-powered' },
+                { icon: 'lock', text: 'Free to use' },
+              ].map((item) => (
+                <div key={item.icon} className="flex items-center gap-1.5 text-sm text-text-muted">
+                  <span className="material-symbols-outlined text-[15px]">{item.icon}</span>
                   {item.text}
                 </div>
               ))}
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex gap-4 flex-wrap"
-            >
-              <button
-                onClick={() => navigate(user ? '/app' : '/register')}
-                className="h-14 px-8 bg-primary text-white font-bold rounded-2xl hover:opacity-90 transition-all flex items-center gap-2 text-sm"
-              >
-                <span className="material-symbols-outlined text-[18px]">storefront</span>
-                {user ? 'Open App' : 'Get Started Free'}
-              </button>
-
-              <button
-                onClick={() => navigate('/login')}
-                className="h-14 px-8 border border-border-primary text-text-main font-bold rounded-2xl hover:border-primary hover:text-primary transition-all text-sm"
-              >
-                Sign In
-              </button>
-            </motion.div>
           </div>
 
+          {/* Right: live preview card */}
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
             className="hidden lg:block"
           >
             <div className="relative">
-              <div className="absolute -inset-8 bg-gradient-to-br from-primary/10 to-transparent rounded-3xl blur-2xl" />
-              <div className="relative bg-bg-surface border border-border-primary/30 rounded-3xl p-8 shadow-glass">
-                <div className="flex items-center justify-between mb-6">
+              <div className="absolute -inset-6 bg-gradient-to-br from-text-main/5 to-transparent rounded-3xl blur-2xl" />
+              <div className="relative bg-white border border-border-primary/40 rounded-2xl shadow-card overflow-hidden">
+                {/* Card header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border-soft">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
-                      <span className="text-white text-xs font-black">WA</span>
+                    <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+                      <span className="text-white text-[9px] font-black">WA</span>
                     </div>
-                    <span className="font-black text-text-main text-sm">WenArkhass</span>
+                    <span className="font-semibold text-text-main text-sm">Live prices</span>
                   </div>
-
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20">
+                  <div className="flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                    <span className="text-[9px] font-black text-green-500 uppercase tracking-widest">
-                      Live
-                    </span>
+                    <span className="text-xs font-medium text-green-600">Live</span>
                   </div>
                 </div>
 
-                {[
-                  {
-                    name: 'Full Cream Milk 1L',
-                    store: 'Spinneys Beirut',
-                    price: '145,000',
-                    trend: 'down',
-                    pct: '−3%',
-                  },
-                  {
-                    name: 'Pita Bread (10 pcs)',
-                    store: 'Carrefour Dbayeh',
-                    price: '52,000',
-                    trend: 'up',
-                    pct: '+5%',
-                  },
-                  {
-                    name: 'Olive Oil 750ml',
-                    store: 'Bou Khalil Hazmieh',
-                    price: '380,000',
-                    trend: 'stable',
-                    pct: '0%',
-                  },
-                ].map((product, index) => (
-                  <motion.div
-                    key={product.name}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    className="flex items-center justify-between p-4 rounded-2xl bg-bg-muted border border-border-primary/10 mb-3 last:mb-0"
-                  >
-                    <div>
-                      <p className="text-xs font-bold text-text-main">{product.name}</p>
-                      <p className="text-[10px] text-text-muted">{product.store}</p>
-                    </div>
+                {/* Price rows */}
+                <div className="px-5 py-3 divide-y divide-border-soft">
+                  {PRODUCTS.map((product, index) => (
+                    <motion.div
+                      key={product.name}
+                      initial={{ opacity: 0, x: 16 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.12 }}
+                      className="flex items-center justify-between py-3.5"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-text-main">{product.name}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{product.store}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-text-main tabular-nums">{product.price} <span className="text-[10px] font-normal text-text-muted">LBP</span></p>
+                        <p className={`text-xs font-medium mt-0.5 ${
+                          product.trend === 'down' ? 'text-green-500' :
+                          product.trend === 'up' ? 'text-red-400' : 'text-text-muted'
+                        }`}>
+                          {product.pct}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
 
-                    <div className="text-right">
-                      <p className="text-sm font-black text-primary tabular-nums">{product.price}</p>
-                      <p
-                        className={`text-[9px] font-bold ${
-                          product.trend === 'down'
-                            ? 'text-green-500'
-                            : product.trend === 'up'
-                            ? 'text-red-400'
-                            : 'text-text-muted'
-                        }`}
-                      >
-                        {product.pct}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-
-                <div className="grid grid-cols-4 gap-3 mt-6 pt-6 border-t border-border-soft">
-                  {STATS.map((stat) => (
-                    <div key={stat.label} className="text-center">
-                      <p className="text-lg font-black text-text-main">{stat.value}</p>
-                      <p className="text-[9px] text-text-muted uppercase tracking-widest font-bold">
-                        {stat.label}
-                      </p>
+                {/* Stats row */}
+                <div className="grid grid-cols-4 gap-0 border-t border-border-soft bg-bg-muted/30">
+                  {STATS.map((stat, i) => (
+                    <div key={stat.label} className={`text-center py-4 ${i < 3 ? 'border-r border-border-soft' : ''}`}>
+                      <p className="text-base font-bold text-text-main">{stat.value}</p>
+                      <p className="text-[10px] text-text-muted mt-0.5">{stat.label}</p>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           </motion.div>
+
         </div>
       </div>
     </section>

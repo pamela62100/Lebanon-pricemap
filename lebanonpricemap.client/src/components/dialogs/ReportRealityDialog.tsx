@@ -65,7 +65,7 @@ export function ReportRealityDialog() {
                 type="button"
                 onClick={() => setIsFuelRationed((value) => !value)}
                 className={`relative w-16 h-9 rounded-full transition-all shrink-0 ${
-                  isFuelRationed ? 'bg-text-main' : 'bg-bg-muted border border-border-soft'
+                  isFuelRationed ? 'bg-primary' : 'bg-bg-muted border border-border-soft'
                 }`}
               >
                 <span
@@ -92,7 +92,7 @@ export function ReportRealityDialog() {
 
         <button
           onClick={handleSubmit}
-          className="w-full h-14 rounded-full bg-text-main text-white text-lg font-semibold hover:opacity-95 transition-all"
+          className="w-full h-14 rounded-full bg-primary text-white text-lg font-semibold hover:opacity-95 transition-all"
           type="button"
         >
           Submit Update

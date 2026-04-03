@@ -37,7 +37,7 @@ export function AdminApprovalQueuePage() {
   const pendingCount = requests.filter(r => r.status === 'pending').length;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 max-w-5xl mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">

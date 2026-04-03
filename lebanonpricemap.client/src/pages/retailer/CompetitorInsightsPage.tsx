@@ -18,7 +18,7 @@ export function CompetitorInsightsPage() {
   const p2 = products[1];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto flex flex-col gap-8">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-6 lg:px-8 py-8 flex flex-col gap-8">
 
       <div className="flex items-center justify-between pb-6 border-b border-border-soft">
         <div>

@@ -17,26 +17,26 @@ namespace LebanonPriceMap.Server.Models
         public string Name { get; set; }
 
         [MaxLength(150)]
-        public string Chain { get; set; }
+        public string? Chain { get; set; }
 
         [MaxLength(100)]
-        public string City { get; set; }
+        public string? City { get; set; }
 
         [MaxLength(100)]
-        public string District { get; set; }
+        public string? District { get; set; }
 
         [MaxLength(100)]
-        public string Region { get; set; }
+        public string? Region { get; set; }
 
-        public string AddressLine1 { get; set; }
+        public string? AddressLine1 { get; set; }
 
         public decimal? Latitude { get; set; }
 
         public decimal? Longitude { get; set; }
 
-        public string LogoUrl { get; set; }
+        public string? LogoUrl { get; set; }
 
-        public string CoverImageUrl { get; set; }
+        public string? CoverImageUrl { get; set; }
 
         public short TrustScore { get; set; } = 50;
 

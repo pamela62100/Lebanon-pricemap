@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface UploadSuccessDialogProps {
@@ -17,7 +18,7 @@ export function UploadSuccessDialog({
   onViewUpload,
   onUploadAnother,
 }: UploadSuccessDialogProps) {
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -25,7 +26,7 @@ export function UploadSuccessDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/22 z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
           <motion.div
@@ -76,6 +77,7 @@ export function UploadSuccessDialog({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

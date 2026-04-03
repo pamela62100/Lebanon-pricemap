@@ -20,4 +20,16 @@ export const usersApi = {
   updateStatus: async (id: string, status: string) => {
     return client.patch(`/users/${id}/status`, { status });
   },
+
+  deleteSubmissions: async (id: string) => {
+    return client.delete(`/users/${id}/submissions`);
+  },
+
+  deleteAccount: async (id: string) => {
+    return client.delete(`/users/${id}`);
+  },
+
+  forgotPassword: async (email: string) => {
+    return client.post('/auth/forgot-password', { email });
+  },
 };

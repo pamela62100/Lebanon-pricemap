@@ -81,8 +81,8 @@ export function AppRouter() {
       <Route element={<RequireAuth />}>
         <Route path="/app" element={<DesktopLayout />}>
           <Route index                element={<SearchPage />} />
-          <Route path="cart"          element={<CartPage />} />
-          <Route path="cart/optimize" element={<CartOptimizePage />} />
+          <Route path="list"          element={<CartPage />} />
+          <Route path="list/optimize" element={<CartOptimizePage />} />
           <Route path="scan"          element={<BarcodeScannerPage />} />
           <Route path="fuel"          element={<FuelTrackerPage />} />
           <Route path="profile"       element={<ProfilePage />} />

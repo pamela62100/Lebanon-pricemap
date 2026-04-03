@@ -9,6 +9,7 @@ import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { PriceEntry } from '@/types';
 
 interface TrackedAlert {
@@ -19,8 +20,10 @@ interface TrackedAlert {
 export function ProfilePage() {
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
+  const logout = useAuthStore((s) => s.logout);
   const { open, close } = useRouteDialog();
   const addToast = useToastStore((s) => s.addToast);
+  const navigate = useNavigate();
 
   const [myEntries, setMyEntries] = useState<PriceEntry[]>([]);
   const [trackedAlerts, setTrackedAlerts] = useState<TrackedAlert[]>([]);
@@ -59,7 +62,7 @@ export function ProfilePage() {
   if (!user) return null;
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-10 md:py-16 animate-page">
+    <div className="px-6 lg:px-8 py-8 animate-page">
       <div className="flex flex-col gap-8">
 
         {/* Profile hero */}
@@ -173,7 +176,7 @@ export function ProfilePage() {
               <h2 className="text-xl font-bold text-text-main tracking-tight">
                 My submissions
               </h2>
-              <span className="px-2.5 py-1 bg-text-main text-white rounded-full text-[10px] font-bold uppercase tracking-wide">
+              <span className="px-2.5 py-1 bg-primary text-white rounded-full text-[10px] font-bold uppercase tracking-wide">
                 {myEntries.length} reports
               </span>
             </div>
@@ -202,7 +205,7 @@ export function ProfilePage() {
                       >
                         <td className="py-4 px-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-bg-muted flex items-center justify-center text-text-muted group-hover:bg-text-main group-hover:text-white transition-colors shrink-0">
+                            <div className="w-9 h-9 rounded-lg bg-bg-muted flex items-center justify-center text-text-muted group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
                               <span className="material-symbols-outlined text-base">
                                 inventory_2
                               </span>
@@ -348,7 +351,15 @@ export function ProfilePage() {
         permission="bulk:delete"
         approvalLabel="Yes, delete all my submissions"
         approvalPayload={{ scope: 'all_submissions', userId: user.id }}
-        onConfirm={() => {}}
+        onConfirm={async () => {
+          try {
+            await usersApi.deleteSubmissions(user.id);
+            setMyEntries([]);
+            addToast('All submissions deleted', 'success');
+          } catch {
+            addToast('Failed to delete submissions', 'error');
+          }
+        }}
       />
       <ConfirmDialog
         dialogId="delete-account"
@@ -359,7 +370,15 @@ export function ProfilePage() {
         permission="account:delete"
         approvalLabel="Yes, permanently delete my account"
         approvalPayload={{ userId: user.id, reason: 'User initiated' }}
-        onConfirm={() => {}}
+        onConfirm={async () => {
+          try {
+            await usersApi.deleteAccount(user.id);
+            logout();
+            navigate('/');
+          } catch {
+            addToast('Failed to delete account', 'error');
+          }
+        }}
       />
     </div>
   );

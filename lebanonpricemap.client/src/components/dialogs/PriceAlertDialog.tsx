@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LBPInput } from '@/components/ui/LBPInput';
 import { cn } from '@/lib/utils';
@@ -41,7 +42,7 @@ export function PriceAlertDialog({
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -49,7 +50,7 @@ export function PriceAlertDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/22 z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
 
@@ -167,6 +168,7 @@ export function PriceAlertDialog({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

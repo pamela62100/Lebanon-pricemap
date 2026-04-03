@@ -25,7 +25,7 @@ export function AdminSidebar() {
     <aside className="w-56 bg-white border-r border-border-soft flex flex-col h-dvh sticky top-0 shrink-0 z-40">
       {/* Brand area */}
       <div className="h-14 flex items-center gap-3 px-5 border-b border-border-soft select-none">
-        <div className="w-8 h-8 bg-text-main rounded-xl flex items-center justify-center">
+        <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
           <span className="text-white text-[10px] font-black">W.A</span>
         </div>
         <span className="text-sm font-bold text-text-main tracking-tight">WeinArkhas</span>
@@ -54,7 +54,7 @@ export function AdminSidebar() {
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-2xl text-sm transition-all',
                 isActive
-                  ? 'bg-text-main text-white font-semibold shadow-sm'
+                  ? 'bg-primary text-white font-semibold shadow-sm'
                   : 'font-medium text-text-muted hover:bg-bg-muted hover:text-text-main'
               )}
             >
@@ -65,7 +65,7 @@ export function AdminSidebar() {
               {item.badge && pendingCount > 0 && (
                 <span className={cn(
                   "font-data text-[9px] font-black px-2 py-0.5 rounded-md",
-                  isActive ? "bg-white/20 text-white" : "bg-text-main text-white"
+                  isActive ? "bg-white/20 text-white" : "bg-primary text-white"
                 )}>
                   {pendingCount}
                 </span>

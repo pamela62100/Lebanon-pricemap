@@ -13,11 +13,13 @@ public class AdminController : ControllerBase
 {
     private readonly AdminService _adminService;
     private readonly UserService _userService;
+    private readonly AuthService _authService;
 
-    public AdminController(AdminService adminService, UserService userService)
+    public AdminController(AdminService adminService, UserService userService, AuthService authService)
     {
         _adminService = adminService;
         _userService = userService;
+        _authService = authService;
     }
 
     // GET /api/admin/stats
@@ -26,6 +28,16 @@ public class AdminController : ControllerBase
     {
         var stats = await _adminService.GetStatsAsync();
         return Ok(new { success = true, data = stats });
+    }
+
+    // POST /api/admin/users — create a user with a specific role
+    [HttpPost("users")]
+    public async Task<IActionResult> CreateUser([FromBody] RegisterRequest request)
+    {
+        var result = await _authService.Register(request);
+        if (result == null)
+            return Conflict(new { success = false, message = "A user with that email already exists." });
+        return Ok(new { success = true, data = result });
     }
 
     // GET /api/admin/users?search=&role=

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { catalogApi } from '@/api/catalog.api';
 import { CatalogDiscrepancyDialog } from '@/components/dialogs/CatalogDiscrepancyDialog';
@@ -27,7 +27,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   Oil: 'opacity',
   Meat: 'kebab_dining',
   Grains: 'grain',
-  Produce: 'nutrition',
+  Produce: 'eco',
   Fuel: 'local_gas_station',
   Beverages: 'local_drink',
 };
@@ -111,9 +111,7 @@ function CatalogProductCard({
       {/* Price + action */}
       <div className="mt-4 pt-4 border-t border-border-soft flex items-end justify-between gap-3">
         <div>
-          <p className="text-[10px] font-semibold text-text-muted uppercase tracking-wide mb-1">
-            Official price
-          </p>
+          <p className="text-xs text-text-muted mb-1">Official price</p>
           <div className="flex items-baseline gap-1.5 flex-wrap">
             <span className="text-2xl font-bold text-text-main font-data tracking-tight">
               {effectivePrice.toLocaleString()}
@@ -153,14 +151,24 @@ export function StoreCatalogView({
   const addToast = useToastStore((state) => state.addToast);
   const [reportTarget, setReportTarget] = useState<CatalogProduct | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const products = useMemo(() => catalogApi.getByStore(storeId), [storeId]);
+  useEffect(() => {
+    if (!storeId) return;
+    setIsLoading(true);
+    catalogApi.getByStore(storeId)
+      .then((res) => {
+        const data = (res as any).data?.data ?? (res as any).data;
+        setProducts(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setProducts([]))
+      .finally(() => setIsLoading(false));
+  }, [storeId]);
 
   const categories = useMemo(() => {
-    const uniqueCategories = Array.from(
-      new Set(products.map((p) => p.productCategory))
-    );
-    return ['All', ...uniqueCategories];
+    const unique = Array.from(new Set(products.map((p) => p.productCategory)));
+    return ['All', ...unique];
   }, [products]);
 
   const filteredProducts = useMemo(() => {
@@ -180,6 +188,16 @@ export function StoreCatalogView({
     );
   }
 
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div key={i} className="h-52 rounded-2xl bg-bg-muted animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
   if (products.length === 0) {
     return (
       <EmptyState
@@ -192,9 +210,8 @@ export function StoreCatalogView({
 
   return (
     <div className="space-y-7">
-      {/* Header: title + filters */}
+      {/* Header */}
       <div className="flex flex-col gap-4">
-        {/* Title row */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="text-2xl font-bold text-text-main tracking-tight">
@@ -222,8 +239,8 @@ export function StoreCatalogView({
               className={cn(
                 'px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all border whitespace-nowrap shrink-0',
                 activeCategory === category
-                  ? 'bg-text-main text-white border-text-main shadow-sm'
-                  : 'bg-white text-text-muted border-border-soft hover:border-text-main/30 hover:text-text-main'
+                  ? 'bg-primary text-white border-primary shadow-sm'
+                  : 'bg-white text-text-muted border-border-soft hover:border-primary/30 hover:text-text-main'
               )}
             >
               {category}

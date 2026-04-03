@@ -23,17 +23,17 @@ const VARIANT_STYLES = {
   danger: {
     icon: 'delete',
     iconWrap: 'bg-red-50 text-red-500',
-    button: 'bg-text-main hover:opacity-95 text-white',
+    button: 'bg-primary hover:opacity-95 text-white',
   },
   warning: {
     icon: 'warning',
     iconWrap: 'bg-amber-50 text-amber-500',
-    button: 'bg-text-main hover:opacity-95 text-white',
+    button: 'bg-primary hover:opacity-95 text-white',
   },
   primary: {
     icon: 'help',
     iconWrap: 'bg-bg-muted text-text-main',
-    button: 'bg-text-main hover:opacity-95 text-white',
+    button: 'bg-primary hover:opacity-95 text-white',
   },
 };
 

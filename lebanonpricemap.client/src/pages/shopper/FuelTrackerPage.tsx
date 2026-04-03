@@ -32,18 +32,13 @@ export function FuelTrackerPage() {
     officialPrice.reportedPriceLbp > officialPrice.officialPriceLbp;
 
   return (
-    <div className="max-w-4xl mx-auto px-5 py-12 md:py-20 flex flex-col gap-10">
+    <div className="px-6 lg:px-8 py-8 flex flex-col gap-10">
 
       {/* Header */}
       <header>
-        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3">
-          Live fuel tracker
-        </p>
-        <h1 className="text-4xl md:text-5xl font-bold text-text-main tracking-tight leading-tight">
-          Fuel prices &amp; <br /> station status
-        </h1>
-        <p className="text-sm text-text-muted mt-3 max-w-xl leading-relaxed">
-          Official fuel prices plus real-time updates from the community at nearby stations.
+        <h1 className="text-2xl font-bold text-text-main">Fuel Tracker</h1>
+        <p className="text-sm text-text-muted mt-1">
+          Official prices and live station status from the community.
         </p>
       </header>
 
@@ -62,15 +57,15 @@ export function FuelTrackerPage() {
           </div>
 
           <div className="relative z-10 flex-1">
-            <p className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">
+            <p className="text-xs font-medium text-white/50 mb-3">
               Official price · per 20L
             </p>
 
             <div className="flex items-baseline gap-3 mb-4">
-              <h2 className="text-5xl md:text-6xl font-bold text-white tracking-tight">
+              <h2 className="text-4xl md:text-5xl font-bold text-white">
                 {officialPrice.officialPriceLbp.toLocaleString()}
               </h2>
-              <span className="text-base font-bold text-white/40 uppercase tracking-wide">LBP</span>
+              <span className="text-sm font-semibold text-white/50">LBP</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-5 text-[11px] font-semibold text-white/60">
@@ -114,7 +109,7 @@ export function FuelTrackerPage() {
             className={cn(
               'flex-1 py-3 rounded-xl text-xs font-semibold transition-all',
               activeFuel === fuelType
-                ? 'bg-text-main text-white shadow-sm'
+                ? 'bg-primary text-white shadow-sm'
                 : 'text-text-muted hover:text-text-main hover:bg-white/50'
             )}
           >

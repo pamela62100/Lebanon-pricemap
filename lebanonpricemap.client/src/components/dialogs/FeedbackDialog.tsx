@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface FeedbackDialogProps {
@@ -19,7 +20,7 @@ export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProp
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -27,7 +28,7 @@ export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProp
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/22 z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
 
@@ -68,7 +69,7 @@ export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProp
                 <button
                   onClick={handleSubmit}
                   disabled={!message.trim()}
-                  className="w-full sm:flex-1 h-12 rounded-full bg-text-main text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all"
+                  className="w-full sm:flex-1 h-12 rounded-full bg-primary text-white font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 transition-all"
                 >
                   Send Feedback
                 </button>
@@ -77,6 +78,7 @@ export function FeedbackDialog({ isOpen, onClose, onSubmit }: FeedbackDialogProp
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

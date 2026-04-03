@@ -7,9 +7,10 @@ import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { productsApi } from '@/api/products.api';
 import { pricesApi } from '@/api/prices.api';
+import { feedbackApi } from '@/api/feedback.api';
 import type { Product } from '@/types';
 
-type ScanPhase = 'scanner' | 'result' | 'not_found';
+type ScanPhase = 'scanner' | 'result' | 'not_found' | 'submitted';
 
 export function BarcodeScannerPage() {
   const [phase, setPhase] = useState<ScanPhase>('scanner');
@@ -49,6 +50,8 @@ export function BarcodeScannerPage() {
     }
   };
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const reset = () => {
     setPhase('scanner');
     setManualInput('');
@@ -56,8 +59,33 @@ export function BarcodeScannerPage() {
     setPriceEntries([]);
   };
 
+  const handleSubmitForReview = async () => {
+    setIsSubmitting(true);
+    try {
+      await feedbackApi.submit({
+        priceEntryId: 'barcode-review',
+        type: 'missing_barcode',
+        note: `Barcode not found: ${manualInput}`,
+      });
+    } catch {
+      // Best-effort — show success regardless
+    } finally {
+      setIsSubmitting(false);
+      setPhase('submitted');
+    }
+  };
+
   return (
-    <div className="max-w-xl mx-auto px-5 py-12 md:py-20 animate-page">
+    <div className="max-w-2xl mx-auto px-6 lg:px-8 py-8 animate-page">
+      {/* Desktop: scanner not available */}
+      <div className="hidden lg:flex flex-col items-center justify-center py-24 text-center gap-4">
+        <span className="material-symbols-outlined text-5xl text-text-muted/30">smartphone</span>
+        <h2 className="text-lg font-bold text-text-main">Open on your phone</h2>
+        <p className="text-sm text-text-muted max-w-xs">
+          Barcode scanning requires a camera. Open WenArkhass on your mobile device to use this feature.
+        </p>
+      </div>
+      <div className="lg:hidden">
       <AnimatePresence mode="wait">
         {phase === 'scanner' && (
           <motion.div
@@ -129,7 +157,7 @@ export function BarcodeScannerPage() {
                   <button
                     onClick={() => manualInput && handleScan(manualInput)}
                     disabled={isSearching}
-                    className="h-14 px-8 bg-text-main text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-60"
+                    className="h-14 px-8 bg-primary text-white rounded-2xl font-bold text-sm hover:opacity-90 transition-all flex items-center gap-2 disabled:opacity-60"
                   >
                     <span className="material-symbols-outlined text-xl">search</span>
                     {isSearching ? 'Searching…' : 'Search'}
@@ -187,7 +215,7 @@ export function BarcodeScannerPage() {
                 <button
                   onClick={() => {
                     addItem(foundProduct.id);
-                    addToast(`${foundProduct.name} added to cart`, 'success');
+                    addToast(`${foundProduct.name} added to list`, 'success');
                   }}
                   className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-widest hover:underline"
                 >
@@ -247,13 +275,41 @@ export function BarcodeScannerPage() {
                 Scan Again
               </button>
 
-              <button className="w-full h-14 rounded-2xl border border-border-soft text-[10px] font-bold text-text-muted uppercase tracking-widest hover:bg-bg-muted transition-all">
-                Submit for review
+              <button
+                onClick={handleSubmitForReview}
+                disabled={isSubmitting}
+                className="w-full h-14 rounded-2xl border border-border-soft text-[10px] font-bold text-text-muted uppercase tracking-widest hover:bg-bg-muted transition-all disabled:opacity-50"
+              >
+                {isSubmitting ? 'Submitting…' : 'Submit for review'}
               </button>
             </div>
           </motion.div>
         )}
+        {phase === 'submitted' && (
+          <motion.div
+            key="submitted"
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center justify-center text-center py-20 gap-6"
+          >
+            <div className="w-20 h-20 rounded-[2rem] bg-green-50 border border-green-200 flex items-center justify-center">
+              <span className="material-symbols-outlined text-4xl text-green-600">check_circle</span>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-3">Submitted</p>
+              <h2 className="text-3xl font-bold text-text-main tracking-tighter mb-3">Thanks for the report.</h2>
+              <p className="text-sm text-text-muted opacity-60 max-w-xs leading-relaxed">
+                We'll review this barcode and add it to the database as soon as possible.
+              </p>
+            </div>
+            <button onClick={reset} className="btn-primary h-12 px-8 rounded-2xl">
+              Scan another
+            </button>
+          </motion.div>
+        )}
       </AnimatePresence>
+      </div>{/* end lg:hidden */}
     </div>
   );
 }

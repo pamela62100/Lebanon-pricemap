@@ -26,7 +26,7 @@ public class SettingsController : ControllerBase
         var setting = await _db.SystemSettings
             .FirstOrDefaultAsync(s => s.Key == "exchange_rate_lbp_usd");
 
-        var rate = setting?.Value ?? 89500m;
+        var rate = decimal.TryParse(setting?.Value, out var parsed) ? parsed : 89500m;
 
         return Ok(new
         {
@@ -61,7 +61,7 @@ public class SettingsController : ControllerBase
             {
                 Id = Guid.NewGuid(),
                 Key = "exchange_rate_lbp_usd",
-                Value = request.Rate,
+                Value = request.Rate.ToString(),
                 Description = "LBP per 1 USD exchange rate",
                 UpdatedBy = adminId,
                 UpdatedAt = DateTime.UtcNow,
@@ -70,7 +70,7 @@ public class SettingsController : ControllerBase
         }
         else
         {
-            setting.Value = request.Rate;
+            setting.Value = request.Rate.ToString();
             setting.UpdatedBy = adminId;
             setting.UpdatedAt = DateTime.UtcNow;
         }

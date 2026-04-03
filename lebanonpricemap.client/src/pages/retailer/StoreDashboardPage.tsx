@@ -196,7 +196,7 @@ export function StoreDashboardPage() {
               </div>
             )}
             <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">
-              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">Catalog Items</p>
+              <p className="text-xs text-text-muted">Catalog Items</p>
               <p className="text-sm font-black text-text-main">{catalog.length} products</p>
             </div>
           </div>
