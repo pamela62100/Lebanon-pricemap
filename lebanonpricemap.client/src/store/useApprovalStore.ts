@@ -1,60 +1,67 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import type { ApprovalRequest, ApprovalStatus } from '@/types';
-import { MOCK_APPROVAL_REQUESTS } from '@/api/mockApprovalData';
+import { approvalsApi } from '@/api/approvals.api';
+
+interface ApprovalRequest {
+  id: string;
+  requestedBy: string;
+  reviewedBy?: string | null;
+  action: string;
+  label: string;
+  payload: string;
+  status: string;
+  reviewNote?: string | null;
+  createdAt: string;
+  resolvedAt?: string | null;
+}
 
 interface ApprovalState {
   requests: ApprovalRequest[];
-  // Derived
+  isLoading: boolean;
   pendingCount: () => number;
-  // Actions
-  submitRequest: (action: string, payload: Record<string, unknown>) => void;
-  approveRequest: (id: string, note?: string) => void;
-  rejectRequest: (id: string, note?: string) => void;
-  setStatus: (id: string, status: ApprovalStatus, reviewNote?: string) => void;
+  fetchAll: (status?: string) => Promise<void>;
+  submitRequest: (action: string, label: string, payload?: string) => Promise<void>;
+  approveRequest: (id: string, note?: string) => Promise<void>;
+  rejectRequest: (id: string, note?: string) => Promise<void>;
 }
 
-export const useApprovalStore = create<ApprovalState>()(
-  persist(
-    (set, get) => ({
-      requests: MOCK_APPROVAL_REQUESTS,
+export const useApprovalStore = create<ApprovalState>((set, get) => ({
+  requests: [],
+  isLoading: false,
 
-      pendingCount: () => get().requests.filter(r => r.status === 'pending').length,
+  pendingCount: () => get().requests.filter(r => r.status === 'pending').length,
 
-      submitRequest: (action, payload) => {
-        const newRequest: ApprovalRequest = {
-          id: `ar${Date.now()}`,
-          requestedBy: (payload.requestedBy as string) ?? 'unknown',
-          action,
-          label: (payload.label as string) ?? action,
-          payload,
-          status: 'pending',
-          reviewedBy: null,
-          reviewNote: null,
-          createdAt: new Date().toISOString(),
-          resolvedAt: null,
-        };
-        set(state => ({ requests: [newRequest, ...state.requests] }));
-      },
+  fetchAll: async (status) => {
+    set({ isLoading: true });
+    try {
+      const res = await approvalsApi.getAll(status);
+      const data = res.data?.data ?? res.data;
+      set({ requests: Array.isArray(data) ? data : [] });
+    } finally {
+      set({ isLoading: false });
+    }
+  },
 
-      approveRequest: (id, note = '') => {
-        get().setStatus(id, 'approved', note);
-      },
+  submitRequest: async (action, label, payload = '{}') => {
+    const res = await approvalsApi.create({ action, label, payload });
+    const created: ApprovalRequest = res.data?.data ?? res.data;
+    set(state => ({ requests: [created, ...state.requests] }));
+  },
 
-      rejectRequest: (id, note = '') => {
-        get().setStatus(id, 'rejected', note);
-      },
+  approveRequest: async (id, note) => {
+    await approvalsApi.approve(id, note);
+    set(state => ({
+      requests: state.requests.map(r =>
+        r.id === id ? { ...r, status: 'approved', reviewNote: note ?? null, resolvedAt: new Date().toISOString() } : r
+      ),
+    }));
+  },
 
-      setStatus: (id, status, reviewNote = '') => {
-        set(state => ({
-          requests: state.requests.map(r =>
-            r.id === id
-              ? { ...r, status, reviewedBy: 'admin', reviewNote, resolvedAt: new Date().toISOString() }
-              : r
-          ),
-        }));
-      },
-    }),
-    { name: 'rakis_approvals' }
-  )
-);
+  rejectRequest: async (id, note) => {
+    await approvalsApi.reject(id, note);
+    set(state => ({
+      requests: state.requests.map(r =>
+        r.id === id ? { ...r, status: 'rejected', reviewNote: note ?? null, resolvedAt: new Date().toISOString() } : r
+      ),
+    }));
+  },
+}));

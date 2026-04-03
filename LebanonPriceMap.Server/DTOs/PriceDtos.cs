@@ -74,3 +74,13 @@ public class VoteRequest
     public int Value { get; set; } // 1 for upvote, -1 for downvote
 }
 
+/// <summary>
+/// A single data point in a product's price history chart.
+/// </summary>
+public class PriceHistoryPoint
+{
+    public string Date { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public string StoreName { get; set; } = string.Empty;
+}
+

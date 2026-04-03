@@ -1,19 +1,35 @@
-import type { ApiResponse, User } from '@/types';
-import { MOCK_USERS } from './mockData';
+import client from './axiosClient';
 
 export const usersApi = {
-  getAll: async () => {
-    return { data: { success: true, data: MOCK_USERS } as ApiResponse<User[]> };
-  },
-
   getById: async (id: string) => {
-    const user = MOCK_USERS.find(u => u.id === id);
-    return { data: { success: true, data: user } as ApiResponse<User | undefined> };
+    return client.get(`/users/${id}`);
   },
 
-  updateStatus: async (id: string, status: User['status']) => {
-    const user = MOCK_USERS.find(u => u.id === id);
-    if (user) user.status = status;
-    return { data: { success: true, data: user } as ApiResponse<User | undefined> };
+  update: async (id: string, data: {
+    name?: string;
+    city?: string;
+    avatarInitials?: string;
+  }) => {
+    return client.put(`/users/${id}`, data);
+  },
+
+  getNotifications: async (id: string, page = 1, pageSize = 20) => {
+    return client.get(`/users/${id}/notifications`, { params: { page, pageSize } });
+  },
+
+  updateStatus: async (id: string, status: string) => {
+    return client.patch(`/users/${id}/status`, { status });
+  },
+
+  deleteSubmissions: async (id: string) => {
+    return client.delete(`/users/${id}/submissions`);
+  },
+
+  deleteAccount: async (id: string) => {
+    return client.delete(`/users/${id}`);
+  },
+
+  forgotPassword: async (email: string) => {
+    return client.post('/auth/forgot-password', { email });
   },
 };

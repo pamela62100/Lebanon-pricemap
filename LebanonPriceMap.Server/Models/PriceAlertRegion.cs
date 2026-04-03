@@ -14,7 +14,7 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("AlertId")]
-        public virtual PriceAlert Alert { get; set; }
+        public virtual Alert Alert { get; set; }
 
         [ForeignKey("RegionId")]
         public virtual Region Region { get; set; }

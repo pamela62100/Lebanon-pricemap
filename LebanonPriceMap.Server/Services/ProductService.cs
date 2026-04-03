@@ -103,6 +103,43 @@ public class ProductService
     }
 
     /// <summary>
+    /// Updates an existing product. Admin only.
+    /// </summary>
+    public async Task<bool> UpdateAsync(string id, UpdateProductRequest request)
+    {
+        if (!Guid.TryParse(id, out var guid)) return false;
+        var product = await _db.Products.FindAsync(guid);
+        if (product == null) return false;
+
+        if (request.Name != null) product.Name = request.Name;
+        if (request.NameAr != null) product.NameAr = request.NameAr;
+        if (request.Description != null) product.Description = request.Description;
+        if (request.Unit != null) product.Unit = request.Unit;
+        if (request.Brand != null) product.Brand = request.Brand;
+        if (request.Barcode != null) product.Barcode = request.Barcode;
+        if (request.CategoryId.HasValue) product.CategoryId = request.CategoryId;
+        product.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
+    /// Archives (soft-deletes) a product so it no longer appears in the public catalog.
+    /// </summary>
+    public async Task<bool> ArchiveAsync(string id)
+    {
+        if (!Guid.TryParse(id, out var guid)) return false;
+        var product = await _db.Products.FindAsync(guid);
+        if (product == null) return false;
+
+        product.IsArchived = true;
+        product.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
     /// Creates a new master product in the global dictionary. Admin only.
     /// </summary>
     public async Task<ProductResponse> CreateAsync(CreateProductRequest request, Guid createdBy)

@@ -25,6 +25,7 @@ import { CartOptimizePage }   from '@/pages/shopper/CartOptimizePage';
 import { BarcodeScannerPage } from '@/pages/shopper/BarcodeScannerPage';
 import { FuelTrackerPage }    from '@/pages/shopper/FuelTrackerPage';
 import { ProfilePage }        from '@/pages/shopper/ProfilePage';
+import { UploadReceiptPage }  from '@/pages/shopper/UploadReceiptPage';
 import { PriceDetailPage }    from '@/pages/shopper/PriceDetailPage';
 import { AlertsPage }         from '@/pages/shopper/AlertsPage';
 import { NotificationsPage }  from '@/pages/shopper/NotificationsPage';
@@ -80,11 +81,12 @@ export function AppRouter() {
       <Route element={<RequireAuth />}>
         <Route path="/app" element={<DesktopLayout />}>
           <Route index                element={<SearchPage />} />
-          <Route path="cart"          element={<CartPage />} />
-          <Route path="cart/optimize" element={<CartOptimizePage />} />
+          <Route path="list"          element={<CartPage />} />
+          <Route path="list/optimize" element={<CartOptimizePage />} />
           <Route path="scan"          element={<BarcodeScannerPage />} />
           <Route path="fuel"          element={<FuelTrackerPage />} />
           <Route path="profile"       element={<ProfilePage />} />
+          <Route path="upload"        element={<UploadReceiptPage />} />
           <Route path="price/:id"     element={<PriceDetailPage />} />
           <Route path="alerts"        element={<AlertsPage />} />
           <Route path="notifications" element={<NotificationsPage />} />

@@ -21,7 +21,7 @@ export function ToastContainer() {
               toast.type === 'success' && 'bg-green-600 text-white',
               toast.type === 'error' && 'bg-red-600 text-white',
               toast.type === 'warning' && 'bg-yellow-600 text-white',
-              toast.type === 'info' && 'bg-text-main text-bg-base',
+              toast.type === 'info' && 'bg-primary text-bg-base',
             )}
           >
             {toast.message}

@@ -1,57 +1,68 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MOCK_STORES } from '@/api/mockData';
 import { TrustBadge } from '@/components/ui/TrustBadge';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { useToastStore } from '@/store/useToastStore';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
+import { storesApi } from '@/api/stores.api';
 import { cn } from '@/lib/utils';
+import type { Store } from '@/types';
 
 type StoreStatus = 'pending' | 'active' | 'suspended';
 
 const STATUS_TABS = ['all', 'pending', 'active', 'suspended'];
 
 export function AdminStoresPage() {
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [tab, setTab] = useState('all');
   const [searchQ, setSearchQ] = useState('');
-  const [storeStatuses, setStoreStatuses] = useState<Record<string, StoreStatus>>({});
   const addToast = useToastStore(s => s.addToast);
   const { open, getParam } = useRouteDialog();
 
   const activeStoreId = getParam('id');
-  const activeStore = MOCK_STORES.find(s => s.id === activeStoreId);
+  const activeStore = stores.find(s => s.id === activeStoreId);
 
-  const stores = useMemo(() => {
-    let res = MOCK_STORES.map(s => ({
-      ...s,
-      effectiveStatus: (storeStatuses[s.id] ?? (s.isVerifiedRetailer ? 'active' : 'pending')) as StoreStatus,
-    }));
-    if (tab !== 'all') res = res.filter(s => s.effectiveStatus === tab);
+  useEffect(() => {
+    storesApi.getAll().then((res) => {
+      const data = res.data?.data ?? res.data;
+      setStores(Array.isArray(data) ? data : []);
+    }).catch(() => {}).finally(() => setIsLoading(false));
+  }, []);
+
+  const getEffectiveStatus = (store: Store): StoreStatus => {
+    if (store.status === 'suspended') return 'suspended';
+    if (store.status === 'verified' || store.isVerifiedRetailer) return 'active';
+    return 'pending';
+  };
+
+  const filtered = useMemo(() => {
+    let res = stores;
+    if (tab !== 'all') res = res.filter(s => getEffectiveStatus(s) === tab);
     if (searchQ) {
       const q = searchQ.toLowerCase();
-      res = res.filter(s => s.name.toLowerCase().includes(q) || s.district.toLowerCase().includes(q));
+      res = res.filter(s => s.name.toLowerCase().includes(q) || (s.district ?? '').toLowerCase().includes(q));
     }
     return res;
-  }, [tab, searchQ, storeStatuses]);
+  }, [stores, tab, searchQ]);
 
-  const counts = useMemo(() => {
-    const withStatus = MOCK_STORES.map(s => ({
-      ...s,
-      effectiveStatus: (storeStatuses[s.id] ?? (s.isVerifiedRetailer ? 'active' : 'pending')) as StoreStatus,
-    }));
-    return {
-      all: withStatus.length,
-      pending: withStatus.filter(s => s.effectiveStatus === 'pending').length,
-      active: withStatus.filter(s => s.effectiveStatus === 'active').length,
-      suspended: withStatus.filter(s => s.effectiveStatus === 'suspended').length,
-    };
-  }, [storeStatuses]);
+  const counts = useMemo(() => ({
+    all: stores.length,
+    pending: stores.filter(s => getEffectiveStatus(s) === 'pending').length,
+    active: stores.filter(s => getEffectiveStatus(s) === 'active').length,
+    suspended: stores.filter(s => getEffectiveStatus(s) === 'suspended').length,
+  }), [stores]);
 
-  const changeStatus = (id: string, status: StoreStatus) => {
-    setStoreStatuses(prev => ({ ...prev, [id]: status }));
-    const label = { active: 'approved', pending: 'set to pending', suspended: 'suspended' }[status];
-    addToast(`Store ${label}`, status === 'active' ? 'success' : status === 'suspended' ? 'error' : 'info');
+  const changeStatus = async (id: string, status: StoreStatus) => {
+    try {
+      const apiStatus = status === 'active' ? 'verified' : status;
+      await storesApi.updateStatus(id, apiStatus);
+      setStores(prev => prev.map(s => s.id === id ? { ...s, status: apiStatus } : s));
+      const label = { active: 'approved', pending: 'set to pending', suspended: 'suspended' }[status];
+      addToast(`Store ${label}`, status === 'active' ? 'success' : status === 'suspended' ? 'error' : 'info');
+    } catch {
+      addToast('Failed to update store status');
+    }
   };
 
   return (
@@ -59,17 +70,16 @@ export function AdminStoresPage() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between">
         <div>
           <h1 className="text-3xl font-black text-text-main">Store Management</h1>
-          <p className="text-text-muted text-sm mt-1">{MOCK_STORES.length} total stores · {counts.pending} pending approval</p>
+          <p className="text-text-muted text-sm mt-1">{stores.length} total stores · {counts.pending} pending approval</p>
         </div>
       </motion.div>
 
-      {/* KPI row */}
       <div className="grid grid-cols-4 gap-4">
         {[
-          { label: 'Total Stores',  value: counts.all,       icon: 'storefront',       color: 'text-text-main' },
-          { label: 'Pending',       value: counts.pending,   icon: 'pending',          color: 'text-amber-400' },
-          { label: 'Active',        value: counts.active,    icon: 'check_circle',     color: 'text-green-500' },
-          { label: 'Suspended',     value: counts.suspended, icon: 'block',            color: 'text-red-400'  },
+          { label: 'Total Stores',  value: counts.all,       icon: 'storefront',   color: 'text-text-main' },
+          { label: 'Pending',       value: counts.pending,   icon: 'pending',      color: 'text-amber-400' },
+          { label: 'Active',        value: counts.active,    icon: 'check_circle', color: 'text-green-500' },
+          { label: 'Suspended',     value: counts.suspended, icon: 'block',        color: 'text-red-400'   },
         ].map(kpi => (
           <div key={kpi.label} className="bg-bg-surface rounded-2xl border border-border-soft p-5 flex items-center gap-4">
             <span className={`material-symbols-outlined ${kpi.color}`} style={{ fontSize: '28px' }}>{kpi.icon}</span>
@@ -81,7 +91,6 @@ export function AdminStoresPage() {
         ))}
       </div>
 
-      {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="flex gap-1 bg-bg-surface border border-border-soft rounded-xl p-1">
           {STATUS_TABS.map(t => (
@@ -100,91 +109,96 @@ export function AdminStoresPage() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-bg-surface rounded-2xl border border-border-soft overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-border-soft bg-bg-muted/30">
-              {['Store', 'District', 'Trust', 'Status', 'Verified', 'Sync', 'Actions'].map(h => (
-                <th key={h} className="text-left px-5 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {stores.map(store => (
-              <tr key={store.id} className="border-b border-border-soft last:border-0 hover:bg-bg-base/50 transition-colors">
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold text-text-main">{store.name}</p>
-                    {store.chain && <span className="text-[10px] text-text-muted font-medium px-1.5 py-0.5 rounded bg-bg-muted">{store.chain}</span>}
-                  </div>
-                </td>
-                <td className="px-5 py-4 text-sm text-text-muted">{store.district}, {store.city}</td>
-                <td className="px-5 py-4"><TrustBadge score={store.trustScore} size="sm" /></td>
-                <td className="px-5 py-4">
-                  <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full',
-                    store.effectiveStatus === 'active' ? 'bg-green-500/10 text-green-500'
-                    : store.effectiveStatus === 'pending' ? 'bg-amber-400/10 text-amber-400'
-                    : 'bg-red-400/10 text-red-400'
-                  )}>
-                    {store.effectiveStatus}
-                  </span>
-                </td>
-                <td className="px-5 py-4">
-                  {store.isVerifiedRetailer
-                    ? <span className="text-xs text-green-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span> Yes</span>
-                    : <span className="text-xs text-text-muted">—</span>
-                  }
-                </td>
-                <td className="px-5 py-4 text-xs text-text-muted">API</td>
-                <td className="px-5 py-4">
-                  <div className="flex items-center gap-1.5">
-                    {store.effectiveStatus !== 'active' && (
-                      <button
-                        onClick={() => open('approve-store', { id: store.id })}
-                        className="px-2.5 py-1 rounded-lg bg-green-500/10 text-green-500 text-[11px] font-bold hover:bg-green-500/20 transition-all font-display uppercase tracking-wider"
-                      >
-                        Approve
-                      </button>
-                    )}
-                    {store.effectiveStatus !== 'suspended' && (
-                      <button
-                        onClick={() => open('suspend-store', { id: store.id })}
-                        className="px-2.5 py-1 rounded-lg bg-red-400/10 text-red-400 text-[11px] font-bold hover:bg-red-400/20 transition-all font-display uppercase tracking-wider"
-                      >
-                        Suspend
-                      </button>
-                    )}
-                  </div>
-                </td>
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {[1, 2, 3].map(i => <div key={i} className="h-12 rounded-xl bg-bg-muted animate-pulse" />)}
+          </div>
+        ) : (
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border-soft bg-bg-muted/30">
+                {['Store', 'District', 'Trust', 'Status', 'Verified', 'Actions'].map(h => (
+                  <th key={h} className="text-left px-5 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-5 py-12 text-center text-sm text-text-muted">No stores found.</td>
+                </tr>
+              ) : filtered.map(store => {
+                const effectiveStatus = getEffectiveStatus(store);
+                return (
+                  <tr key={store.id} className="border-b border-border-soft last:border-0 hover:bg-bg-base/50 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-semibold text-text-main">{store.name}</p>
+                        {store.chain && <span className="text-[10px] text-text-muted font-medium px-1.5 py-0.5 rounded bg-bg-muted">{store.chain}</span>}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-text-muted">{store.district}, {store.city}</td>
+                    <td className="px-5 py-4"><TrustBadge score={store.trustScore} size="sm" /></td>
+                    <td className="px-5 py-4">
+                      <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full',
+                        effectiveStatus === 'active' ? 'bg-green-500/10 text-green-500'
+                        : effectiveStatus === 'pending' ? 'bg-amber-400/10 text-amber-400'
+                        : 'bg-red-400/10 text-red-400'
+                      )}>
+                        {effectiveStatus}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      {store.isVerifiedRetailer
+                        ? <span className="text-xs text-green-500 font-bold flex items-center gap-1"><span className="material-symbols-outlined" style={{ fontSize: '14px' }}>verified</span> Yes</span>
+                        : <span className="text-xs text-text-muted">—</span>
+                      }
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5">
+                        {effectiveStatus !== 'active' && (
+                          <button
+                            onClick={() => open('approve-store', { id: store.id })}
+                            className="px-2.5 py-1 rounded-lg bg-green-500/10 text-green-500 text-[11px] font-bold hover:bg-green-500/20 transition-all uppercase tracking-wider"
+                          >
+                            Approve
+                          </button>
+                        )}
+                        {effectiveStatus !== 'suspended' && (
+                          <button
+                            onClick={() => open('suspend-store', { id: store.id })}
+                            className="px-2.5 py-1 rounded-lg bg-red-400/10 text-red-400 text-[11px] font-bold hover:bg-red-400/20 transition-all uppercase tracking-wider"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
       </div>
 
-      {/* URL-Driven Store Dialogs */}
       <ConfirmDialog
         dialogId="approve-store"
         title="Approve Store"
-        description={`Are you sure you want to approve ${activeStore?.name}? This will grant them "Verified Retailer" status and allow them to manage their own pricing.`}
+        description={`Are you sure you want to approve ${activeStore?.name}? This will grant them "Verified Retailer" status.`}
         confirmLabel="Approve Store"
         variant="primary"
-        onConfirm={() => {
-          if (activeStoreId) changeStatus(activeStoreId, 'active');
-        }}
+        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'active'); }}
       />
 
       <ConfirmDialog
         dialogId="suspend-store"
         title="Suspend Store"
-        description={`WARNING: Suspending ${activeStore?.name} will hide all their products from the public map and revoke their retail access immediately.`}
+        description={`WARNING: Suspending ${activeStore?.name} will hide all their products from the public map.`}
         confirmLabel="Confirm Suspension"
         variant="danger"
-        onConfirm={() => {
-          if (activeStoreId) changeStatus(activeStoreId, 'active'); // Fixed: changed to suspended in logic below, but here I keep consistency with changeStatus call
-          if (activeStoreId) changeStatus(activeStoreId, 'suspended');
-        }}
+        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'suspended'); }}
       />
     </div>
   );

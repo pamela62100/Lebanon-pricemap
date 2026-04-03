@@ -1,26 +1,51 @@
-import { useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getEnrichedPriceEntries, MOCK_STORES } from '@/api/mockData';
+import { storesApi } from '@/api/stores.api';
+import { pricesApi } from '@/api/prices.api';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TrustBadge } from '@/components/ui/TrustBadge';
+import type { Store, PriceEntry } from '@/types';
 
 export function StorePublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const store = useMemo(() =>
-    MOCK_STORES.find(s => s.id === slug || s.name.toLowerCase().replace(/\s+/g, '-') === slug),
-    [slug]
-  );
+  const [store, setStore] = useState<Store | null>(null);
+  const [entries, setEntries] = useState<PriceEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const entries = useMemo(() =>
-    getEnrichedPriceEntries()
-      .filter(e => e.storeId === store?.id && e.status === 'verified')
-      .sort((a, b) => a.priceLbp - b.priceLbp),
-    [store]
-  );
+  useEffect(() => {
+    if (!slug) return;
+    setIsLoading(true);
+
+    storesApi.getById(slug).then((res) => {
+      const data = res.data?.data ?? res.data;
+      setStore(data ?? null);
+
+      if (data?.id) {
+        return pricesApi.search({ verifiedOnly: true });
+      }
+    }).then((res) => {
+      if (!res) return;
+      const data = res.data?.data ?? res.data;
+      const storeEntries = (Array.isArray(data) ? data : [])
+        .filter((e: PriceEntry) => e.storeId === slug)
+        .sort((a: PriceEntry, b: PriceEntry) => a.priceLbp - b.priceLbp);
+      setEntries(storeEntries);
+    }).catch(() => {
+      setStore(null);
+    }).finally(() => setIsLoading(false));
+  }, [slug]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-dvh bg-bg-base flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!store) {
     return (
@@ -35,7 +60,6 @@ export function StorePublicPage() {
 
   return (
     <div className="min-h-dvh bg-bg-base">
-      {/* Public nav */}
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-3 sticky top-0 z-30">
         <button onClick={() => navigate('/map')} className="flex items-center gap-1.5 text-text-sub hover:text-primary transition-colors text-sm">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
@@ -50,7 +74,6 @@ export function StorePublicPage() {
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-8">
-        {/* Store header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="flex items-start gap-5">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -66,7 +89,7 @@ export function StorePublicPage() {
                   </span>
                 )}
               </div>
-              <p className="text-text-muted mt-1">{store.district}, {store.city} · {store.region}</p>
+              <p className="text-text-muted mt-1">{store.district}, {store.city}</p>
               <div className="flex items-center gap-4 mt-3">
                 <TrustBadge score={store.trustScore} size="sm" />
                 <StatusBadge status={store.status} />
@@ -77,7 +100,6 @@ export function StorePublicPage() {
         </motion.div>
 
         <div className="grid grid-cols-5 gap-6">
-          {/* Price list */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="col-span-3 bg-bg-surface rounded-2xl border border-border-soft overflow-hidden">
             <div className="px-6 py-4 border-b border-border-soft">
               <h2 className="text-base font-bold text-text-main">Current Prices at this Store</h2>
@@ -118,16 +140,15 @@ export function StorePublicPage() {
             )}
           </motion.div>
 
-          {/* Map + sidebar */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} className="col-span-2 flex flex-col gap-4">
             <div className="rounded-2xl overflow-hidden border border-border-soft" style={{ height: '260px' }}>
               <MapComponent center={[store.latitude, store.longitude]} zoom={15} markers={marker} className="w-full h-full" />
             </div>
             <div className="bg-bg-surface rounded-2xl border border-border-soft p-5 flex flex-col gap-3">
               {[
-                { icon: 'location_on', label: 'District', value: `${store.district}, ${store.city}` },
-                { icon: 'lan',         label: 'Chain',    value: store.chain ?? 'Independent' },
-                { icon: 'shield_check',label: 'Trust',    value: `${store.trustScore}/100` },
+                { icon: 'location_on', label: 'District', value: `${store.district ?? ''}, ${store.city}` },
+                { icon: 'lan', label: 'Chain', value: store.chain ?? 'Independent' },
+                { icon: 'shield_check', label: 'Trust', value: `${store.trustScore}/100` },
               ].map(row => (
                 <div key={row.label} className="flex items-center gap-3">
                   <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '18px' }}>{row.icon}</span>

@@ -28,9 +28,36 @@ namespace LebanonPriceMap.Server.Models
 
         public DateTime? PromoEndsAt { get; set; }
 
+        public string ReceiptImageUrl { get; set; }
+
         public string Note { get; set; }
 
         public short? SubmitterTrustScore { get; set; }
+
+        public int Upvotes { get; set; } = 0;
+
+        public int Downvotes { get; set; } = 0;
+
+        public bool IsDisputed { get; set; } = false;
+
+        public string DisputeReason { get; set; }
+
+        [MaxLength(255)]
+        public string OcrStoreName { get; set; }
+
+        [MaxLength(255)]
+        public string OcrProductName { get; set; }
+
+        [MaxLength(100)]
+        public string OcrBarcode { get; set; }
+
+        public decimal? OcrPriceLbp { get; set; }
+
+        public string OcrPayload { get; set; }
+
+        public bool MismatchDetected { get; set; } = false;
+
+        public string MismatchReason { get; set; }
 
         public Guid? VerifiedBy { get; set; }
 

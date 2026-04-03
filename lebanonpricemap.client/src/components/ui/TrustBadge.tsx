@@ -23,9 +23,9 @@ export function TrustBadge({ score, size = 'sm', className }: TrustBadgeProps) {
 
   if (size === 'md') {
     return (
-      <div className={cn('flex items-center gap-3 border px-4 py-2 bg-bg-base', className)}>
-        <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">TRUST_SCORE</span>
-        <span className="text-sm font-serif font-black text-primary border-l border-border-soft pl-3">{score}/100</span>
+      <div className={cn('flex items-center gap-3 border border-border-soft px-4 py-2 rounded-xl bg-bg-muted', className)}>
+        <span className="text-xs text-text-muted">Trust score</span>
+        <span className="text-sm font-bold text-primary border-l border-border-soft pl-3">{score}/100</span>
       </div>
     );
   }
@@ -34,7 +34,7 @@ export function TrustBadge({ score, size = 'sm', className }: TrustBadgeProps) {
   const circumference = 2 * Math.PI * 40;
   const offset = circumference - (score / 100) * circumference;
   return (
-    <div className={cn('relative inline-flex items-center justify-center p-2 border bg-bg-base shadow-card', className)}>
+    <div className={cn('relative inline-flex items-center justify-center p-2 border border-border-soft rounded-2xl bg-bg-base shadow-sm', className)}>
       <svg width="96" height="96" viewBox="0 0 96 96" className="rotate-[-90deg]">
         <circle cx="48" cy="48" r="40" fill="none" stroke="var(--bg-muted)" strokeWidth="4" />
         <circle
@@ -50,8 +50,8 @@ export function TrustBadge({ score, size = 'sm', className }: TrustBadgeProps) {
         />
       </svg>
       <div className="absolute flex flex-col items-center">
-        <span className="text-3xl font-serif font-black text-text-main">{score}</span>
-        <span className="text-[8px] font-bold text-text-muted uppercase tracking-[0.3em] mt-1">TRUST_VAL</span>
+        <span className="text-3xl font-bold text-text-main">{score}</span>
+        <span className="text-xs text-text-muted mt-1">Trust</span>
       </div>
     </div>
   );

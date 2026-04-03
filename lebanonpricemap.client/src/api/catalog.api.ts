@@ -1,197 +1,104 @@
-import {
-  MOCK_CATALOG_PRODUCTS,
-  MOCK_DISCREPANCY_REPORTS,
-  MOCK_MISSING_PRODUCT_REQUESTS,
-  MOCK_CATALOG_AUDIT,
-} from './mockCatalogData';
-import type {
-  CatalogProduct,
-  PriceDiscrepancyReport,
-  MissingProductRequest,
-  CatalogAuditEntry,
-  DiscrepancyType,
-} from '@/types/catalog.types';
-
-// In-memory mutable state (simulates a backend store)
-let catalogProducts = [...MOCK_CATALOG_PRODUCTS];
-let discrepancyReports = [...MOCK_DISCREPANCY_REPORTS];
-let missingProductRequests = [...MOCK_MISSING_PRODUCT_REQUESTS];
-let auditLog = [...MOCK_CATALOG_AUDIT];
+import client from './axiosClient';
+import type { MissingProductRequest } from '@/types/catalog.types';
 
 // ─── Catalog API ──────────────────────────────────────────────────────────────
 export const catalogApi = {
-  /** Get all catalog products for a given store */
-  getByStore(storeId: string): CatalogProduct[] {
-    return catalogProducts.filter(cp => cp.storeId === storeId);
+  getByStore: async (storeId: string) => {
+    return client.get(`/catalog/store/${storeId}`);
   },
 
-  /** Update a catalog product's price or stock status */
-  updateProduct(id: string, patch: Partial<CatalogProduct>): CatalogProduct | null {
-    const idx = catalogProducts.findIndex(cp => cp.id === id);
-    if (idx === -1) return null;
-    catalogProducts[idx] = {
-      ...catalogProducts[idx],
-      ...patch,
-      lastUpdatedAt: new Date().toISOString(),
-    };
-    return catalogProducts[idx];
+  getById: async (id: string) => {
+    return client.get(`/catalog/${id}`);
   },
 
-  /** Get the full audit trail for a single catalog product */
-  getAuditLog(catalogProductId: string): CatalogAuditEntry[] {
-    return auditLog.filter(e => e.catalogProductId === catalogProductId)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  create: async (data: {
+    storeId: string;
+    productId: string;
+    officialPriceLbp: number;
+    isInStock?: boolean;
+    isPromotion?: boolean;
+    promoPriceLbp?: number;
+    promoEndsAt?: string | null;
+  }) => {
+    return client.post('/catalog', data);
   },
 
-  /** Get all catalog products (for admin) */
-  getAll(): CatalogProduct[] {
-    return catalogProducts;
+  update: async (id: string, data: {
+    officialPriceLbp?: number;
+    promoPriceLbp?: number;
+    promoEndsAt?: string | null;
+    isInStock?: boolean;
+    isPromotion?: boolean;
+  }) => {
+    return client.put(`/catalog/${id}`, data);
+  },
+
+  delete: async (id: string) => {
+    return client.delete(`/catalog/${id}`);
+  },
+
+  bulkUpload: async (storeId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return client.post(`/catalog/upload?storeId=${storeId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  getAudit: async (id: string) => {
+    return client.get(`/catalog/${id}/audit`);
   },
 };
 
-// ─── Discrepancy Report API ───────────────────────────────────────────────────
+// ─── Discrepancy API ──────────────────────────────────────────────────────────
 export const discrepancyApi = {
-  getAll(): PriceDiscrepancyReport[] {
-    return [...discrepancyReports].sort(
-      (a, b) => b.reporterTrustScore - a.reporterTrustScore // High trust first
-    );
+  submit: async (data: {
+    catalogItemId: string;
+    storeId: string;
+    productId: string;
+    reportType: string;
+    observedPriceLbp?: number;
+    note?: string;
+  }) => {
+    return client.post('/discrepancy', data);
   },
 
-  getPending(): PriceDiscrepancyReport[] {
-    return discrepancyReports
-      .filter(r => r.status === 'pending')
-      .sort((a, b) => b.reporterTrustScore - a.reporterTrustScore);
+  getPending: async () => {
+    return client.get('/discrepancy/pending');
   },
 
-  getByStore(storeId: string): PriceDiscrepancyReport[] {
-    return discrepancyReports.filter(r => r.storeId === storeId);
+  getByStore: async (storeId: string) => {
+    return client.get(`/discrepancy/store/${storeId}`);
   },
 
-  submit(report: Omit<PriceDiscrepancyReport, 'id' | 'status' | 'createdAt'>): PriceDiscrepancyReport {
-    const newReport: PriceDiscrepancyReport = {
-      ...report,
-      id: `dr${Date.now()}`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    discrepancyReports = [newReport, ...discrepancyReports];
-    return newReport;
+  approve: async (id: string, data: { approvedPrice?: number; note?: string }) => {
+    return client.patch(`/discrepancy/${id}/approve`, data);
   },
 
-  /** Admin approves: optionally updates catalog price */
-  approve(id: string, reviewNote?: string, newPriceLbp?: number): boolean {
-    const idx = discrepancyReports.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-
-    const report = discrepancyReports[idx];
-    discrepancyReports[idx] = {
-      ...report,
-      status: 'approved',
-      reviewNote,
-      approvedNewPriceLbp: newPriceLbp ?? report.observedPriceLbp,
-      resolvedAt: new Date().toISOString(),
-    };
-
-    // Atomically update the catalog if a new price is provided
-    if (newPriceLbp) {
-      const cpIdx = catalogProducts.findIndex(cp => cp.id === report.catalogProductId);
-      if (cpIdx !== -1) {
-        const prev = catalogProducts[cpIdx];
-        catalogProducts[cpIdx] = {
-          ...prev,
-          officialPriceLbp: newPriceLbp,
-          lastUpdatedAt: new Date().toISOString(),
-          lastUpdatedBy: 'u5', // admin
-        };
-        // Create audit entry
-        auditLog = [{
-          id: `ca${Date.now()}`,
-          catalogProductId: report.catalogProductId,
-          storeId: report.storeId,
-          productId: report.productId,
-          changedBy: 'u5',
-          reason: 'discrepancy_approved',
-          relatedReportId: id,
-          previousPriceLbp: prev.officialPriceLbp,
-          newPriceLbp: newPriceLbp,
-          note: reviewNote,
-          createdAt: new Date().toISOString(),
-        }, ...auditLog];
-      }
-    }
-
-    // Handle out_of_stock type
-    if (report.reportType === 'out_of_stock') {
-      const cpIdx = catalogProducts.findIndex(cp => cp.id === report.catalogProductId);
-      if (cpIdx !== -1) {
-        catalogProducts[cpIdx] = { ...catalogProducts[cpIdx], isInStock: false, lastUpdatedAt: new Date().toISOString() };
-      }
-    }
-
-    return true;
-  },
-
-  reject(id: string, reviewNote: string): boolean {
-    const idx = discrepancyReports.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-    discrepancyReports[idx] = {
-      ...discrepancyReports[idx],
-      status: 'rejected',
-      reviewNote,
-      resolvedAt: new Date().toISOString(),
-    };
-    return true;
-  },
-
-  pendingCount(): number {
-    return discrepancyReports.filter(r => r.status === 'pending').length;
+  reject: async (id: string, data: { note: string }) => {
+    return client.patch(`/discrepancy/${id}/reject`, data);
   },
 };
 
-// ─── Missing Product Request API ──────────────────────────────────────────────
+// ─── Missing Product Request API (placeholder — no backend endpoint yet) ─────
 export const missingProductApi = {
   getAll(): MissingProductRequest[] {
-    return [...missingProductRequests].sort(
-      (a, b) => b.requesterTrustScore - a.requesterTrustScore
-    );
+    return [];
   },
 
   getPending(): MissingProductRequest[] {
-    return missingProductRequests.filter(r => r.status === 'pending');
+    return [];
   },
 
-  submit(req: Omit<MissingProductRequest, 'id' | 'status' | 'createdAt'>): MissingProductRequest {
-    const newReq: MissingProductRequest = {
-      ...req,
-      id: `mp${Date.now()}`,
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    };
-    missingProductRequests = [newReq, ...missingProductRequests];
-    return newReq;
+  submit(_req: Omit<MissingProductRequest, 'id' | 'status' | 'createdAt'>): MissingProductRequest {
+    throw new Error('Missing product request submission not yet implemented.');
   },
 
-  forward(id: string, note?: string): boolean {
-    const idx = missingProductRequests.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-    missingProductRequests[idx] = {
-      ...missingProductRequests[idx],
-      status: 'forwarded',
-      reviewNote: note,
-      resolvedAt: new Date().toISOString(),
-    };
-    return true;
+  forward(_id: string, _note?: string): boolean {
+    return false;
   },
 
-  decline(id: string, note?: string): boolean {
-    const idx = missingProductRequests.findIndex(r => r.id === id);
-    if (idx === -1) return false;
-    missingProductRequests[idx] = {
-      ...missingProductRequests[idx],
-      status: 'declined',
-      reviewNote: note,
-      resolvedAt: new Date().toISOString(),
-    };
-    return true;
+  decline(_id: string, _note?: string): boolean {
+    return false;
   },
 };

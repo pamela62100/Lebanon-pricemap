@@ -10,6 +10,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   register: (email: string, password: string, role: UserRole, name: string) => Promise<{ success: boolean; error?: string }>;
+  updateUser: (patch: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -40,6 +41,7 @@ export const useAuthStore = create<AuthState>()(
               city: 'Beirut',
               trustScore: data.trustScore,
               trustLevel: data.trustLevel,
+              uploadCount: 0,
               verifiedCount: 0,
               avatarInitials: data.avatarInitials ?? data.name.slice(0, 2).toUpperCase(),
               joinedAt: new Date().toISOString(),
@@ -59,6 +61,12 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         localStorage.removeItem('rakis_token');
         set({ user: null, token: null });
+      },
+
+      updateUser: (patch) => {
+        set((state) => ({
+          user: state.user ? { ...state.user, ...patch } : null,
+        }));
       },
 
       register: async (email: string, password: string, role: UserRole, name: string) => {
@@ -85,6 +93,7 @@ export const useAuthStore = create<AuthState>()(
               city: 'Beirut',
               trustScore: data.trustScore,
               trustLevel: data.trustLevel,
+              uploadCount: 0,
               verifiedCount: 0,
               avatarInitials: data.avatarInitials ?? name.trim().slice(0, 2).toUpperCase(),
               joinedAt: new Date().toISOString(),

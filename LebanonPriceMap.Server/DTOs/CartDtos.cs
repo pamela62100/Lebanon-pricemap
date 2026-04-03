@@ -42,6 +42,11 @@ public class CartOptimizationResult
     public long RecommendedTotalLbp { get; set; }
 }
 
+public class UpdateCartItemRequest
+{
+    public int Quantity { get; set; }
+}
+
 public class StoreBasketCost
 {
     public string StoreId { get; set; } = string.Empty;

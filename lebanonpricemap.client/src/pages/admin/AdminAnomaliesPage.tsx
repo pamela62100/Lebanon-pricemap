@@ -1,29 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { PriceSpikeAlert, type PriceSpike } from '@/components/admin/PriceSpikeAlert';
-import { AnomalyTable } from '@/components/admin/AnomalyTable';
-import { cn } from '@/lib/utils';
+import { adminApi } from '@/api/admin.api';
 
-const MOCK_ANOMALIES: PriceSpike[] = [
-  { id: 'an1', productName: 'Gasoline 95 Octane', storeName: 'Carrefour Dora',   district: 'Dora',       oldPrice: 121000, newPrice: 185000, pctChange: 52.9, detectedAt: new Date(Date.now() - 45 * 60000).toISOString() },
-  { id: 'an2', productName: 'Diesel Fuel per Liter', storeName: 'TSC Dbayeh',   district: 'Dbayeh',     oldPrice: 105000, newPrice: 148000, pctChange: 41.0, detectedAt: new Date(Date.now() - 2 * 3600000).toISOString() },
-  { id: 'an3', productName: 'Olive Oil 750ml',    storeName: 'Spinneys Achrafieh', district: 'Achrafieh', oldPrice: 315000, newPrice: 410000, pctChange: 30.2, detectedAt: new Date(Date.now() - 4 * 3600000).toISOString() },
-  { id: 'an4', productName: 'Chicken per kg',     storeName: 'Bou Khalil Hamra', district: 'Hamra',      oldPrice: 178000, newPrice: 220000, pctChange: 23.6, detectedAt: new Date(Date.now() - 6 * 3600000).toISOString() },
-  { id: 'an5', productName: 'Rice 5kg Bag',       storeName: 'Habib Market Gemmayzeh', district: 'Gemmayzeh', oldPrice: 290000, newPrice: 350000, pctChange: 20.7, detectedAt: new Date(Date.now() - 12 * 3600000).toISOString() },
-];
+interface Anomaly {
+  id: string;
+  storeName: string;
+  productName: string;
+  oldPriceLbp: number;
+  newPriceLbp: number;
+  changePercent: number;
+  severity: string;
+  status: string;
+  detectedAt: string;
+}
 
-const TIME_FILTERS = ['Today', 'This Week', 'This Month'];
-const REGION_FILTERS = ['All Regions', 'Beirut', 'Metn', 'Keserwan'];
+const SEVERITY_STYLES: Record<string, string> = {
+  high: 'bg-red-100 text-red-700',
+  medium: 'bg-orange-100 text-orange-700',
+  low: 'bg-yellow-100 text-yellow-700',
+};
 
 export function AdminAnomaliesPage() {
-  const [anomalies, setAnomalies] = useState(MOCK_ANOMALIES);
-  const [timeFilter, setTimeFilter] = useState('Today');
-  const [regionFilter, setRegionFilter] = useState('All Regions');
+  const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const dismiss = (id: string) => setAnomalies(prev => prev.filter(a => a.id !== id));
-  const investigate = (id: string) => setAnomalies(prev => prev.filter(a => a.id !== id));
-
-  const critical = anomalies.filter(a => a.pctChange >= 50);
+  useEffect(() => {
+    adminApi.getAnomalies('active')
+      .then(res => {
+        const data = (res as any).data?.data ?? [];
+        setAnomalies(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
+  }, []);
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,44 +47,50 @@ export function AdminAnomaliesPage() {
         </div>
       </motion.div>
 
-      {/* Critical spikes */}
-      {critical.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3">
-          <p className="text-xs font-bold text-red-400 uppercase tracking-wide">🔥 Critical spikes — requires immediate review</p>
-          {critical.map(spike => (
-            <PriceSpikeAlert key={spike.id} spike={spike} onInvestigate={investigate} onDismiss={dismiss} />
-          ))}
-        </motion.div>
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => <div key={i} className="h-20 rounded-2xl bg-bg-muted animate-pulse" />)}
+        </div>
+      ) : anomalies.length === 0 ? (
+        <div className="flex flex-col items-center py-20 text-center gap-3 bg-bg-surface rounded-2xl border border-border-soft">
+          <span className="material-symbols-outlined text-green-500" style={{ fontSize: '48px' }}>verified_user</span>
+          <p className="text-base font-bold text-text-main">No anomalies detected</p>
+          <p className="text-sm text-text-muted max-w-xs leading-relaxed">
+            Price anomaly detection will flag unusual price spikes automatically as data accumulates.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-bg-surface border border-border-soft rounded-2xl overflow-hidden">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-border-soft bg-bg-muted/50">
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Product</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Store</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Old Price</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">New Price</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Change</th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-text-muted uppercase tracking-wide">Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {anomalies.map(a => (
+                <tr key={a.id} className="border-b border-bg-muted hover:bg-primary-soft/30 transition-colors">
+                  <td className="py-4 px-4 text-sm font-semibold text-text-main">{a.productName}</td>
+                  <td className="py-4 px-4 text-sm text-text-sub">{a.storeName}</td>
+                  <td className="py-4 px-4 text-sm text-text-sub">{a.oldPriceLbp.toLocaleString()} LBP</td>
+                  <td className="py-4 px-4 text-sm font-semibold text-text-main">{a.newPriceLbp.toLocaleString()} LBP</td>
+                  <td className="py-4 px-4 text-sm font-bold text-red-600">+{a.changePercent.toFixed(1)}%</td>
+                  <td className="py-4 px-4">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${SEVERITY_STYLES[a.severity] ?? 'bg-bg-muted text-text-muted'}`}>
+                      {a.severity}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-
-      {/* Filters */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex gap-1 bg-bg-surface border border-border-soft rounded-xl p-1">
-          {TIME_FILTERS.map(f => (
-            <button key={f} onClick={() => setTimeFilter(f)}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
-                timeFilter === f ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'
-              )}>
-              {f}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1 bg-bg-surface border border-border-soft rounded-xl p-1">
-          {REGION_FILTERS.map(f => (
-            <button key={f} onClick={() => setRegionFilter(f)}
-              className={cn('px-3 py-1.5 rounded-lg text-xs font-bold transition-all',
-                regionFilter === f ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'
-              )}>
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Full table */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <AnomalyTable anomalies={anomalies} onDismiss={dismiss} onInvestigate={investigate} />
-      </motion.div>
     </div>
   );
 }

@@ -1,8 +1,14 @@
+import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useApprovalStore } from '@/store/useApprovalStore';
 import { useAuthStore } from '@/store/useAuthStore';
 import { timeAgo, cn } from '@/lib/utils';
 import type { ApprovalStatus } from '@/types';
+
+function tryParsePayload(payload: unknown): Record<string, unknown> {
+  if (typeof payload === 'object' && payload !== null) return payload as Record<string, unknown>;
+  try { return JSON.parse(payload as string) ?? {}; } catch { return {}; }
+}
 
 const STATUS_CONFIG: Record<
   ApprovalStatus,
@@ -27,12 +33,14 @@ const STATUS_CONFIG: Record<
 
 export function MyRequestsPage() {
   const user = useAuthStore((state) => state.user);
-  const requests = useApprovalStore((state) => state.requests);
+  const { requests, fetchAll } = useApprovalStore();
+
+  useEffect(() => { fetchAll(); }, []);
 
   const myRequests = requests.filter((request) => request.requestedBy === user?.id);
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8 md:px-10 md:py-10 animate-page">
+    <div className="px-6 lg:px-8 py-8 animate-page">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-text-main mb-1">My Requests</h1>
         <p className="text-sm text-text-muted">
@@ -83,7 +91,7 @@ export function MyRequestsPage() {
                 </div>
 
                 <div className="mt-3 p-3 bg-bg-muted rounded-xl text-xs text-text-muted space-y-1">
-                  {Object.entries(request.payload)
+                  {Object.entries(tryParsePayload(request.payload))
                     .filter(([key]) => key !== 'requestedBy')
                     .map(([key, value]) => (
                       <div key={key} className="flex gap-2">

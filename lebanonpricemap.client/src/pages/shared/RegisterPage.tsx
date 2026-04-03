@@ -117,55 +117,37 @@ export function RegisterPage() {
         />
 
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-sm">
-            <span className="text-white text-xs font-black">WA</span>
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-white text-[10px] font-black">WA</span>
           </div>
-          <span
-            className="font-display text-xl text-text-main tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
-          >
-            WenArkhass
-          </span>
+          <span className="font-bold text-base text-text-main">WenArkhass</span>
         </div>
 
-        <div className="relative z-10 space-y-10">
+        <div className="relative z-10 space-y-8">
           <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1.5 h-6 bg-primary" />
-              <p className="text-overline tracking-[0.4em]">Join the community</p>
-            </div>
-
-            <h1
-              className="text-5xl font-display text-text-main leading-[1.1] mb-6"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
-              Create your
-              <br />
-              <span className="italic text-primary">WenArkhass account.</span>
+            <h1 className="text-3xl font-bold text-text-main mb-3">
+              Join WenArkhass
             </h1>
-
-            <p className="text-lg text-text-sub font-medium leading-relaxed max-w-sm">
+            <p className="text-base text-text-muted leading-relaxed max-w-sm">
               Join a growing network of shoppers and retailers helping make prices across Lebanon more transparent.
             </p>
           </div>
 
-          <div className="flex items-center gap-10">
+          <div className="flex items-center gap-8">
             {[
               { value: '12K+', label: 'Shoppers' },
               { value: '800+', label: 'Stores' },
               { value: '45K+', label: 'Prices' },
             ].map((stat) => (
               <div key={stat.label}>
-                <p className="text-2xl font-black text-text-main">{stat.value}</p>
-                <p className="text-[9px] font-bold text-text-muted uppercase tracking-widest mt-1">
-                  {stat.label}
-                </p>
+                <p className="text-2xl font-bold text-text-main">{stat.value}</p>
+                <p className="text-sm text-text-muted mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative z-10 text-text-muted text-[10px] font-bold uppercase tracking-widest">
+        <p className="relative z-10 text-xs text-text-muted">
           © 2025 WenArkhass. Built for Lebanon.
         </p>
       </motion.div>
@@ -178,25 +160,15 @@ export function RegisterPage() {
           className="w-full max-w-md"
         >
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-9 h-9 bg-primary rounded-md flex items-center justify-center">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <span className="text-white text-[10px] font-black">WA</span>
             </div>
-            <span
-              className="font-display text-lg text-text-main tracking-tight"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
-              WenArkhass
-            </span>
+            <span className="font-bold text-base text-text-main">WenArkhass</span>
           </div>
 
-          <div className="mb-10">
-            <h2
-              className="text-4xl font-display text-text-main leading-none mb-3"
-              style={{ fontFamily: "'DM Serif Display', serif" }}
-            >
-              Create your account
-            </h2>
-            <p className="text-text-sub font-medium">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-text-main mb-1">Create your account</h2>
+            <p className="text-sm text-text-muted">
               It’s free to join and start tracking prices and availability.
             </p>
           </div>
@@ -222,10 +194,7 @@ export function RegisterPage() {
                   {card.icon}
                 </span>
 
-                <p
-                  className="font-display text-lg font-bold text-text-main leading-none"
-                  style={{ fontFamily: "'DM Serif Display', serif" }}
-                >
+                <p className="text-base font-bold text-text-main leading-none">
                   {card.title}
                 </p>
                 <p className="text-[11px] font-bold text-text-muted mt-1.5">{card.subtitle}</p>

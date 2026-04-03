@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { FeedbackType } from '@/types';
 
@@ -31,7 +32,7 @@ export function ReportPriceDialog({
     onClose();
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <>
@@ -39,7 +40,7 @@ export function ReportPriceDialog({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/22 z-40"
+            className="fixed inset-0 bg-black/50 z-40"
             onClick={onClose}
           />
 
@@ -128,6 +129,7 @@ export function ReportPriceDialog({
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

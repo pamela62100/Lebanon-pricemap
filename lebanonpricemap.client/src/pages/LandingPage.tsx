@@ -10,7 +10,7 @@ import QuoteSection from "@/components/landing/QuoteSection";
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-bg-base overflow-x-hidden blueprint-grid">
+    <div className="min-h-screen bg-bg-base overflow-x-hidden">
       <LandingNavbar />
       <HeroSection />
       <LogicSection />

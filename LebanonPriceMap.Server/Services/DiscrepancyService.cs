@@ -75,11 +75,12 @@ public class DiscrepancyService
             var catalogItem = await _context.StoreCatalogItems.FindAsync(report.CatalogItemId);
             if (catalogItem != null)
             {
+                var previousPrice = catalogItem.OfficialPriceLbp;
+
                 catalogItem.OfficialPriceLbp = approvedPrice.Value;
                 catalogItem.LastUpdatedAt = DateTime.UtcNow;
                 catalogItem.LastUpdatedBy = adminId;
 
-                // Add to audit trail
                 _context.CatalogAuditEntries.Add(new CatalogAuditEntry
                 {
                     Id = Guid.NewGuid(),
@@ -89,7 +90,7 @@ public class DiscrepancyService
                     ChangedBy = adminId,
                     Reason = "discrepancy_report",
                     RelatedReportId = report.Id,
-                    PreviousPriceLbp = catalogItem.OfficialPriceLbp, // Should ideally store the OLD price before update
+                    PreviousPriceLbp = previousPrice,
                     NewPriceLbp = approvedPrice.Value,
                     Note = reviewNote,
                     CreatedAt = DateTime.UtcNow
