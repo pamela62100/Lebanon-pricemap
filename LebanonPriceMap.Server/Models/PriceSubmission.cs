@@ -41,6 +41,9 @@ namespace LebanonPriceMap.Server.Models
         public DateTime? RejectedAt { get; set; }
 
         public Guid? SupersededBy { get; set; }
+        
+        public int Upvotes { get; set; } = 0;
+        public int Downvotes { get; set; } = 0;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

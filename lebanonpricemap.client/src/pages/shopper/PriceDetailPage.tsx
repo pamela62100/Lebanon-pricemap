@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { pricesApi } from '@/api/prices.api';
 import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';

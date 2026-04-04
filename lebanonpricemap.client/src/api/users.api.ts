@@ -1,19 +1,20 @@
+import axiosClient from './axiosClient';
 import type { ApiResponse, User } from '@/types';
-import { MOCK_USERS } from './mockData';
 
 export const usersApi = {
   getAll: async () => {
-    return { data: { success: true, data: MOCK_USERS } as ApiResponse<User[]> };
+    return axiosClient.get<ApiResponse<User[]>>('/api/users');
   },
 
-  getById: async (id: string) => {
-    const user = MOCK_USERS.find(u => u.id === id);
-    return { data: { success: true, data: user } as ApiResponse<User | undefined> };
+  getById: async (id: string | Guid) => {
+    return axiosClient.get<ApiResponse<User>>(`/api/users/${id}`);
   },
 
   updateStatus: async (id: string, status: User['status']) => {
-    const user = MOCK_USERS.find(u => u.id === id);
-    if (user) user.status = status;
-    return { data: { success: true, data: user } as ApiResponse<User | undefined> };
+    return axiosClient.put<ApiResponse<User>>(`/api/users/${id}/status`, { status });
   },
+
+  getProfile: async () => {
+    return axiosClient.get<ApiResponse<User>>('/api/users/profile');
+  }
 };

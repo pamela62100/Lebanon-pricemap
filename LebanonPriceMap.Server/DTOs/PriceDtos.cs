@@ -11,6 +11,7 @@ public class PriceSearchRequest
     public string? City { get; set; }       // e.g., "Beirut"
     public string? Sort { get; set; }       // e.g., "price" or "date"
     public bool? VerifiedOnly { get; set; } // To filter only confirmed prices
+    public Guid? SubmittedBy { get; set; }  // To filter by submitter (BUG-05)
 }
 
 /// <summary>
@@ -72,5 +73,15 @@ public class PriceSubmissionRequest
 public class VoteRequest
 {
     public int Value { get; set; } // 1 for upvote, -1 for downvote
+}
+
+/// <summary>
+/// A single point on the price history chart.
+/// </summary>
+public class PriceHistoryPoint
+{
+    public string Date { get; set; } = string.Empty;
+    public decimal Price { get; set; }
+    public string Source { get; set; } = "community";
 }
 

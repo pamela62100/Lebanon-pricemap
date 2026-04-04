@@ -53,12 +53,21 @@ const PriceResultCardBase = ({ entry, index }: PriceResultCardProps) => {
             <p className="text-sm text-white/60">{entry.store?.district}</p>
           </div>
 
-          {entry.source === 'official' ? (
-            <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 flex items-center gap-2 shrink-0">
-              <span className="material-symbols-outlined text-white text-sm">verified</span>
-              <span className="text-xs font-semibold text-white">Verified source</span>
-            </div>
-          ) : null}
+          <div className="flex flex-col items-end gap-3">
+            {entry.source === 'official' ? (
+              <div className="px-4 py-2 rounded-full bg-white/10 border border-white/10 flex items-center gap-2 shrink-0">
+                <span className="material-symbols-outlined text-white text-sm">verified</span>
+                <span className="text-xs font-semibold text-white">Verified source</span>
+              </div>
+            ) : null}
+            
+            <button 
+              onClick={(e) => { e.stopPropagation(); navigate(`/app/product/${entry.productId}`); }}
+              className="px-4 py-2 rounded-full bg-primary text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all shadow-lg"
+            >
+              Product info
+            </button>
+          </div>
         </div>
 
         <div className="relative z-10">

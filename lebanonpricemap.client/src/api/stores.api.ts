@@ -1,16 +1,16 @@
+import axiosClient from './axiosClient';
 import type { ApiResponse, Store } from '@/types';
-import { MOCK_STORES } from './mockData';
 
 export const storesApi = {
   getAll: async (params?: { city?: string; district?: string }) => {
-    let stores = [...MOCK_STORES];
-    if (params?.city) stores = stores.filter(s => s.city === params.city);
-    if (params?.district) stores = stores.filter(s => s.district === params.district);
-    return { data: { success: true, data: stores } as ApiResponse<Store[]> };
+    return axiosClient.get<ApiResponse<Store[]>>('/api/stores', { params });
   },
 
   getById: async (id: string) => {
-    const store = MOCK_STORES.find(s => s.id === id);
-    return { data: { success: true, data: store } as ApiResponse<Store | undefined> };
+    return axiosClient.get<ApiResponse<Store>>(`/api/stores/${id}`);
   },
+
+  updateStatus: async (id: string, status: Partial<Store>) => {
+    return axiosClient.put<ApiResponse<boolean>>(`/api/stores/${id}/status`, status);
+  }
 };

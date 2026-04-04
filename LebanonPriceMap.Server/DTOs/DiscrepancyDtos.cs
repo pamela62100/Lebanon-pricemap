@@ -8,6 +8,10 @@ public class DiscrepancySubmissionRequest
     public string ReportType { get; set; } // 'price_mismatch', 'out_of_stock', 'incorrect_promo'
     public decimal? ObservedPriceLbp { get; set; }
     public string Note { get; set; }
+
+    // AR-05: Reporter GPS coordinates for 500m geo-validation
+    public decimal? ReporterLatitude { get; set; }
+    public decimal? ReporterLongitude { get; set; }
 }
 
 public class ResolveDiscrepancyRequest

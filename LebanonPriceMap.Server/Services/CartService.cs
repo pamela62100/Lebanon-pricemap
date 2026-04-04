@@ -105,6 +105,26 @@ public class CartService
     }
 
     /// <summary>
+    /// Removes a single item from the user's cart by cart item ID.
+    /// </summary>
+    public async Task<bool> RemoveItemAsync(Guid userId, Guid cartItemId)
+    {
+        var cart = await _db.Carts
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null) return false;
+
+        var item = cart.Items.FirstOrDefault(ci => ci.Id == cartItemId);
+        if (item == null) return false;
+
+        _db.CartItems.Remove(item);
+        cart.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    /// <summary>
     /// Runs the Greedy Basket Optimizer: for each store that carries at least one cart item,
     /// calculates the total cost and returns the cheapest option.
     /// </summary>

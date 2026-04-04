@@ -50,6 +50,7 @@ export function TopNavbar() {
                 { icon: 'storefront',          path: '/app/catalog',       title: 'Catalog' },
                 { icon: 'barcode_scanner',     path: '/app/scan',          title: 'Scanner' },
                 { icon: 'local_gas_station',   path: '/app/fuel',          title: 'Fuel' },
+                { icon: 'assignment',          path: '/app/profile#requests', title: 'My Requests' },
                 { icon: 'notifications_active',path: '/app/alerts',        title: 'Price alerts' },
                 { icon: 'notifications',       path: '/app/notifications', title: 'Notifications' },
               ].map((item) => (
@@ -131,6 +132,15 @@ export function TopNavbar() {
                       Account
                     </NavLink>
 
+                    <NavLink
+                      to="/app/profile#requests"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-base text-text-main hover:bg-bg-muted transition-all"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">assignment</span>
+                      My Requests
+                    </NavLink>
+
                     <button
                       type="button"
                       onClick={() => { logout(); setProfileOpen(false); navigate('/login'); }}
@@ -146,6 +156,12 @@ export function TopNavbar() {
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            <Link
+              to="/app/catalog"
+              className="h-11 px-4 flex items-center text-sm font-semibold text-text-muted hover:text-text-main transition-colors hidden sm:flex"
+            >
+              Explore Map
+            </Link>
             <Link
               to="/login"
               className="h-11 px-4 flex items-center text-sm font-semibold text-text-muted hover:text-text-main transition-colors"

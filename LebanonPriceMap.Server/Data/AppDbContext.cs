@@ -29,6 +29,8 @@ public class AppDbContext : DbContext
     public DbSet<StationReportConfirmation> StationReportConfirmations { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
+    public DbSet<MissingProductRequest> MissingProductRequests { get; set; }
+    public DbSet<PriceFeedback> PriceFeedbacks { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -299,6 +301,37 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Quantity).HasColumnName("quantity");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+        });
+
+        // 16. Map "MissingProductRequest" model to "missing_product_requests" table
+        modelBuilder.Entity<MissingProductRequest>(entity =>
+        {
+            entity.ToTable("missing_product_requests");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.StoreId).HasColumnName("store_id");
+            entity.Property(e => e.ProductId).HasColumnName("product_id");
+            entity.Property(e => e.ProductNameFreetext).HasColumnName("product_name_freetext");
+            entity.Property(e => e.RequestedBy).HasColumnName("requested_by");
+            entity.Property(e => e.RequesterTrustScore).HasColumnName("requester_trust_score");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.ReviewNote).HasColumnName("review_note");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+        });
+
+        // 17. Map "PriceFeedback" model to "price_feedback" table
+        modelBuilder.Entity<PriceFeedback>(entity =>
+        {
+            entity.ToTable("price_feedback");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.PriceEntryId).HasColumnName("price_entry_id");
+            entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
+            entity.Property(e => e.Type).HasColumnName("type");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
         });
     }
     

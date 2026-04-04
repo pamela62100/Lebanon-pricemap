@@ -51,6 +51,22 @@ public class CartController : ControllerBase
     }
 
     /// <summary>
+    /// DELETE /api/cart/items/{id}
+    /// Remove a single item from the shopping list.
+    /// </summary>
+    [HttpDelete("items/{id}")]
+    public async Task<IActionResult> RemoveItem(Guid id)
+    {
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
+
+        var success = await _cartService.RemoveItemAsync(userId.Value, id);
+        if (!success) return NotFound(new { success = false, message = "Cart item not found" });
+
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
     /// GET /api/cart/optimize
     /// Run the algorithm to figure out which nearby store has the cheapest total basket.
     /// </summary>
