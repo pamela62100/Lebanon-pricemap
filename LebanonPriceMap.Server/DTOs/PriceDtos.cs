@@ -11,7 +11,6 @@ public class PriceSearchRequest
     public string? City { get; set; }       // e.g., "Beirut"
     public string? Sort { get; set; }       // e.g., "price" or "date"
     public bool? VerifiedOnly { get; set; } // To filter only confirmed prices
-    public Guid? SubmittedBy { get; set; }  // To filter by submitter (BUG-05)
 }
 
 /// <summary>
@@ -76,20 +75,12 @@ public class VoteRequest
 }
 
 /// <summary>
-<<<<<<< HEAD
-/// A single point on the price history chart.
-=======
 /// A single data point in a product's price history chart.
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 /// </summary>
 public class PriceHistoryPoint
 {
     public string Date { get; set; } = string.Empty;
     public decimal Price { get; set; }
-<<<<<<< HEAD
-    public string Source { get; set; } = "community";
-=======
     public string StoreName { get; set; } = string.Empty;
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 }
 

@@ -56,25 +56,11 @@ export function TopNavbar() {
         </button>
 
         {user ? (
-<<<<<<< HEAD
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="hidden md:flex items-center gap-1">
-              {[
-                { icon: 'storefront',          path: '/app/catalog',       title: 'Catalog' },
-                { icon: 'barcode_scanner',     path: '/app/scan',          title: 'Scanner' },
-                { icon: 'local_gas_station',   path: '/app/fuel',          title: 'Fuel' },
-                { icon: 'assignment',          path: '/app/profile#requests', title: 'My Requests' },
-                { icon: 'notifications_active',path: '/app/alerts',        title: 'Price alerts' },
-                { icon: 'notifications',       path: '/app/notifications', title: 'Notifications' },
-              ].map((item) => (
-                <button
-=======
           <>
             {/* Nav links right next to logo */}
             <div className="hidden md:flex items-center gap-0.5">
               {NAV_ITEMS.filter(item => !item.mobileOnly).map((item) => (
                 <NavLink
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                   key={item.path}
                   to={item.path}
                   end={item.end}
@@ -109,57 +95,6 @@ export function TopNavbar() {
                 </span>
               </button>
 
-<<<<<<< HEAD
-              <AnimatePresence>
-                {profileOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 4 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-3 w-72 rounded-[24px] bg-white border border-border-soft shadow-[0_18px_50px_rgba(0,0,0,0.12)] p-3 z-50"
-                  >
-                    <div className="p-4 border-b border-border-soft">
-                      <p className="font-bold text-text-main text-lg truncate">{user.name}</p>
-                      <p className="text-sm text-text-muted truncate mt-1">{user.email}</p>
-                      <div className="flex items-center gap-2 mt-4 flex-wrap">
-                        <span className="px-3 py-1 rounded-full bg-bg-muted text-text-main text-xs font-bold capitalize">
-                          {user.role}
-                        </span>
-                        <span className="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">
-                          {user.trustScore ?? 0}% trust
-                        </span>
-                      </div>
-                    </div>
-
-                    <NavLink
-                      to={profilePath}
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-base text-text-main hover:bg-bg-muted transition-all"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">account_circle</span>
-                      Account
-                    </NavLink>
-
-                    <NavLink
-                      to="/app/profile#requests"
-                      onClick={() => setProfileOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-base text-text-main hover:bg-bg-muted transition-all"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">assignment</span>
-                      My Requests
-                    </NavLink>
-
-                    <button
-                      type="button"
-                      onClick={() => { logout(); setProfileOpen(false); navigate('/login'); }}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-base text-red-600 hover:bg-red-50 transition-all"
-                    >
-                      <span className="material-symbols-outlined text-[20px]">logout</span>
-                      Sign out
-                    </button>
-                  </motion.div>
-=======
               {/* My List */}
               <button
                 type="button"
@@ -172,7 +107,6 @@ export function TopNavbar() {
                   <span className="w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center">
                     {totalItems}
                   </span>
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                 )}
               </button>
 
@@ -243,25 +177,6 @@ export function TopNavbar() {
             </div>
           </>
         ) : (
-<<<<<<< HEAD
-          <div className="flex items-center gap-2">
-            <Link
-              to="/app/catalog"
-              className="h-11 px-4 flex items-center text-sm font-semibold text-text-muted hover:text-text-main transition-colors hidden sm:flex"
-            >
-              Explore Map
-            </Link>
-            <Link
-              to="/login"
-              className="h-11 px-4 flex items-center text-sm font-semibold text-text-muted hover:text-text-main transition-colors"
-            >
-              Sign in
-            </Link>
-            <Link to="/register" className="btn-primary">
-              Join
-            </Link>
-          </div>
-=======
           <>
             <div className="flex-1" />
             <div className="flex items-center gap-2">
@@ -273,7 +188,6 @@ export function TopNavbar() {
               </Link>
             </div>
           </>
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         )}
       </nav>
     </div>

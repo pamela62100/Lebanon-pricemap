@@ -1,20 +1,3 @@
-<<<<<<< HEAD
-import axiosClient from './axiosClient';
-import type { ApiResponse, Store } from '@/types';
-
-export const storesApi = {
-  getAll: async (params?: { city?: string; district?: string }) => {
-    return axiosClient.get<ApiResponse<Store[]>>('/api/stores', { params });
-  },
-
-  getById: async (id: string) => {
-    return axiosClient.get<ApiResponse<Store>>(`/api/stores/${id}`);
-  },
-
-  updateStatus: async (id: string, status: Partial<Store>) => {
-    return axiosClient.put<ApiResponse<boolean>>(`/api/stores/${id}/status`, status);
-  }
-=======
 import client from './axiosClient';
 
 export const storesApi = {
@@ -58,5 +41,4 @@ export const storesApi = {
   revokeApiKey: async (keyId: string) => client.delete(`/stores/mine/api-keys/${keyId}`),
 
   getSyncRuns: async () => client.get('/stores/mine/sync-runs'),
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 };

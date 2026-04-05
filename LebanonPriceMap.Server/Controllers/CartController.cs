@@ -52,11 +52,7 @@ public class CartController : ControllerBase
 
     /// <summary>
     /// DELETE /api/cart/items/{id}
-<<<<<<< HEAD
-    /// Remove a single item from the shopping list.
-=======
     /// Remove a specific item from the cart.
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
     /// </summary>
     [HttpDelete("items/{id}")]
     public async Task<IActionResult> RemoveItem(Guid id)
@@ -66,9 +62,6 @@ public class CartController : ControllerBase
 
         var success = await _cartService.RemoveItemAsync(userId.Value, id);
         if (!success) return NotFound(new { success = false, message = "Cart item not found" });
-<<<<<<< HEAD
-
-=======
         return Ok(new { success = true });
     }
 
@@ -98,7 +91,6 @@ public class CartController : ControllerBase
         if (userId == null) return Unauthorized();
 
         await _cartService.ClearCartAsync(userId.Value);
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         return Ok(new { success = true });
     }
 

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { useCartStore } from '@/store/useCartStore';
@@ -14,7 +13,6 @@ import type { Product } from '@/types';
 type ScanPhase = 'scanner' | 'result' | 'not_found' | 'submitted';
 
 export function BarcodeScannerPage() {
-  const navigate = useNavigate();
   const [phase, setPhase] = useState<ScanPhase>('scanner');
   const [manualInput, setManualInput] = useState('');
   const [foundProduct, setFoundProduct] = useState<Product | null>(null);
@@ -204,15 +202,6 @@ export function BarcodeScannerPage() {
                   <p className="text-sm text-white/60 font-medium">
                     {foundProduct.unit} · {foundProduct.nameAr}
                   </p>
-                </div>
-
-                <div className="md:ml-auto">
-                   <button 
-                     onClick={() => navigate(`/app/product/${foundProduct.id}`)}
-                     className="px-6 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-[10px] font-bold uppercase tracking-widest text-white transition-all"
-                   >
-                     View product page
-                   </button>
                 </div>
               </div>
             </header>

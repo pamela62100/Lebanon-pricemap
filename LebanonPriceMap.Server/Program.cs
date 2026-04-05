@@ -26,15 +26,9 @@ builder.Services.AddScoped<AlertService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<FuelService>();
 builder.Services.AddScoped<CartService>();
-<<<<<<< HEAD
-builder.Services.AddScoped<MissingProductService>();
-builder.Services.AddScoped<FeedbackService>();
-builder.Services.AddHttpClient();
-=======
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ApprovalService>();
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 
 
 // Add CORS

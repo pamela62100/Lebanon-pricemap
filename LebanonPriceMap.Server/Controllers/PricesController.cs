@@ -119,32 +119,4 @@ public class PricesController : ControllerBase
         
         return Ok(new { success = true });
     }
-
-    /// <summary>
-    /// GET /api/prices/product/{id}/history?storeId={guid}
-    /// Returns the trend of prices over time for this product.
-    /// </summary>
-    [HttpGet("product/{id}/history")]
-    public async Task<IActionResult> GetHistory(string id, [FromQuery] string? storeId)
-    {
-        var history = await _priceService.GetProductHistoryAsync(id, storeId);
-        return Ok(new { success = true, data = history });
-    }
-
-    /// <summary>
-    /// GET /api/prices/my-submissions
-    /// Returns the price updates submitted by the currently logged-in user.
-    /// </summary>
-    [HttpGet("my-submissions")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public async Task<IActionResult> GetMySubmissions()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
-
-        var userId = Guid.Parse(userIdClaim.Value);
-        var results = await _priceService.GetByUserAsync(userId);
-
-        return Ok(new { success = true, data = results });
-    }
 }

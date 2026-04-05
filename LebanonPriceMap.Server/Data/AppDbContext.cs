@@ -29,10 +29,6 @@ public class AppDbContext : DbContext
     public DbSet<StationReportConfirmation> StationReportConfirmations { get; set; }
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
-<<<<<<< HEAD
-    public DbSet<MissingProductRequest> MissingProductRequests { get; set; }
-    public DbSet<PriceFeedback> PriceFeedbacks { get; set; }
-=======
     public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
     public DbSet<ApprovalRequest> ApprovalRequests { get; set; }
     public DbSet<MissingProductRequest> MissingProductRequests { get; set; }
@@ -53,7 +49,6 @@ public class AppDbContext : DbContext
     public DbSet<SystemBroadcast> SystemBroadcasts { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
     public DbSet<StoreApiKey> StoreApiKeys { get; set; }
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -376,9 +371,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
-<<<<<<< HEAD
-        // 16. Map "MissingProductRequest" model to "missing_product_requests" table
-=======
         // 16. AdminAuditLog
         modelBuilder.Entity<AdminAuditLog>(entity =>
         {
@@ -415,7 +407,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
         // 18. MissingProductRequest
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         modelBuilder.Entity<MissingProductRequest>(entity =>
         {
             entity.ToTable("missing_product_requests");
@@ -431,11 +422,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
-<<<<<<< HEAD
-        });
-
-        // 17. Map "PriceFeedback" model to "price_feedback" table
-=======
             entity.HasOne(e => e.Store).WithMany().HasForeignKey(e => e.StoreId);
             entity.HasOne(e => e.Product).WithMany().HasForeignKey(e => e.ProductId);
             entity.HasOne(e => e.RequestedByUser).WithMany().HasForeignKey(e => e.RequestedBy);
@@ -500,7 +486,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
         });
 
         // 22. PriceFeedback
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         modelBuilder.Entity<PriceFeedback>(entity =>
         {
             entity.ToTable("price_feedback");
@@ -511,8 +496,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Note).HasColumnName("note");
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-<<<<<<< HEAD
-=======
             entity.HasOne(e => e.PriceEntry).WithMany().HasForeignKey(e => e.PriceEntryId);
             entity.HasOne(e => e.SubmittedByUser).WithMany().HasForeignKey(e => e.SubmittedBy);
         });
@@ -719,7 +702,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.RevokedAt).HasColumnName("revoked_at");
             entity.HasOne(e => e.Store).WithMany().HasForeignKey(e => e.StoreId);
             entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy);
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         });
     }
 

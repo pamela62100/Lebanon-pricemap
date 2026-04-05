@@ -122,48 +122,6 @@ public class UserService
     }
 
     // ───────────────────────────────────────────────
-    // PATCH /api/users/{id}/notifications/{notifId}/read
-    // ───────────────────────────────────────────────
-
-    /// <summary>
-    /// Mark a single notification as read.
-    /// </summary>
-    public async Task<bool> MarkNotificationReadAsync(Guid userId, Guid notificationId)
-    {
-        var notification = await _db.Notifications
-            .FirstOrDefaultAsync(n => n.Id == notificationId && n.UserId == userId);
-        if (notification == null) return false;
-
-        notification.IsRead = true;
-        notification.ReadAt = DateTime.UtcNow;
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
-    // ───────────────────────────────────────────────
-    // POST /api/users/{id}/notifications/read-all
-    // ───────────────────────────────────────────────
-
-    /// <summary>
-    /// Mark all notifications as read for a user.
-    /// </summary>
-    public async Task<int> MarkAllNotificationsReadAsync(Guid userId)
-    {
-        var unread = await _db.Notifications
-            .Where(n => n.UserId == userId && !n.IsRead)
-            .ToListAsync();
-
-        foreach (var n in unread)
-        {
-            n.IsRead = true;
-            n.ReadAt = DateTime.UtcNow;
-        }
-
-        await _db.SaveChangesAsync();
-        return unread.Count;
-    }
-
-    // ───────────────────────────────────────────────
     // PATCH /api/users/{id}/status  –  Admin only
     // ───────────────────────────────────────────────
 

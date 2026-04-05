@@ -31,6 +31,7 @@ public class PriceService
         if (!string.IsNullOrEmpty(request.Query))
         {
             var search = request.Query.ToLower();
+            // EF Core will translate this into SQL: products.name LIKE %search% OR stores.name LIKE %search%
             query = query.Where(p => 
                 p.Product.Name.ToLower().Contains(search) || 
                 p.Store.Name.ToLower().Contains(search));
@@ -39,6 +40,7 @@ public class PriceService
         // 3. Filter by Category
         if (!string.IsNullOrEmpty(request.Category) && request.Category != "All")
         {
+            // We follow the relationship from Price -> Product -> Category
             query = query.Where(p => p.Product.Category.Name == request.Category);
         }
 
@@ -54,23 +56,6 @@ public class PriceService
             query = query.Where(p => p.IsVerified);
         }
 
-        // 5b. Filter by Submitter (BUG-05) - We need to check if we should join PriceSubmissions here
-        // Actually, CurrentStoreProductPrice doesn't store 'SubmittedBy' directly, it's in PriceSubmission.
-        // If filtering by Submitter, we might need to query PriceSubmissions instead or join them.
-        // For simplicity and accuracy in "Active" prices, if SubmittedBy is provided, we'll filter CurrentStoreProductPrices
-        // that have a corresponding latest submission by this user.
-        // However, the most direct interpretation is filtering the active catalog.
-        // But the spec says "Add submittedBy filtering to PriceService.SearchAsync".
-        // Let's assume it means filtering PriceSubmissions that are latest or just filtering the result set.
-        // Re-reading: CurrentStoreProductPrice represents the current BEST or LATEST price.
-        if (request.SubmittedBy.HasValue)
-        {
-            // This is a bit tricky with the current schema if we want purely current prices.
-            // But let's follow the requirement:
-            query = query.Where(p => _db.PriceSubmissions
-                .Any(ps => ps.ProductId == p.ProductId && ps.StoreId == p.StoreId && ps.SubmittedBy == request.SubmittedBy));
-        }
-
         // 6. Apply Sorting
         if (request.Sort == "price")
         {
@@ -78,10 +63,12 @@ public class PriceService
         }
         else
         {
+            // Default to newest
             query = query.OrderByDescending(p => p.UpdatedAt);
         }
 
         // 7. Execute the query and map to the response DTO
+        // We use .Include to "JOIN" the tables, otherwise Product and Store would be NULL.
         var results = await query
             .Include(p => p.Product)
             .Include(p => p.Store)
@@ -93,14 +80,16 @@ public class PriceService
                 PriceLbp = p.CurrentPriceLbp,
                 Status = p.IsVerified ? "verified" : "pending",
                 Source = p.Source,
-                CreatedAt = p.UpdatedAt,
+                CreatedAt = p.UpdatedAt, // Using UpdatedAt as the active price date
                 
+                // MAP NESTED PRODUCT
                 Product = p.Product == null ? null : new ProductDto {
                     Name = p.Product.Name,
                     Category = p.Product.Category != null ? p.Product.Category.Name : "General",
                     Unit = p.Product.Unit
                 },
                 
+                // MAP NESTED STORE
                 Store = p.Store == null ? null : new StoreDto {
                     Name = p.Store.Name,
                     City = p.Store.City,
@@ -111,69 +100,6 @@ public class PriceService
             .ToListAsync();
 
         return results;
-    }
-
-    /// <summary>
-    /// BUG-05 FIX: Get price submissions by a specific user ("My Submissions" in profile).
-    /// </summary>
-    public async Task<List<PriceEntryResponse>> GetByUserAsync(Guid userId)
-    {
-        return await _db.PriceSubmissions
-            .Where(ps => ps.SubmittedBy == userId)
-            .Include(ps => ps.Product)
-            .Include(ps => ps.Store)
-            .OrderByDescending(ps => ps.CreatedAt)
-            .Select(ps => new PriceEntryResponse
-            {
-                Id = ps.Id.ToString(),
-                ProductId = ps.ProductId.ToString(),
-                StoreId = ps.StoreId.ToString(),
-                PriceLbp = ps.PriceLbp,
-                Status = ps.SubmissionStatus ?? "pending",
-                Source = ps.Source ?? "community",
-                IsPromotion = ps.IsPromotion,
-                PromoEndsAt = ps.PromoEndsAt,
-                CreatedAt = ps.CreatedAt,
-                Product = ps.Product == null ? null : new ProductDto {
-                    Name = ps.Product.Name,
-                    Category = ps.Product.Category != null ? ps.Product.Category.Name : "General",
-                    Unit = ps.Product.Unit
-                },
-                Store = ps.Store == null ? null : new StoreDto {
-                    Name = ps.Store.Name,
-                    City = ps.Store.City,
-                    Latitude = ps.Store.Latitude,
-                    Longitude = ps.Store.Longitude
-                }
-            })
-            .ToListAsync();
-    }
-
-    /// <summary>
-    /// Returns the price history for a product at a specific store (for the PriceHistoryChart).
-    /// Falls back to all stores if storeId is not specified.
-    /// </summary>
-    public async Task<List<PriceHistoryPoint>> GetProductHistoryAsync(string productId, string? storeId)
-    {
-        if (!Guid.TryParse(productId, out var productGuid)) return new List<PriceHistoryPoint>();
-
-        var query = _db.PriceSubmissions
-            .Where(ps => ps.ProductId == productGuid);
-
-        if (!string.IsNullOrEmpty(storeId) && Guid.TryParse(storeId, out var storeGuid))
-        {
-            query = query.Where(ps => ps.StoreId == storeGuid);
-        }
-
-        return await query
-            .OrderBy(ps => ps.CreatedAt)
-            .Select(ps => new PriceHistoryPoint
-            {
-                Date = ps.CreatedAt.ToString("MMM dd"),
-                Price = ps.PriceLbp,
-                Source = ps.Source ?? "community"
-            })
-            .ToListAsync();
     }
 
     /// <summary>
@@ -212,14 +138,11 @@ public class PriceService
     /// </summary>
     public async Task<PriceEntryResponse> SubmitPriceAsync(PriceSubmissionRequest request, Guid userId)
     {
-        var productId = Guid.Parse(request.ProductId);
-        var storeId = Guid.Parse(request.StoreId);
-
         var submission = new PriceSubmission
         {
             Id = Guid.NewGuid(),
-            ProductId = productId,
-            StoreId = storeId,
+            ProductId = Guid.Parse(request.ProductId),
+            StoreId = Guid.Parse(request.StoreId),
             PriceLbp = request.PriceLbp,
             SubmittedBy = userId,
             IsPromotion = request.IsPromotion,
@@ -230,19 +153,8 @@ public class PriceService
         };
 
         _db.PriceSubmissions.Add(submission);
+        await _db.SaveChangesAsync();
 
-<<<<<<< HEAD
-        // BUG-02 FIX: Upsert the current_store_product_prices table
-        var currentPrice = await _db.CurrentStoreProductPrices
-            .FirstOrDefaultAsync(p => p.StoreId == storeId && p.ProductId == productId);
-
-        if (currentPrice != null)
-        {
-            currentPrice.CurrentPriceLbp = request.PriceLbp;
-            currentPrice.Source = "community";
-            currentPrice.IsVerified = false;
-            currentPrice.UpdatedAt = DateTime.UtcNow;
-=======
         // Upsert into CurrentStoreProductPrices so searches immediately reflect new prices
         var existing = await _db.CurrentStoreProductPrices
             .FirstOrDefaultAsync(c => c.StoreId == submission.StoreId && c.ProductId == submission.ProductId);
@@ -253,22 +165,15 @@ public class PriceService
             existing.Source = "community";
             existing.IsVerified = false;
             existing.UpdatedAt = DateTime.UtcNow;
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         }
         else
         {
             _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
             {
                 Id = Guid.NewGuid(),
-<<<<<<< HEAD
-                StoreId = storeId,
-                ProductId = productId,
-                CurrentPriceLbp = request.PriceLbp,
-=======
                 StoreId = submission.StoreId,
                 ProductId = submission.ProductId,
                 CurrentPriceLbp = submission.PriceLbp,
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                 Source = "community",
                 IsVerified = false,
                 IsInStock = true,
@@ -276,17 +181,8 @@ public class PriceService
             });
         }
 
-<<<<<<< HEAD
-        // Increment user upload count
-        var user = await _db.Users.FindAsync(userId);
-        if (user != null) user.UploadCount++;
-
-        await _db.SaveChangesAsync();
-        
-=======
         await _db.SaveChangesAsync();
 
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         return new PriceEntryResponse
         {
             Id = submission.Id.ToString(),

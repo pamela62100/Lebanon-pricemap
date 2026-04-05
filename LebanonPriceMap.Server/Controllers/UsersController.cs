@@ -127,48 +127,9 @@ public class UsersController : ControllerBase
             }
         });
     }
-    // ───────────────────────────────────────────────
-    // PATCH /api/users/{id}/notifications/{notifId}/read
-    // ───────────────────────────────────────────────
-
-    /// <summary>
-    /// Mark a single notification as read.
-    /// </summary>
-    [HttpPatch("{id}/notifications/{notifId}/read")]
-    [Authorize]
-    public async Task<IActionResult> MarkNotificationRead(Guid id, Guid notifId)
-    {
-        var callerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (callerIdClaim == null) return Unauthorized();
-        if (Guid.Parse(callerIdClaim.Value) != id) return Forbid();
-
-        var success = await _userService.MarkNotificationReadAsync(id, notifId);
-        if (!success) return NotFound(new { success = false, message = "Notification not found" });
-        return Ok(new { success = true });
-    }
-
-    // ───────────────────────────────────────────────
-    // POST /api/users/{id}/notifications/read-all
-    // ───────────────────────────────────────────────
-
-    /// <summary>
-    /// Mark all notifications as read for the user.
-    /// </summary>
-    [HttpPost("{id}/notifications/read-all")]
-    [Authorize]
-    public async Task<IActionResult> MarkAllNotificationsRead(Guid id)
-    {
-        var callerIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (callerIdClaim == null) return Unauthorized();
-        if (Guid.Parse(callerIdClaim.Value) != id) return Forbid();
-
-        var count = await _userService.MarkAllNotificationsReadAsync(id);
-        return Ok(new { success = true, data = new { markedCount = count } });
-    }
 
     // ───────────────────────────────────────────────
     // PATCH /api/users/{id}/status
-    // ───────────────────────────────────────────────
     // ───────────────────────────────────────────────
 
     /// <summary>

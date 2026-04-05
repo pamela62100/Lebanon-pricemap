@@ -1,19 +1,3 @@
-<<<<<<< HEAD
-import axiosClient from './axiosClient';
-import type { ApiResponse, User } from '@/types';
-
-export const usersApi = {
-  getAll: async () => {
-    return axiosClient.get<ApiResponse<User[]>>('/api/users');
-  },
-
-  getById: async (id: string | Guid) => {
-    return axiosClient.get<ApiResponse<User>>(`/api/users/${id}`);
-  },
-
-  updateStatus: async (id: string, status: User['status']) => {
-    return axiosClient.put<ApiResponse<User>>(`/api/users/${id}/status`, { status });
-=======
 import client from './axiosClient';
 
 export const usersApi = {
@@ -47,10 +31,5 @@ export const usersApi = {
 
   forgotPassword: async (email: string) => {
     return client.post('/auth/forgot-password', { email });
->>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
   },
-
-  getProfile: async () => {
-    return axiosClient.get<ApiResponse<User>>('/api/users/profile');
-  }
 };
