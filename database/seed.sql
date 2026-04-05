@@ -356,4 +356,26 @@ FROM price_submissions ps
 WHERE ps.submission_status = 'verified'
 ON CONFLICT DO NOTHING;
 
+-- =========================================================
+-- System Settings (key/value configuration)
+-- =========================================================
+
+INSERT INTO system_settings (id, key, value, description) VALUES
+  ('21000000-0000-0000-0000-000000000001', 'exchange_rate_lbp_per_usd',   '90000',  'Global LBP/USD market rate used as baseline across the platform'),
+  ('21000000-0000-0000-0000-000000000002', 'internal_rate_alert_threshold','500',    'Flag a store whose internal rate deviates more than this from the global rate (LBP)'),
+  ('21000000-0000-0000-0000-000000000003', 'trust_score_auto_approve_min', '75',     'Submissions from users at or above this trust score may be auto-approved for minor updates'),
+  ('21000000-0000-0000-0000-000000000004', 'trust_score_low_threshold',    '30',     'Reports from users below this score are hidden from the primary view'),
+  ('21000000-0000-0000-0000-000000000005', 'anomaly_detection_percent',    '20',     'Price change percentage that triggers a PriceAnomaly record'),
+  ('21000000-0000-0000-0000-000000000006', 'geo_throttle_radius_meters',   '500',    'Max GPS radius (metres) within which a user must be to submit a catalog report'),
+  ('21000000-0000-0000-0000-000000000007', 'guest_report_limit_per_day',   '5',      'Max price discrepancy reports a guest user can submit per day'),
+  ('21000000-0000-0000-0000-000000000008', 'shopper_report_limit_per_day', '20',     'Max price discrepancy reports an authenticated shopper can submit per day'),
+  ('21000000-0000-0000-0000-000000000009', 'price_alert_check_interval_minutes', '15', 'How often (minutes) the backend checks triggered price alerts'),
+  ('21000000-0000-0000-0000-000000000010', 'fuel_price_update_interval_hours',  '168', 'How often (hours) to expect official fuel price updates (1 week)'),
+  ('21000000-0000-0000-0000-000000000011', 'catalog_first_strict_mode',    'true',   'Enforce Catalog-First rule: community submissions must match catalog items'),
+  ('21000000-0000-0000-0000-000000000012', 'max_cart_items',               '50',     'Maximum number of distinct items allowed in a single shopping cart'),
+  ('21000000-0000-0000-0000-000000000013', 'maintenance_mode',             'false',  'Set to true to put the API in read-only maintenance mode'),
+  ('21000000-0000-0000-0000-000000000014', 'min_confirmations_for_verified','3',     'Number of community confirmations needed before a submission is auto-verified'),
+  ('21000000-0000-0000-0000-000000000015', 'app_version',                  '1.0.0',  'Current deployed version of the WenArkhass platform')
+ON CONFLICT DO NOTHING;
+
 COMMIT;
