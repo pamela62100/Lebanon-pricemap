@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
-import { MOCK_STORES } from '@/api/mockData';
+import { storesApi } from '@/api/stores.api';
 
 export function ReportRealityDialog() {
   const { isOpen, getParam, close } = useRouteDialog();
@@ -13,17 +13,24 @@ export function ReportRealityDialog() {
   const storeId = getParam('storeId');
   const reportType = getParam('type') as 'market' | 'fuel';
 
+  const [storeName, setStoreName] = useState<string>('');
   const [isFuelRationed, setIsFuelRationed] = useState(false);
   const [queueCount, setQueueCount] = useState('');
-
-  const store = MOCK_STORES.find((currentStore) => currentStore.id === storeId);
 
   useEffect(() => {
     if (!isVisible) {
       setIsFuelRationed(false);
       setQueueCount('');
+      setStoreName('');
+      return;
     }
-  }, [isVisible]);
+    if (storeId) {
+      storesApi.getById(storeId).then((res) => {
+        const store = res.data?.data ?? res.data;
+        if (store?.name) setStoreName(store.name);
+      }).catch(() => {});
+    }
+  }, [isVisible, storeId]);
 
   const handleSubmit = () => {
     addToast('Thanks for the update.');
@@ -38,8 +45,8 @@ export function ReportRealityDialog() {
       title={reportType === 'fuel' ? 'Report fuel station status' : 'Report store status'}
       description={
         reportType === 'fuel'
-          ? `Share what is happening now at ${store?.name ?? 'this station'}.`
-          : `Share what is happening now at ${store?.name ?? 'this store'}.`
+          ? `Share what is happening now at ${storeName || 'this station'}.`
+          : `Share what is happening now at ${storeName || 'this store'}.`
       }
       size="md"
     >
@@ -58,7 +65,7 @@ export function ReportRealityDialog() {
                 type="button"
                 onClick={() => setIsFuelRationed((value) => !value)}
                 className={`relative w-16 h-9 rounded-full transition-all shrink-0 ${
-                  isFuelRationed ? 'bg-text-main' : 'bg-bg-muted border border-border-soft'
+                  isFuelRationed ? 'bg-primary' : 'bg-bg-muted border border-border-soft'
                 }`}
               >
                 <span
@@ -85,7 +92,7 @@ export function ReportRealityDialog() {
 
         <button
           onClick={handleSubmit}
-          className="w-full h-14 rounded-full bg-text-main text-white text-lg font-semibold hover:opacity-95 transition-all"
+          className="w-full h-14 rounded-full bg-primary text-white text-lg font-semibold hover:opacity-95 transition-all"
           type="button"
         >
           Submit Update

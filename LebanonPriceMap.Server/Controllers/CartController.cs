@@ -52,7 +52,11 @@ public class CartController : ControllerBase
 
     /// <summary>
     /// DELETE /api/cart/items/{id}
+<<<<<<< HEAD
     /// Remove a single item from the shopping list.
+=======
+    /// Remove a specific item from the cart.
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
     /// </summary>
     [HttpDelete("items/{id}")]
     public async Task<IActionResult> RemoveItem(Guid id)
@@ -62,7 +66,39 @@ public class CartController : ControllerBase
 
         var success = await _cartService.RemoveItemAsync(userId.Value, id);
         if (!success) return NotFound(new { success = false, message = "Cart item not found" });
+<<<<<<< HEAD
 
+=======
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// PATCH /api/cart/items/{id}
+    /// Update the quantity of a cart item.
+    /// </summary>
+    [HttpPatch("items/{id}")]
+    public async Task<IActionResult> UpdateItemQuantity(Guid id, [FromBody] UpdateCartItemRequest request)
+    {
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
+
+        var cart = await _cartService.UpdateQuantityAsync(userId.Value, id, request.Quantity);
+        if (cart == null) return NotFound(new { success = false, message = "Cart item not found" });
+        return Ok(new { success = true, data = cart });
+    }
+
+    /// <summary>
+    /// DELETE /api/cart
+    /// Clear all items from the cart.
+    /// </summary>
+    [HttpDelete]
+    public async Task<IActionResult> ClearCart()
+    {
+        var userId = GetUserId();
+        if (userId == null) return Unauthorized();
+
+        await _cartService.ClearCartAsync(userId.Value);
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         return Ok(new { success = true });
     }
 

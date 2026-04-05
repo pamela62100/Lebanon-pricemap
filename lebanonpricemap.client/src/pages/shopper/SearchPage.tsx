@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { pricesApi } from '@/api/prices.api';
+import { useToastStore } from '@/store/useToastStore';
 import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { useLocationStore } from '@/store/useLocationStore';
@@ -11,12 +12,12 @@ import { ReportRealityDialog } from '@/components/dialogs/ReportRealityDialog';
 import { distanceKm } from '@/lib/distanceUtils';
 
 const CATEGORIES = [
-  { id: 'All',     label: 'All',     icon: 'collections' },
-  { id: 'Dairy',   label: 'Dairy',   icon: 'cheese' },
+  { id: 'All',     label: 'All',     icon: 'apps' },
+  { id: 'Dairy',   label: 'Dairy',   icon: 'water_drop' },
   { id: 'Bakery',  label: 'Bakery',  icon: 'bakery_dining' },
   { id: 'Meat',    label: 'Meat',    icon: 'kebab_dining' },
   { id: 'Grains',  label: 'Grains',  icon: 'grain' },
-  { id: 'Produce', label: 'Produce', icon: 'nutrition' },
+  { id: 'Produce', label: 'Produce', icon: 'eco' },
   { id: 'Fuel',    label: 'Fuel',    icon: 'local_gas_station' },
 ];
 
@@ -38,6 +39,7 @@ export function SearchPage() {
 
   const { lat, lng, city, requestLocation } = useLocationStore();
   const { getParam } = useRouteDialog();
+  const addToast = useToastStore(s => s.addToast);
   const headerHeight = useStickyHeaderHeight();
 
   useEffect(() => {
@@ -112,10 +114,9 @@ export function SearchPage() {
         <div className="bg-white/90 backdrop-blur-xl border-b border-border-soft px-5 py-2 shrink-0">
           <div className="flex items-center justify-between mb-1">
             <div>
-              <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-0.5">Live prices</p>
-              <h1 className="text-xl font-bold text-text-main tracking-tight">Search</h1>
+              <h1 className="text-xl font-bold text-text-main">Search Prices</h1>
             </div>
-            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-text-main text-white rounded-full text-[10px] font-semibold">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 bg-primary text-white rounded-full text-[10px] font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Live
             </div>
@@ -140,8 +141,8 @@ export function SearchPage() {
                 className={cn(
                   'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold whitespace-nowrap transition-all border shrink-0',
                   activeCategory === cat.id
-                    ? 'bg-text-main text-white border-text-main'
-                    : 'bg-white text-text-muted border-border-soft hover:border-text-main/20 hover:text-text-main'
+                    ? 'bg-primary text-white border-primary'
+                    : 'bg-white text-text-muted border-border-soft hover:border-primary/20 hover:text-text-main'
                 )}
               >
                 <span className="material-symbols-outlined text-[14px]">{cat.icon}</span>
@@ -168,7 +169,7 @@ export function SearchPage() {
                   onClick={() => setSortBy(s)}
                   className={cn(
                     'px-2.5 py-1 rounded-md text-[10px] font-semibold uppercase tracking-wide transition-all capitalize',
-                    sortBy === s ? 'bg-text-main text-white' : 'text-text-muted hover:text-text-main'
+                    sortBy === s ? 'bg-primary text-white' : 'text-text-muted hover:text-text-main'
                   )}
                 >
                   {s}
@@ -212,7 +213,7 @@ export function SearchPage() {
         <div className="absolute top-4 left-4 right-4 z-30 flex justify-between items-start pointer-events-none">
           <div className="glass px-4 py-3 rounded-2xl shadow-lg pointer-events-auto flex items-center gap-5">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-text-main flex items-center justify-center text-white shrink-0">
+              <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
                 <span className="material-symbols-outlined text-base">explore</span>
               </div>
               <div>
@@ -256,7 +257,15 @@ export function SearchPage() {
         description={`Flag the price for ${activeEntry?.product?.name} at ${activeEntry?.store?.name}? It will be sent for manual verification.`}
         confirmLabel="Submit report"
         variant="warning"
-        onConfirm={() => console.log('Flagged:', activeEntryId)}
+        onConfirm={async () => {
+          if (!activeEntryId) return;
+          try {
+            await pricesApi.vote(activeEntryId, -1);
+            addToast('Price reported — thank you!', 'success');
+          } catch {
+            addToast('Could not submit report', 'error');
+          }
+        }}
       />
     </div>
   );

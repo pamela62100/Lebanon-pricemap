@@ -1,29 +1,48 @@
-import { useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { getEnrichedPriceEntries, MOCK_PRODUCTS } from '@/api/mockData';
+import { productsApi } from '@/api/products.api';
+import { pricesApi } from '@/api/prices.api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
+import type { Product, PriceEntry } from '@/types';
 
 export function ProductPublicPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
 
-  const product = useMemo(() =>
-    MOCK_PRODUCTS.find(p => p.id === slug || p.name.toLowerCase().replace(/\s+/g, '-') === slug),
-    [slug]
-  );
+  const [product, setProduct] = useState<Product | null>(null);
+  const [entries, setEntries] = useState<PriceEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const entries = useMemo(() =>
-    getEnrichedPriceEntries()
-      .filter(e => e.productId === product?.id && e.status === 'verified')
-      .sort((a, b) => a.priceLbp - b.priceLbp),
-    [product]
-  );
+  useEffect(() => {
+    if (!slug) return;
+    setIsLoading(true);
+
+    productsApi.getById(slug).then((res) => {
+      const data = res.data?.data ?? res.data;
+      setProduct(data ?? null);
+
+      if (data?.id) {
+        return pricesApi.getByProduct(data.id);
+      }
+    }).then((res) => {
+      if (!res) return;
+      const data = res.data?.data ?? res.data;
+      const verified = (Array.isArray(data) ? data : [])
+        .filter((e: PriceEntry) => e.status === 'verified')
+        .sort((a: PriceEntry, b: PriceEntry) => a.priceLbp - b.priceLbp);
+      setEntries(verified);
+    }).catch(() => {
+      setProduct(null);
+    }).finally(() => setIsLoading(false));
+  }, [slug]);
 
   const lowestPrice = entries[0]?.priceLbp ?? 0;
   const highestPrice = entries[entries.length - 1]?.priceLbp ?? 0;
-  const avgPrice = entries.length ? Math.round(entries.reduce((s, e) => s + e.priceLbp, 0) / entries.length) : 0;
+  const avgPrice = entries.length
+    ? Math.round(entries.reduce((s, e) => s + e.priceLbp, 0) / entries.length)
+    : 0;
 
   const chartData = useMemo(() =>
     entries.slice(0, 10).map((e, i) => ({
@@ -32,6 +51,14 @@ export function ProductPublicPage() {
     })).reverse(),
     [entries]
   );
+
+  if (isLoading) {
+    return (
+      <div className="min-h-dvh bg-bg-base flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -44,7 +71,6 @@ export function ProductPublicPage() {
 
   return (
     <div className="min-h-dvh bg-bg-base">
-      {/* Public nav */}
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-3 sticky top-0 z-30">
         <button onClick={() => navigate('/map')} className="flex items-center gap-1.5 text-text-sub hover:text-primary transition-colors text-sm">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>
@@ -59,7 +85,6 @@ export function ProductPublicPage() {
       </header>
 
       <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col gap-8">
-        {/* Product header */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
           <div className="flex items-start gap-5">
             <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
@@ -71,11 +96,10 @@ export function ProductPublicPage() {
             </div>
           </div>
 
-          {/* Stats strip */}
           <div className="grid grid-cols-3 gap-4 mt-6">
             {[
               { label: 'Cheapest', value: `LBP ${lowestPrice.toLocaleString()}`, highlight: true },
-              { label: 'Average',  value: `LBP ${avgPrice.toLocaleString()}`,    highlight: false },
+              { label: 'Average', value: `LBP ${avgPrice.toLocaleString()}`, highlight: false },
               { label: 'Most Expensive', value: `LBP ${highestPrice.toLocaleString()}`, highlight: false },
             ].map(stat => (
               <div key={stat.label} className="p-5 rounded-2xl bg-bg-surface border border-border-soft">
@@ -86,7 +110,6 @@ export function ProductPublicPage() {
           </div>
         </motion.div>
 
-        {/* Price comparison table */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }} className="bg-bg-surface rounded-2xl border border-border-soft overflow-hidden">
           <div className="px-6 py-4 border-b border-border-soft flex items-center justify-between">
             <h2 className="text-base font-bold text-text-main">Price Comparison — {entries.length} stores</h2>
@@ -97,7 +120,7 @@ export function ProductPublicPage() {
               <tr className="border-b border-border-soft">
                 <th className="text-left px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">#</th>
                 <th className="text-left px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">Store</th>
-                <th className="text-left px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">District</th>
+                <th className="text-left px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">City</th>
                 <th className="text-right px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">Price LBP</th>
                 <th className="text-right px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">vs Cheapest</th>
                 <th className="text-right px-6 py-3 text-xs font-bold text-text-muted uppercase tracking-wide">Status</th>
@@ -123,7 +146,7 @@ export function ProductPublicPage() {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-text-muted">{entry.store?.district}</td>
+                    <td className="px-6 py-4 text-sm text-text-muted">{entry.store?.city}</td>
                     <td className="px-6 py-4 text-right">
                       <span className={`text-base font-bold ${i === 0 ? 'text-primary' : 'text-text-main'}`}>
                         {entry.priceLbp.toLocaleString()}
@@ -148,7 +171,6 @@ export function ProductPublicPage() {
           </table>
         </motion.div>
 
-        {/* Price history */}
         {chartData.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} className="bg-bg-surface rounded-2xl border border-border-soft p-6">
             <h2 className="text-base font-bold text-text-main mb-4">Price History (×1000 LBP)</h2>
@@ -156,7 +178,6 @@ export function ProductPublicPage() {
           </motion.div>
         )}
 
-        {/* Sign-up CTA */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.3 }} className="bg-primary/5 border border-primary/20 rounded-2xl p-8 flex items-center justify-between gap-6">
           <div>
             <p className="text-base font-bold text-text-main">Get a price alert for this product</p>

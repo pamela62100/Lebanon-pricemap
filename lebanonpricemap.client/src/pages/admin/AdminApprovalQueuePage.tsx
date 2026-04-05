@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApprovalStore } from '@/store/useApprovalStore';
 import { timeAgo } from '@/lib/utils';
@@ -12,12 +12,19 @@ const STATUS_STYLES = {
   rejected: { bg: 'bg-red-500/10 border-red-500/30',      text: 'text-red-500',    label: 'Rejected' },
 };
 
+function tryParsePayload(payload: unknown): Record<string, unknown> {
+  if (typeof payload === 'object' && payload !== null) return payload as Record<string, unknown>;
+  try { return JSON.parse(payload as string) ?? {}; } catch { return {}; }
+}
+
 const TABS = ['All', 'Pending', 'Resolved'] as const;
 type Tab = typeof TABS[number];
 
 export function AdminApprovalQueuePage() {
-  const { requests, approveRequest, rejectRequest } = useApprovalStore();
+  const { requests, approveRequest, rejectRequest, fetchAll } = useApprovalStore();
   const [activeTab, setActiveTab] = useState<Tab>('Pending');
+
+  useEffect(() => { fetchAll(); }, []);
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -30,7 +37,7 @@ export function AdminApprovalQueuePage() {
   const pendingCount = requests.filter(r => r.status === 'pending').length;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 max-w-5xl mx-auto">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
@@ -114,7 +121,7 @@ function ApprovalCard({
   onApprove: () => void;
   onReject: () => void;
 }) {
-  const style = STATUS_STYLES[request.status];
+  const style = STATUS_STYLES[request.status as keyof typeof STATUS_STYLES] ?? STATUS_STYLES.pending;
 
   return (
     <motion.div
@@ -167,7 +174,7 @@ function ApprovalCard({
                 </div>
                 <div className="p-4 bg-amber-400/5 rounded-xl border border-amber-400/20">
                   <p className="text-[10px] font-black uppercase text-amber-500 tracking-widest mb-3">Proposed Change</p>
-                  {Object.entries(request.payload).filter(([k]) => k !== 'requestedBy').map(([k, v]) => (
+                  {Object.entries(tryParsePayload(request.payload)).filter(([k]) => k !== 'requestedBy').map(([k, v]) => (
                     <div key={k} className="flex gap-2 text-sm mb-1">
                       <span className="text-text-muted font-medium capitalize min-w-16">{k}:</span>
                       <span className="text-text-main font-semibold">{String(v)}</span>

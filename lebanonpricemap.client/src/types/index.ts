@@ -31,6 +31,7 @@ export interface User {
   role: UserRole;
   city: string;
   trustScore: number;
+  uploadCount: number;
   verifiedCount: number;
   avatarInitials: string;
   joinedAt: string;
@@ -66,6 +67,7 @@ export interface Product {
   category: string;
   unit: string;
   aliases: string[];
+  uploadCount: number;
   isArchived: boolean;
 }
 
@@ -80,6 +82,7 @@ export interface PriceEntry {
   source: 'official' | 'community';
   isDisputed?: boolean;
   disputeReason?: string;
+  receiptImageUrl?: string | null;
   isPromotion?: boolean;
   promoEndsAt?: string | null;
   createdAt: string;

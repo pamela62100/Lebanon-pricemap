@@ -1,33 +1,83 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { getEnrichedStores, getEnrichedProducts } from '@/api/mockData';
+import { storesApi } from '@/api/stores.api';
+import { catalogApi, discrepancyApi } from '@/api/catalog.api';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { formatLBP } from '@/lib/utils';
 import { SyncStatusCard } from '@/components/retailer/SyncStatusCard';
-import { discrepancyApi } from '@/api/catalog.api';
-import { catalogApi } from '@/api/catalog.api';
+import type { Store } from '@/types';
+
+interface CatalogItem {
+  id: string;
+  productId: string;
+  product?: { name: string; unit?: string };
+  officialPriceLbp: number;
+}
+
+interface DiscrepancyReport {
+  id: string;
+  productId: string;
+  reportType: string;
+  observedPriceLbp?: number;
+  reporterTrustScore?: number;
+  status: string;
+}
 
 export function StoreDashboardPage() {
   const navigate = useNavigate();
-  const store = getEnrichedStores().find(s => s.id === 's7'); // Habib Market — owner u4
-  const storeProducts = getEnrichedProducts().slice(0, 4);
+  const [store, setStore] = useState<Store | null>(null);
+  const [catalog, setCatalog] = useState<CatalogItem[]>([]);
+  const [pendingReports, setPendingReports] = useState<DiscrepancyReport[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const pendingReports = discrepancyApi.getByStore(store?.id ?? 's7').filter(r => r.status === 'pending');
-  const catalogProducts = catalogApi.getByStore(store?.id ?? 's7');
+  useEffect(() => {
+    storesApi.getMine().then(async (res) => {
+      const s = res.data?.data ?? res.data;
+      setStore(s);
+      if (s?.id) {
+        const [catRes, discRes] = await Promise.all([
+          catalogApi.getByStore(s.id),
+          discrepancyApi.getByStore(s.id),
+        ]);
+        const catData = catRes.data?.data ?? catRes.data;
+        setCatalog(Array.isArray(catData) ? catData : []);
+        const discData = discRes.data?.data ?? discRes.data;
+        setPendingReports(
+          (Array.isArray(discData) ? discData : []).filter((r: DiscrepancyReport) => r.status === 'pending')
+        );
+      }
+    }).catch(() => {}).finally(() => setIsLoading(false));
+  }, []);
 
-  if (!store) return null;
+  if (isLoading) {
+    return (
+      <div className="flex flex-col gap-6 p-4">
+        <div className="h-32 rounded-2xl bg-bg-muted animate-pulse" />
+        <div className="grid grid-cols-2 gap-5">
+          {[1, 2, 3, 4].map(i => <div key={i} className="h-24 rounded-2xl bg-bg-muted animate-pulse" />)}
+        </div>
+      </div>
+    );
+  }
 
-  const stats: { icon: string; label: string; value: string | number; trend: number }[] = [
-    { icon: 'visibility', label: 'Monthly Views', value: 3420, trend: 12 },
-    { icon: 'inventory_2', label: 'Listed Items', value: 84, trend: 2 },
-    { icon: 'local_offer', label: 'Active Promotions', value: 3, trend: 0 },
-    { icon: 'verified_user', label: 'Store Trust Score', value: store.trustScore ?? 0, trend: 5 },
+  if (!store) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-text-muted">No store found for your account. Contact an admin.</p>
+      </div>
+    );
+  }
+
+  const stats = [
+    { icon: 'visibility', label: 'Monthly Views', value: 0, trend: 0 },
+    { icon: 'inventory_2', label: 'Listed Items', value: catalog.length, trend: 0 },
+    { icon: 'local_offer', label: 'Discrepancy Reports', value: pendingReports.length, trend: 0 },
+    { icon: 'verified_user', label: 'Store Trust Score', value: store.trustScore ?? 0, trend: 0 },
   ];
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-8">
-
       {/* Store Banner */}
       <div className="bg-bg-surface border border-border-soft rounded-2xl p-7 flex flex-col md:flex-row items-center justify-between shadow-card relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full opacity-20 -translate-y-1/2 translate-x-1/2 blur-2xl pointer-events-none" />
@@ -42,16 +92,16 @@ export function StoreDashboardPage() {
             </div>
             <p className="text-sm text-text-muted flex items-center gap-1.5">
               <span className="material-symbols-outlined text-[16px]">location_on</span>
-              {store.region} · Authorized Partner
+              {store.city}{store.district ? `, ${store.district}` : ''} · Authorized Partner
             </p>
           </div>
         </div>
 
         <div className="flex gap-3 mt-6 md:mt-0 relative z-10">
-          <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-primary bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm">
+          <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm">
             Manage Promos
           </button>
-          <button onClick={() => navigate('/retailer/insights')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:opacity-90  text-sm transition-all">
+          <button onClick={() => navigate('/retailer/insights')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:opacity-90 text-sm transition-all">
             <span className="material-symbols-outlined text-[18px]">insights</span>
             Insights
           </button>
@@ -82,14 +132,21 @@ export function StoreDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border-soft">
-                {storeProducts.map((p, i) => (
-                  <tr key={p.id} className="hover:bg-bg-muted/40 transition-colors">
-                    <td className="py-3 px-5 font-semibold text-text-main text-sm">{p.name}</td>
+                {catalog.slice(0, 5).map((item) => (
+                  <tr key={item.id} className="hover:bg-bg-muted/40 transition-colors">
+                    <td className="py-3 px-5 font-semibold text-text-main text-sm">
+                      {item.product?.name ?? item.productId}
+                    </td>
                     <td className="py-3 px-5 text-right font-black text-text-main text-sm">
-                      LBP {formatLBP(45000 + i * 15000).replace('LBP', '').trim()}
+                      LBP {item.officialPriceLbp.toLocaleString()}
                     </td>
                   </tr>
                 ))}
+                {catalog.length === 0 && (
+                  <tr>
+                    <td colSpan={2} className="py-8 text-center text-sm text-text-muted">No catalog items yet.</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -97,7 +154,7 @@ export function StoreDashboardPage() {
 
         <div className="flex flex-col gap-6">
           <SyncStatusCard />
-          {/* Discrepancy Reports Widget (Catalog-First) */}
+
           <div className="bg-bg-surface border border-border-soft rounded-2xl p-5 shadow-card">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-black text-text-main text-sm flex items-center gap-2">
@@ -113,7 +170,7 @@ export function StoreDashboardPage() {
 
             {pendingReports.length === 0 ? (
               <div className="text-center py-4">
-                <span className="material-symbols-outlined text-green-500 text-[32px]" >check_circle</span>
+                <span className="material-symbols-outlined text-green-500 text-[32px]">check_circle</span>
                 <p className="text-xs text-text-muted font-bold mt-2">All catalog prices verified!</p>
               </div>
             ) : (
@@ -131,20 +188,16 @@ export function StoreDashboardPage() {
                         Reported: <span className="font-bold text-text-main">LBP {r.observedPriceLbp.toLocaleString()}</span>
                       </p>
                     )}
-                    <p className="text-[9px] text-text-muted mt-1">by {r.reporter?.name ?? r.reportedBy} · Trust: {r.reporterTrustScore}%</p>
                   </div>
                 ))}
-                <button
-                  onClick={() => navigate('/admin/approvals')}
-                  className="w-full mt-2 py-2 text-[11px] font-bold text-primary hover:underline border-t border-border-soft pt-4"
-                >
+                <button onClick={() => navigate('/admin/approvals')} className="w-full mt-2 py-2 text-[11px] font-bold text-primary hover:underline border-t border-border-soft pt-4">
                   Review in Admin Queue →
                 </button>
               </div>
             )}
             <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">
-              <p className="text-[9px] font-black text-text-muted uppercase tracking-widest">Catalog Items</p>
-              <p className="text-sm font-black text-text-main">{catalogProducts.length} products</p>
+              <p className="text-xs text-text-muted">Catalog Items</p>
+              <p className="text-sm font-black text-text-main">{catalog.length} products</p>
             </div>
           </div>
         </div>

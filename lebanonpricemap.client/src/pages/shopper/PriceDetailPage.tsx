@@ -1,14 +1,16 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { pricesApi } from '@/api/prices.api';
+import { feedbackApi } from '@/api/feedback.api';
 import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
+import { ReportPriceDialog } from '@/components/dialogs/ReportPriceDialog';
 import { NotFoundPage } from '@/pages/shared/NotFoundPage';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
-import type { PriceEntry } from '@/types';
+import type { PriceEntry, FeedbackType } from '@/types';
 
 export function PriceDetailPage() {
   const { id } = useParams();
@@ -18,8 +20,11 @@ export function PriceDetailPage() {
   const { rateLbpPerUsd } = useExchangeRateStore();
 
   const [entry, setEntry] = useState<PriceEntry | null>(null);
+  const [history, setHistory] = useState<{ date: string; price: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [voting, setVoting] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -27,8 +32,18 @@ export function PriceDetailPage() {
     pricesApi.getById(id)
       .then(res => {
         const data = (res as any).data?.data;
-        if (data) setEntry(data);
-        else setNotFound(true);
+        if (data) {
+          setEntry(data);
+          // Fetch history after we have the productId
+          pricesApi.getHistory(data.productId)
+            .then(hr => {
+              const pts = (hr as any).data?.data ?? [];
+              setHistory(Array.isArray(pts) ? pts.map((p: any) => ({ date: p.date, price: Number(p.price) })) : []);
+            })
+            .catch(() => {});
+        } else {
+          setNotFound(true);
+        }
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
@@ -46,89 +61,102 @@ export function PriceDetailPage() {
 
   const handleAddToCart = () => {
     addItem(entry.productId);
-    addToast(`${entry.product?.name ?? 'Item'} added to cart`);
+    addToast(`${entry.product?.name ?? 'Item'} added to list`);
+  };
+
+  const handleVote = async (value: 1 | -1) => {
+    if (voting) return;
+    setVoting(true);
+    try {
+      await pricesApi.vote(entry.id, value);
+      addToast(value === 1 ? 'Price confirmed — thanks!' : 'Report submitted', value === 1 ? 'success' : 'info');
+      // Optimistically update upvotes display
+      setEntry(prev => prev ? { ...prev, upvotes: (prev.upvotes ?? 0) + (value === 1 ? 1 : 0) } : prev);
+    } catch {
+      addToast('Could not record vote', 'error');
+    } finally {
+      setVoting(false);
+    }
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-12 md:py-20 animate-page">
-      <div className="flex flex-col lg:flex-row gap-10">
+    <div className="px-6 lg:px-8 py-8 animate-page">
+      {/* Back nav */}
+      <button
+        onClick={() => navigate(-1)}
+        className="flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-main mb-6 transition-colors"
+      >
+        <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+        Back to search
+      </button>
+
+      <div className="flex flex-col lg:flex-row gap-6">
 
         {/* Main content */}
-        <div className="flex-1 flex flex-col gap-7">
-          <header className="flex items-center justify-between">
-            <button
-              onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-full bg-bg-muted text-text-muted hover:text-text-main flex items-center justify-center transition-all border border-border-soft"
-            >
-              <span className="material-symbols-outlined text-xl">arrow_back</span>
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-xs font-semibold text-text-muted">Verified price</p>
-            </div>
-          </header>
-
-          <section className="card p-7 md:p-9">
-            <div className="flex flex-col md:flex-row gap-8">
-              <div className="w-36 h-36 md:w-44 md:h-44 bg-bg-muted rounded-2xl flex items-center justify-center shrink-0 border border-border-soft">
-                <span className="material-symbols-outlined text-5xl text-text-muted/20">inventory_2</span>
-              </div>
-
-              <div className="flex-1 flex flex-col">
-                <div className="flex items-center gap-2 mb-3 flex-wrap">
-                  <div className="px-3 py-1 bg-text-main text-white text-[10px] font-bold rounded-full">
-                    {entry.product?.category}
-                  </div>
+        <div className="flex-1 flex flex-col gap-5">
+          <section className="card p-6">
+            <div className="flex items-start gap-4 mb-5">
+              {/* Category + status badges */}
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {entry.product?.category && (
+                    <span className="px-2.5 py-0.5 bg-bg-muted text-text-muted text-xs font-medium rounded-full border border-border-soft">
+                      {entry.product.category}
+                    </span>
+                  )}
                   <StatusBadge status={entry.status} />
                 </div>
-
-                <h1 className="text-2xl md:text-3xl font-bold text-text-main tracking-tight mb-1.5">
+                <h1 className="text-xl font-bold text-text-main mb-0.5">
                   {entry.product?.name}
                 </h1>
-                <p className="text-sm text-text-muted mb-5">{entry.product?.unit}</p>
-
-                <div className="flex items-center gap-3 text-text-main font-semibold mb-auto p-3.5 bg-bg-muted/50 rounded-xl border border-border-soft w-fit">
-                  <span className="material-symbols-outlined text-lg opacity-40">storefront</span>
-                  <div>
-                    <p className="text-sm font-semibold">{entry.store?.name}</p>
-                    <p className="text-xs text-text-muted">{entry.store?.city}</p>
-                  </div>
-                </div>
-
-                <div className="mt-6 pt-6 border-t border-border-soft/60 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-semibold text-text-muted mb-1.5">Current price</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-4xl md:text-5xl font-bold text-text-main font-data leading-none">
-                        {entry.priceLbp.toLocaleString()}
-                      </span>
-                      <span className="text-base font-bold text-text-muted">LBP</span>
-                    </div>
-                    <p className="text-base font-semibold text-text-muted mt-1">≈ ${usdPrice}</p>
-                  </div>
-                  <p className="text-sm text-text-muted">Updated {timeAgo(entry.createdAt)}</p>
-                </div>
+                <p className="text-sm text-text-muted">{entry.product?.unit}</p>
               </div>
+            </div>
+
+            {/* Store */}
+            <div className="flex items-center gap-3 p-3 bg-bg-muted/50 rounded-xl border border-border-soft mb-5 w-fit">
+              <span className="material-symbols-outlined text-base text-text-muted">storefront</span>
+              <div>
+                <p className="text-sm font-semibold text-text-main">{entry.store?.name}</p>
+                <p className="text-xs text-text-muted">{entry.store?.city}</p>
+              </div>
+            </div>
+
+            {/* Price */}
+            <div className="pt-4 border-t border-border-soft/60 flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs text-text-muted mb-1">Current price</p>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-3xl font-bold text-text-main font-data leading-none">
+                    {entry.priceLbp.toLocaleString()}
+                  </span>
+                  <span className="text-sm font-semibold text-text-muted">LBP</span>
+                </div>
+                <p className="text-sm text-text-muted mt-0.5">≈ ${usdPrice}</p>
+              </div>
+              <p className="text-xs text-text-muted">Updated {timeAgo(entry.createdAt)}</p>
             </div>
           </section>
 
           <section className="card p-7">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main">Price history</h2>
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">Stable</span>
+              {history.length > 0 && (
+                <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">
+                  {history.length} submissions
+                </span>
+              )}
             </div>
-            <div className="h-[200px]">
-              <PriceHistoryChart
-                data={[
-                  { date: 'Feb 10', price: 120000 },
-                  { date: 'Feb 15', price: 135000 },
-                  { date: 'Feb 20', price: 130000 },
-                  { date: 'Feb 25', price: 128000 },
-                  { date: 'Mar 01', price: 125000 },
-                  { date: 'Mar 06', price: 125000 },
-                ]}
-              />
-            </div>
+            {history.length > 0 ? (
+              <div className="h-[200px]">
+                <PriceHistoryChart data={history} />
+              </div>
+            ) : (
+              <div className="h-[200px] flex flex-col items-center justify-center text-center gap-2">
+                <span className="material-symbols-outlined text-3xl text-text-muted/30">show_chart</span>
+                <p className="text-sm text-text-muted">Not enough data yet for a price history chart.</p>
+              </div>
+            )}
           </section>
         </div>
 
@@ -149,15 +177,22 @@ export function PriceDetailPage() {
             <div className="space-y-2.5">
               <button
                 onClick={handleAddToCart}
-                className="w-full h-12 rounded-xl bg-text-main text-white font-semibold hover:opacity-95 transition-all"
+                className="w-full h-12 rounded-xl bg-primary text-white font-semibold hover:opacity-95 transition-all"
               >
-                Add to cart
+                Add to list
               </button>
               <div className="grid grid-cols-2 gap-2.5">
-                <button className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-bg-muted transition-all">
+                <button
+                  onClick={() => handleVote(1)}
+                  disabled={voting}
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50"
+                >
                   Verify
                 </button>
-                <button className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-bg-muted transition-all">
+                <button
+                  onClick={() => setShowReport(true)}
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all"
+                >
                   Report
                 </button>
               </div>
@@ -173,6 +208,20 @@ export function PriceDetailPage() {
           </div>
         </aside>
       </div>
+
+      <ReportPriceDialog
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
+        currentPrice={entry.priceLbp}
+        onSubmit={async (type: FeedbackType, note: string) => {
+          try {
+            await feedbackApi.submit({ priceEntryId: entry.id, type, note });
+            addToast('Report submitted — thanks!', 'info');
+          } catch {
+            addToast('Could not submit report', 'error');
+          }
+        }}
+      />
     </div>
   );
 }

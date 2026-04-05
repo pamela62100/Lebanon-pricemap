@@ -16,10 +16,10 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(255)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         [Required]
-        public string Message { get; set; }
+        public string Message { get; set; } = string.Empty;
 
         public Guid? RelatedPriceEntryId { get; set; }
 
@@ -37,7 +37,7 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         [ForeignKey("RelatedPriceEntryId")]
         public virtual PriceSubmission RelatedPriceEntry { get; set; }
@@ -49,6 +49,6 @@ namespace LebanonPriceMap.Server.Models
         public virtual Product RelatedProduct { get; set; }
 
         [ForeignKey("RelatedAlertId")]
-        public virtual PriceAlert RelatedAlert { get; set; }
+        public virtual Alert? RelatedAlert { get; set; }
     }
 }

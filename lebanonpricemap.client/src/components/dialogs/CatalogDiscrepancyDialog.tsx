@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CatalogProduct } from '@/types/catalog.types';
 import { catalogApi } from '@/api/catalog.api';
@@ -109,14 +110,14 @@ export function CatalogDiscrepancyDialog({
     }, 2000);
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60"
           onClick={handleClose}
         >
           <motion.div
@@ -137,7 +138,7 @@ export function CatalogDiscrepancyDialog({
                       key={s}
                       className={cn(
                         'h-1 rounded-full transition-all duration-300',
-                        s === step ? 'w-6 bg-text-main' : s < step ? 'w-4 bg-text-main/40' : 'w-4 bg-border-soft'
+                        s === step ? 'w-6 bg-primary' : s < step ? 'w-4 bg-primary/40' : 'w-4 bg-border-soft'
                       )}
                     />
                   ))}
@@ -283,7 +284,7 @@ export function CatalogDiscrepancyDialog({
                 <button
                   onClick={step === 1 ? () => setStep(2) : handleSubmit}
                   disabled={step === 1 && !selectedType}
-                  className="flex-1 h-10 bg-text-main text-white rounded-xl text-sm font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+                  className="flex-1 h-10 bg-primary text-white rounded-xl text-sm font-semibold disabled:opacity-30 disabled:cursor-not-allowed hover:opacity-90 transition-all"
                 >
                   {step === 1 ? 'Continue' : 'Submit report'}
                 </button>
@@ -292,6 +293,7 @@ export function CatalogDiscrepancyDialog({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

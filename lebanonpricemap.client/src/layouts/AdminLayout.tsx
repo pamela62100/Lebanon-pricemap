@@ -25,7 +25,7 @@ export function AdminLayout() {
               <div className="w-px h-6 bg-border-soft mx-2" />
               
               <div className="flex items-center gap-2 pl-1 pr-3 py-1 bg-bg-surface border border-border-soft rounded-full">
-                <div className="w-7 h-7 rounded-full bg-text-main text-white flex items-center justify-center text-[10px] font-bold">
+                <div className="w-7 h-7 rounded-full bg-primary text-white flex items-center justify-center text-[10px] font-bold">
                   SA
                 </div>
                 <span className="text-xs font-semibold text-text-main hidden sm:block">Master Admin</span>

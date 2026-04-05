@@ -1,32 +1,24 @@
 export default function LandingFooter() {
-  const links = ['Home', 'About', 'Support'];
-
   return (
-    <footer className="py-12 border-t border-border-primary bg-bg-surface px-4 sm:px-6 md:px-10 lg:px-16">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-primary rounded-xl flex items-center justify-center">
-            <span className="text-white text-[10px] font-black">WA</span>
+    <footer className="py-8 border-t border-border-primary bg-white px-4 sm:px-6 md:px-10 lg:px-16">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-white text-[9px] font-black">WA</span>
           </div>
-
-          <span
-            className="font-display text-lg text-text-main tracking-tight"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
-          >
-            WenArkhass
-          </span>
+          <span className="font-semibold text-sm text-text-main">WenArkhass</span>
         </div>
 
-        <div className="text-xs text-text-muted text-center">
+        <p className="text-xs text-text-muted text-center">
           Real-time prices and store availability across Lebanon.
-        </div>
+        </p>
 
-        <div className="flex gap-4 sm:gap-6">
-          {links.map((link) => (
+        <div className="flex gap-5">
+          {['Home', 'About', 'Support'].map((link) => (
             <button
               key={link}
               type="button"
-              className="text-sm font-medium text-text-muted hover:text-primary transition-colors"
+              className="text-xs font-medium text-text-muted hover:text-text-main transition-colors"
             >
               {link}
             </button>

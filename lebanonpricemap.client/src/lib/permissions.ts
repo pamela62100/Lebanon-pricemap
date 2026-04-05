@@ -22,15 +22,15 @@ type PermissionResult = 'allowed' | 'requires_approval' | 'denied';
 
 // ─── Role Permission Map ──────────────────────────────────────────────────────
 const DIRECT_PERMISSIONS: Record<UserRole, Permission[]> = {
-  shopper: ['prices:read', 'cart:manage', 'alert:manage'],
+  shopper: ['prices:read', 'receipt:upload', 'cart:manage', 'alert:manage'],
   retailer: [
     'prices:read', 'prices:submit',
-    'cart:manage', 'alert:manage',
+    'receipt:upload', 'cart:manage', 'alert:manage',
     'store:manage', 'promotion:manage',
   ],
   admin: [
     'prices:read', 'prices:submit', 'prices:moderate',
-    'cart:manage', 'alert:manage',
+    'receipt:upload', 'cart:manage', 'alert:manage',
     'store:manage', 'store:verify', 'promotion:manage',
     'users:manage', 'account:delete', 'bulk:delete',
   ],

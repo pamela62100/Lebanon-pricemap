@@ -1,62 +1,79 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { NotificationCard } from '@/components/cards/NotificationCard';
-import { getEnrichedNotifications } from '@/api/mockData';
+import { usersApi } from '@/api/users.api';
+import { useAuthStore } from '@/store/useAuthStore';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { Notification as NotifType } from '@/types';
 
 export function NotificationsPage() {
-  const allNotifications = useMemo(() => getEnrichedNotifications(), []);
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const user = useAuthStore((s) => s.user);
+  const [notifications, setNotifications] = useState<NotifType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const markAllRead = () => setReadIds(new Set(allNotifications.map((n: NotifType) => n.id)));
+  useEffect(() => {
+    if (!user?.id) return;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await usersApi.getNotifications(user.id);
+        const data = res.data?.data ?? res.data;
+        setNotifications(Array.isArray(data) ? data : []);
+      } catch {
+        // errors handled by axios interceptor
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    load();
+  }, [user?.id]);
 
-  const markAsRead = (id: string) => {
-    setReadIds(prev => {
-      const next = new Set(prev);
-      next.add(id);
-      return next;
-    });
-  };
+  const markAllRead = () =>
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
 
-  const notificationsWithReadStatus = useMemo(() => {
-    return allNotifications.map((n: NotifType) => ({
-      ...n,
-      isRead: readIds.has(n.id),
-    }));
-  }, [allNotifications, readIds]);
+  const markAsRead = (id: string) =>
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, isRead: true } : n))
+    );
 
-  const unreadCount = notificationsWithReadStatus.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  if (isLoading) {
+    return (
+      <div className="animate-page px-6 lg:px-8 py-8 flex flex-col gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="card p-5 h-20 animate-pulse bg-bg-muted/40" />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="animate-page max-w-4xl mx-auto px-5 py-12 md:py-20 flex flex-col gap-12">
-      <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-12 border-b border-border-soft">
+    <div className="animate-page px-6 lg:px-8 py-8 flex flex-col gap-12">
+      <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border-soft">
         <div>
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em] mb-4">
+          <h1 className="text-2xl font-bold text-text-main">
             Notifications
-          </p>
-          <h1 className="text-5xl font-bold text-text-main tracking-tighter leading-none">
-            Updates
             {unreadCount > 0 && (
-              <span className="text-primary font-data ml-2">({unreadCount})</span>
+              <span className="ml-2 px-2 py-0.5 text-sm bg-primary text-white rounded-full">{unreadCount}</span>
             )}
           </h1>
-          <p className="text-sm font-medium text-text-muted mt-4 opacity-60">
-            Important alerts from your price network and trusted updates.
+          <p className="text-sm text-text-muted mt-0.5">
+            Price alerts and updates from your network
           </p>
         </div>
 
         <button
           onClick={markAllRead}
           disabled={unreadCount === 0}
-          className="h-12 px-6 rounded-2xl bg-bg-muted font-bold text-[10px] text-text-muted uppercase tracking-widest hover:bg-text-main hover:text-white transition-all flex items-center gap-2 shrink-0 group disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-9 px-4 rounded-lg bg-bg-muted text-sm font-medium text-text-muted hover:bg-primary hover:text-white transition-all flex items-center gap-2 shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <span className="material-symbols-outlined text-lg group-hover:animate-pulse">done_all</span>
+          <span className="material-symbols-outlined text-base">done_all</span>
           Mark all as read
         </button>
       </header>
 
       <div className="flex flex-col gap-3">
-        {notificationsWithReadStatus.map((notification: NotifType) => (
+        {notifications.map((notification) => (
           <NotificationCard
             key={notification.id}
             notification={notification}
@@ -64,7 +81,7 @@ export function NotificationsPage() {
           />
         ))}
 
-        {allNotifications.length === 0 && (
+        {notifications.length === 0 && (
           <EmptyState
             icon="notifications_off"
             title="No notifications yet"

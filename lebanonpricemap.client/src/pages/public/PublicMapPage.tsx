@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { MapComponent } from '@/components/ui/MapComponent';
-import { getEnrichedPriceEntries } from '@/api/mockData';
+import { pricesApi } from '@/api/prices.api';
 import { cn } from '@/lib/utils';
+import type { PriceEntry } from '@/types';
 
 const CATEGORIES = ['All', 'Dairy', 'Bakery', 'Oil', 'Fuel', 'Meat', 'Grains', 'Beverages', 'Produce'];
 
@@ -11,38 +12,44 @@ export function PublicMapPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
+  const [entries, setEntries] = useState<PriceEntry[]>([]);
 
-  const allEntries = useMemo(() => getEnrichedPriceEntries().filter(e => e.status === 'verified'), []);
+  useEffect(() => {
+    pricesApi.search({ verifiedOnly: true }).then((res) => {
+      const data = res.data?.data ?? res.data;
+      setEntries(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
-    let res = [...allEntries];
+    let res = [...entries];
     if (query) {
       const q = query.toLowerCase();
       res = res.filter(e =>
         e.product?.name.toLowerCase().includes(q) ||
-        e.store?.name.toLowerCase().includes(q) ||
-        e.store?.district.toLowerCase().includes(q)
+        e.store?.name.toLowerCase().includes(q)
       );
     }
     if (activeCategory !== 'All') {
       res = res.filter(e => e.product?.category === activeCategory);
     }
     return res;
-  }, [allEntries, query, activeCategory]);
+  }, [entries, query, activeCategory]);
 
   const markers = useMemo(() =>
-    filtered.filter(e => e.store?.latitude && e.store?.longitude).map(e => ({
-      position: [e.store!.latitude, e.store!.longitude] as [number, number],
-      label: e.product?.name || 'Product',
-      price: e.priceLbp.toLocaleString(),
-      category: e.product?.category,
-    })),
+    filtered
+      .filter(e => e.store?.latitude && e.store?.longitude)
+      .map(e => ({
+        position: [e.store!.latitude, e.store!.longitude] as [number, number],
+        label: e.product?.name || 'Product',
+        price: e.priceLbp.toLocaleString(),
+        category: e.product?.category,
+      })),
     [filtered]
   );
 
   return (
     <div className="flex flex-col min-h-dvh bg-bg-base">
-      {/* Public top bar */}
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-4 z-30 shrink-0">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-primary font-bold text-base">
           <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px' }}>map</span>
@@ -73,33 +80,20 @@ export function PublicMapPage() {
           ))}
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => navigate('/login')}
-            className="text-xs font-semibold px-4 py-2 rounded-xl border border-border-soft text-text-sub hover:border-primary hover:text-primary transition-all"
-          >
+          <button onClick={() => navigate('/login')} className="text-xs font-semibold px-4 py-2 rounded-xl border border-border-soft text-text-sub hover:border-primary hover:text-primary transition-all">
             Sign in
           </button>
-          <button
-            onClick={() => navigate('/register')}
-            className="text-xs font-semibold px-4 py-2 rounded-xl bg-primary text-white hover:opacity-90 transition-all"
-          >
+          <button onClick={() => navigate('/register')} className="text-xs font-semibold px-4 py-2 rounded-xl bg-primary text-white hover:opacity-90 transition-all">
             Join free
           </button>
         </div>
       </header>
 
-      {/* Full-screen map */}
       <div className="flex flex-1 relative overflow-hidden">
         <div className="flex-1">
-          <MapComponent
-            center={[33.8938, 35.5018]}
-            zoom={12}
-            markers={markers}
-            className="w-full h-full"
-          />
+          <MapComponent center={[33.8938, 35.5018]} zoom={12} markers={markers} className="w-full h-full" />
         </div>
 
-        {/* Results panel */}
         <motion.aside
           initial={{ x: 320, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -119,7 +113,7 @@ export function PublicMapPage() {
                 onClick={() => navigate('/login')}
               >
                 <p className="text-sm font-semibold text-text-main truncate">{entry.product?.name}</p>
-                <p className="text-xs text-text-muted mt-0.5">{entry.store?.name} · {entry.store?.district}</p>
+                <p className="text-xs text-text-muted mt-0.5">{entry.store?.name} · {entry.store?.city}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-base font-bold text-primary">
                     LBP {entry.priceLbp.toLocaleString()}
@@ -133,15 +127,11 @@ export function PublicMapPage() {
               </div>
             ))}
           </div>
-          {/* Sign-up CTA */}
           <div className="p-4 border-t border-border-soft bg-primary/5">
             <p className="text-xs text-text-sub mb-3 leading-relaxed">
               <strong className="text-text-main">Sign in</strong> to set price alerts, build a smart cart, and submit prices.
             </p>
-            <button
-              onClick={() => navigate('/register')}
-              className="w-full h-9 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-90 transition-all"
-            >
+            <button onClick={() => navigate('/register')} className="w-full h-9 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-90 transition-all">
               Join free →
             </button>
           </div>

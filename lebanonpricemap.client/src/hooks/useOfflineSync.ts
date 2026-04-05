@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-
-import { getEnrichedPriceEntries } from '@/api/mockData';
+import { pricesApi } from '@/api/prices.api';
 import { useOfflineStore } from '@/store/useOfflineStore';
 
 export function useOfflineSync() {
@@ -8,11 +7,14 @@ export function useOfflineSync() {
 
   useEffect(() => {
     if (isOnline) {
-      const entries = getEnrichedPriceEntries();
-      const syncTime = new Date().toISOString();
-      localStorage.setItem('wein_price_cache', JSON.stringify(entries));
-      localStorage.setItem('wein_last_sync', syncTime);
-      setCached(entries.length, syncTime);
+      pricesApi.search({ verifiedOnly: true }).then((res) => {
+        const data = res.data?.data ?? res.data;
+        const entries = Array.isArray(data) ? data : [];
+        const syncTime = new Date().toISOString();
+        localStorage.setItem('wein_price_cache', JSON.stringify(entries));
+        localStorage.setItem('wein_last_sync', syncTime);
+        setCached(entries.length, syncTime);
+      }).catch(() => {});
     }
   }, [isOnline]);
 

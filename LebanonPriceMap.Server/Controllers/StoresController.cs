@@ -42,6 +42,23 @@ public class StoresController : ControllerBase
         return Ok(new { success = true, data = store });
     }
 
+    /// <summary>
+    /// GET /api/stores/mine
+    /// Returns the store owned by the authenticated retailer.
+    /// </summary>
+    [HttpGet("mine")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> GetMine()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var store = await _storeService.GetByOwnerAsync(userId);
+        if (store == null) return NotFound(new { success = false, message = "No store found for this account" });
+        return Ok(new { success = true, data = store });
+    }
+
     [HttpPut("{id}")]
     [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] StoreUpdateRequest request)
@@ -67,5 +84,70 @@ public class StoresController : ControllerBase
         var success = await _storeService.UpdateStoreStatusAsync(id, request.Status);
         if (!success) return NotFound(new { success = false, message = "Store not found" });
         return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// GET /api/stores/mine/api-keys
+    /// Returns active API keys for the authenticated retailer's store.
+    /// </summary>
+    [HttpGet("mine/api-keys")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> GetApiKeys()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var keys = await _storeService.GetApiKeysAsync(userId);
+        return Ok(new { success = true, data = keys });
+    }
+
+    /// <summary>
+    /// POST /api/stores/mine/api-keys
+    /// Generate a new API key for the authenticated retailer's store.
+    /// </summary>
+    [HttpPost("mine/api-keys")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> CreateApiKey([FromBody] CreateApiKeyRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var result = await _storeService.CreateApiKeyAsync(userId, request.KeyLabel);
+        return Ok(new { success = true, data = result });
+    }
+
+    /// <summary>
+    /// DELETE /api/stores/mine/api-keys/{keyId}
+    /// Revoke an API key.
+    /// </summary>
+    [HttpDelete("mine/api-keys/{keyId}")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> RevokeApiKey(Guid keyId)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var success = await _storeService.RevokeApiKeyAsync(keyId, userId);
+        if (!success) return NotFound(new { success = false, message = "API key not found" });
+        return Ok(new { success = true });
+    }
+
+    /// <summary>
+    /// GET /api/stores/mine/sync-runs
+    /// Returns the recent sync run history for the authenticated retailer's store.
+    /// </summary>
+    [HttpGet("mine/sync-runs")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    public async Task<IActionResult> GetSyncRuns()
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var runs = await _storeService.GetSyncRunsAsync(userId);
+        return Ok(new { success = true, data = runs });
     }
 }

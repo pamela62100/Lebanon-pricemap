@@ -1,78 +1,69 @@
-import { useMemo } from 'react';
-import { MOCK_STORES } from '@/api/mockData';
+import { useState, useEffect } from 'react';
+import { storesApi } from '@/api/stores.api';
 import { StoreCard } from '@/components/cards/StoreCard';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { catalogApi } from '@/api/catalog.api';
-import { KpiCard } from '@/components/cards/KpiCard';
 import { EmptyState } from '@/components/ui/EmptyState';
+import type { Store } from '@/types';
 
 export function RetailerCatalogPage() {
-  const navigate = useNavigate();
-  const verifiedRetailers = useMemo(() =>
-    MOCK_STORES.filter(s => s.isVerifiedRetailer), []);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const totalCatalogItems = useMemo(() =>
-    verifiedRetailers.reduce((acc, s) => acc + catalogApi.getByStore(s.id).length, 0),
-    [verifiedRetailers]
-  );
+  useEffect(() => {
+    storesApi.getAll().then((res) => {
+      const data = res.data?.data ?? res.data;
+      const all = Array.isArray(data) ? data : [];
+      setStores(all.filter((s: Store) => s.isVerifiedRetailer));
+    }).catch(() => {}).finally(() => setIsLoading(false));
+  }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-5 py-12 md:py-20 animate-page">
-      {/* Hero */}
-      <header className="mb-12">
-        <p className="text-[10px] font-semibold text-text-muted uppercase tracking-widest mb-3">
-          Official store catalogs
+    <div className="px-6 lg:px-8 py-8 animate-page">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-text-main">Store Catalogs</h1>
+        <p className="text-sm text-text-muted mt-1">
+          Official prices from verified partner stores, updated daily.
         </p>
-        <h1 className="text-3xl md:text-5xl font-bold text-text-main tracking-tight leading-tight mb-4">
-          Verified store <br /> catalogs
-        </h1>
-        <p className="text-base text-text-muted max-w-lg leading-relaxed">
-          Direct inventory feeds from Lebanon's leading retailers — official prices, updated daily.
-        </p>
-      </header>
+      </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
-        <KpiCard icon="storefront" value={verifiedRetailers.length} label="Verified stores" />
-        <KpiCard icon="inventory_2" value={totalCatalogItems} label="Catalog items" />
-        <KpiCard icon="verified_user" value="100%" label="Official source" />
-        <KpiCard icon="update" value="24h" label="Update cycle" />
+      <div className="flex items-center gap-6 mb-8 p-4 bg-bg-muted/40 rounded-2xl border border-border-soft">
+        <div>
+          <p className="text-xs text-text-muted">Verified stores</p>
+          <p className="text-xl font-bold text-text-main">{stores.length}</p>
+        </div>
+        <div className="w-px h-8 bg-border-soft" />
+        <div>
+          <p className="text-xs text-text-muted">Source</p>
+          <p className="text-sm font-semibold text-green-600">Official</p>
+        </div>
+        <div className="w-px h-8 bg-border-soft" />
+        <div>
+          <p className="text-xs text-text-muted">Update cycle</p>
+          <p className="text-sm font-semibold text-text-main">Every 24h</p>
+        </div>
       </div>
 
       {/* Store grid */}
-      <section>
-        <div className="flex items-center justify-between mb-6 border-b border-border-soft pb-4">
-          <h2 className="text-xl font-bold text-text-main">Partner supermarkets</h2>
-          <span className="text-[10px] font-semibold text-text-muted uppercase tracking-widest">
-            {verifiedRetailers.length} active
-          </span>
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-44 rounded-2xl bg-bg-muted animate-pulse" />
+          ))}
         </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {verifiedRetailers.map((store, i) => (
+      ) : stores.length === 0 ? (
+        <EmptyState
+          icon="storefront"
+          title="No verified stores yet"
+          subtitle="No verified retailers are currently publishing their inventory."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {stores.map((store, i) => (
             <StoreCard key={store.id} store={store} index={i} />
           ))}
         </div>
-
-        {verifiedRetailers.length === 0 && (
-          <EmptyState
-            icon="storefront"
-            title="No verified stores yet"
-            subtitle="No verified retailers are currently publishing their inventory."
-          />
-        )}
-      </section>
-
-      <div className="mt-16 pt-8 border-t border-border-soft">
-        <button
-          onClick={() => navigate('/app')}
-          className="text-xs font-semibold text-text-muted hover:text-text-main transition-colors flex items-center gap-2"
-        >
-          <span className="material-symbols-outlined text-base">arrow_back</span>
-          Back to market overview
-        </button>
-      </div>
+      )}
     </div>
   );
 }

@@ -27,3 +27,17 @@ public class CreateProductRequest
     public string? Barcode { get; set; }
     public Guid? CategoryId { get; set; }
 }
+
+/// <summary>
+/// Used by PUT /api/products/{id} — Admin updates a product.
+/// </summary>
+public class UpdateProductRequest
+{
+    public string? Name { get; set; }
+    public string? NameAr { get; set; }
+    public string? Description { get; set; }
+    public string? Unit { get; set; }
+    public string? Brand { get; set; }
+    public string? Barcode { get; set; }
+    public Guid? CategoryId { get; set; }
+}

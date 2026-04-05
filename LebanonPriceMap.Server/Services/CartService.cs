@@ -105,6 +105,7 @@ public class CartService
     }
 
     /// <summary>
+<<<<<<< HEAD
     /// Removes a single item from the user's cart by cart item ID.
     /// </summary>
     public async Task<bool> RemoveItemAsync(Guid userId, Guid cartItemId)
@@ -120,11 +121,81 @@ public class CartService
 
         _db.CartItems.Remove(item);
         cart.UpdatedAt = DateTime.UtcNow;
+=======
+    /// Removes an item from the cart.
+    /// </summary>
+    public async Task<bool> RemoveItemAsync(Guid userId, Guid itemId)
+    {
+        var item = await _db.CartItems
+            .Include(ci => ci.Cart)
+            .FirstOrDefaultAsync(ci => ci.Id == itemId && ci.Cart.UserId == userId);
+
+        if (item == null) return false;
+
+        _db.CartItems.Remove(item);
+
+        var cart = await _db.Carts.FindAsync(item.CartId);
+        if (cart != null) cart.UpdatedAt = DateTime.UtcNow;
+
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         await _db.SaveChangesAsync();
         return true;
     }
 
     /// <summary>
+<<<<<<< HEAD
+=======
+    /// Updates the quantity of a cart item. Removes if quantity <= 0.
+    /// </summary>
+    public async Task<CartResponse?> UpdateQuantityAsync(Guid userId, Guid itemId, int quantity)
+    {
+        var item = await _db.CartItems
+            .Include(ci => ci.Cart)
+            .FirstOrDefaultAsync(ci => ci.Id == itemId && ci.Cart.UserId == userId);
+
+        if (item == null) return null;
+
+        if (quantity <= 0)
+        {
+            _db.CartItems.Remove(item);
+        }
+        else
+        {
+            item.Quantity = quantity;
+            item.UpdatedAt = DateTime.UtcNow;
+        }
+
+        var cart = await _db.Carts.FindAsync(item.CartId);
+        if (cart != null) cart.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        var reloaded = await _db.Carts
+            .Include(c => c.Items).ThenInclude(ci => ci.Product)
+            .Include(c => c.Items).ThenInclude(ci => ci.Store)
+            .FirstAsync(c => c.Id == item.CartId);
+
+        return MapCartToResponse(reloaded);
+    }
+
+    /// <summary>
+    /// Clears all items from the user's cart.
+    /// </summary>
+    public async Task ClearCartAsync(Guid userId)
+    {
+        var cart = await _db.Carts
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.UserId == userId);
+
+        if (cart == null) return;
+
+        _db.CartItems.RemoveRange(cart.Items);
+        cart.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+
+    /// <summary>
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
     /// Runs the Greedy Basket Optimizer: for each store that carries at least one cart item,
     /// calculates the total cost and returns the cheapest option.
     /// </summary>

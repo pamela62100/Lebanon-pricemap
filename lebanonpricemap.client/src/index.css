@@ -2,53 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
 
 @layer base {
   :root {
     /* ── Backgrounds ── */
-    --bg-base:    #F5F5F7;   /* Apple-style off-white — never pure white */
-    --bg-surface: #FFFFFF;   /* Card surfaces */
-    --bg-muted:   #EFEFEF;   /* Secondary card fill, input backgrounds */
+    --bg-base:    #F9FAFB;   /* Tailwind gray-50 */
+    --bg-surface: #FFFFFF;
+    --bg-muted:   #F3F4F6;   /* Tailwind gray-100 */
 
-    /* ── Dark hero surfaces ── */
-    --bg-dark:       #1A1A1E;   /* Dark card background */
-    --bg-dark-hover: #222228;   /* Dark card hover state */
+    /* ── Dark surfaces ── */
+    --bg-dark:       #111827;  /* Tailwind gray-900 */
+    --bg-dark-hover: #1F2937;  /* Tailwind gray-800 */
 
     /* ── Text ── */
-    --text-main:  #111111;   /* Near-black for headings */
-    --text-sub:   #444444;   /* Body copy */
-    --text-muted: #999999;   /* Metadata, labels, placeholders */
+    --text-main:  #111827;   /* gray-900 — dark but not harsh */
+    --text-sub:   #374151;   /* gray-700 */
+    --text-muted: #9CA3AF;   /* gray-400 */
 
-    /* ── Text on dark cards ── */
-    --text-on-dark:       #FFFFFF;
-    --text-on-dark-muted: rgba(255,255,255,0.55);
+    /* ── Text on dark ── */
+    --text-on-dark:       #F9FAFB;
+    --text-on-dark-muted: rgba(249,250,251,0.55);
 
     /* ── Borders ── */
-    --border-primary: #E8E8E8;
-    --border-soft:    #F0F0F0;
+    --border-primary: #E5E7EB;  /* gray-200 */
+    --border-soft:    #F3F4F6;  /* gray-100 */
 
-    /* ── Accent — pure black. Used sparingly for CTAs and active states ── */
-    --primary:       #111111;
-    --primary-hover: #333333;
-    --primary-soft:  rgba(17,17,17,0.06);
-    --primary-glow:  rgba(17,17,17,0.12);
+    /* ── Accent — blue, professional, universally trusted ── */
+    --primary:       #2563EB;   /* blue-600 */
+    --primary-hover: #1D4ED8;   /* blue-700 */
+    --primary-soft:  #EFF6FF;   /* blue-50 */
+    --primary-glow:  rgba(37,99,235,0.15);
 
-    /* ── Status colors ── */
-    --status-ok:     #22C55E;
-    --status-warn:   #F59E0B;
-    --status-danger: #EF4444;
+    /* ── Status ── */
+    --status-verified-bg:   #F0FDF4;
+    --status-verified-text: #16A34A;
+    --status-pending-bg:    #FFFBEB;
+    --status-pending-text:  #D97706;
+    --status-flagged-bg:    #FEF2F2;
+    --status-flagged-text:  #DC2626;
 
-    /* ── One card shadow. This is the ONLY shadow used in the entire app. ── */
-    --shadow-card:  0 2px 16px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
-    --shadow-glass: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+    --status-ok:     #16A34A;
+    --status-warn:   #D97706;
+    --status-danger: #DC2626;
 
-    /* ── Radius — generous and consistent ── */
-    --radius-sm:  8px;
-    --radius-md:  14px;
-    --radius-lg:  20px;
-    --radius-xl:  28px;
+    /* ── Shadows ── */
+    --shadow-card:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-glass: 0 10px 40px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+
+    /* ── Radius ── */
+    --radius-sm:   6px;
+    --radius-md:   10px;
+    --radius-lg:   14px;
+    --radius-xl:   20px;
     --radius-pill: 999px;
   }
 
@@ -63,115 +70,63 @@
   body {
     min-height: 100%;
     margin: 0;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 14px;
     font-weight: 400;
-    line-height: 1.5;
-    letter-spacing: -0.011em;
+    line-height: 1.6;
+    letter-spacing: -0.006em;
     background: var(--bg-base);
     overflow-x: hidden;
   }
 
-  /* ── Section headers — large, bold, left-aligned, like the reference ── */
-  h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; }
-  h2 { font-size: 1.35rem; font-weight: 700; letter-spacing: -0.02em; }
-  h3 { font-size: 1.1rem; font-weight: 700; letter-spacing: -0.01em; }
+  h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.025em; line-height: 1.2; }
+  h2 { font-size: 1.25rem;  font-weight: 600; letter-spacing: -0.015em; }
+  h3 { font-size: 1rem;     font-weight: 600; letter-spacing: -0.01em; }
 
-  /* ── Price display — the number is always the visual anchor ── */
   .font-data {
     font-family: 'Inter', sans-serif;
     font-variant-numeric: tabular-nums;
-    font-weight: 800;
-    letter-spacing: -0.03em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 
-  /* ── Page entrance ── */
   @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(6px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .animate-page { animation: fadeUp 0.35s ease both; }
+  .animate-page { animation: fadeUp 0.25s ease both; }
 
-  /* ── Skeleton ── */
-  @keyframes shimmer {
-    0%   { background-position: -600px 0; }
-    100% { background-position: 600px 0; }
-  }
-  .skeleton {
-    background: linear-gradient(90deg, var(--bg-muted) 25%, var(--border-primary) 50%, var(--bg-muted) 75%);
-    background-size: 1200px 100%;
-    animation: shimmer 1.4s infinite ease-in-out;
-    border-radius: var(--radius-sm);
-  }
-
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 99px; }
   * { scrollbar-width: thin; scrollbar-color: var(--border-primary) transparent; }
 
   ::selection { background: var(--primary-soft); color: var(--primary); }
   :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
-
-  * { transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1); }
 }
 
 @layer components {
 
-  /* ── Light card — default surface ── */
+  /* ── Card ── */
   .card {
     background: var(--bg-surface);
+    border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-card);
-    position: relative;
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
 
-  /* ── Dark hero card — for featured content, best deals, official catalogs ── */
-  /* Apply className="card-dark" to any card you want dark */
+  /* ── Dark card (store headers, featured items) ── */
   .card-dark {
     background: var(--bg-dark);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
-    position: relative;
     overflow: hidden;
-    /* Subtle wave texture from the reference — pure CSS, no image needed */
-    background-image:
-      radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.04) 0%, transparent 60%),
-      radial-gradient(ellipse at 20% 80%, rgba(255,255,255,0.03) 0%, transparent 50%);
-    transition: box-shadow 0.2s ease;
   }
   .card-dark:hover {
-    background-color: var(--bg-dark-hover);
-    box-shadow: var(--shadow-glass);
+    background: var(--bg-dark-hover);
   }
 
-  /* ── Section header row — "Project" + "All Tasks" from the reference ── */
-  .section-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .section-header h2 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text-main);
-    letter-spacing: -0.02em;
-  }
-  .section-header a,
-  .section-header button {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-muted);
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: color 0.15s ease;
-  }
-  .section-header a:hover,
-  .section-header button:hover { color: var(--text-main); }
-
-  /* ── Primary button — dark pill ── */
+  /* ── Primary button ── */
   .btn-primary {
     background: var(--primary);
     color: #FFFFFF;
@@ -179,39 +134,35 @@
     font-weight: 600;
     font-size: 0.875rem;
     letter-spacing: -0.01em;
-    border-radius: var(--radius-pill);
-    padding: 0.65rem 1.5rem;
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.25rem;
     border: none;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    transition: background 0.15s ease, transform 0.1s ease;
+    gap: 6px;
+    transition: background 0.15s, transform 0.1s;
   }
-  .btn-primary:hover {
-    background: var(--primary-hover);
-    transform: translateY(-1px);
-  }
-  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-primary:active { transform: scale(0.98); }
 
-  /* ── Ghost button — pill outline ── */
+  /* ── Ghost button ── */
   .btn-ghost {
     background: transparent;
     color: var(--text-sub);
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
+    font-weight: 500;
     font-size: 0.875rem;
-    letter-spacing: -0.01em;
-    border-radius: var(--radius-pill);
-    padding: 0.6rem 1.25rem;
-    border: 1.5px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--border-primary);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
-    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+    gap: 6px;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
   }
   .btn-ghost:hover {
     border-color: var(--primary);
@@ -219,48 +170,35 @@
     background: var(--primary-soft);
   }
 
-  /* ── Icon button — the circular ">" button from the reference ── */
+  /* ── Icon button ── */
   .btn-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.15);
-    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-md);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
-    transition: background 0.15s ease;
+    transition: background 0.15s;
   }
-  .btn-icon:hover { background: rgba(255,255,255,0.25); }
+  .btn-icon:hover { background: rgba(255,255,255,0.2); }
 
-  /* ── Pill badge — category, status ── */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: var(--radius-pill);
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-  }
-
-  /* Glass overlay (map panels, dropdowns only) */
+  /* ── Glass (map panels only) ── */
   .glass {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius-lg);
-    border: 1px solid rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.7);
     box-shadow: var(--shadow-glass);
   }
 
-  /* BANNED SHADOWS — never use these:
-     shadow-sm, shadow-md, shadow-lg, shadow-xl, shadow-2xl
-     Use only: shadow-card (var), shadow-glass (var)
-     Cards never have individual Tailwind shadow utilities. */
+  /* ── Hide scrollbar utility ── */
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
 }
 
 /* ── Leaflet ── */

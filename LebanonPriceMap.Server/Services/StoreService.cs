@@ -1,5 +1,6 @@
 using LebanonPriceMap.Server.Data;
 using LebanonPriceMap.Server.DTOs;
+using LebanonPriceMap.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LebanonPriceMap.Server.Services;
@@ -91,6 +92,34 @@ public class StoreService
         };
     }
 
+    /// <summary>
+    /// Returns the store owned by the specified user.
+    /// </summary>
+    public async Task<StoreResponse?> GetByOwnerAsync(Guid ownerId)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        if (store == null) return null;
+
+        return new StoreResponse
+        {
+            Id = store.Id.ToString(),
+            Name = store.Name,
+            Chain = store.Chain,
+            City = store.City,
+            District = store.District,
+            Region = store.Region,
+            Latitude = store.Latitude,
+            Longitude = store.Longitude,
+            IsVerifiedRetailer = store.IsVerifiedRetailer,
+            OwnerId = store.OwnerUserId?.ToString(),
+            TrustScore = store.TrustScore,
+            Status = store.Status,
+            InternalRateLbp = store.InternalRateLbp,
+            PowerStatus = store.PowerStatus,
+            LogoUrl = store.LogoUrl
+        };
+    }
+
     public async Task<bool> UpdateStoreAsync(Guid id, StoreUpdateRequest request)
     {
         var store = await _db.Stores.FindAsync(id);
@@ -131,5 +160,99 @@ public class StoreService
 
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<List<ApiKeyResponse>> GetApiKeysAsync(Guid ownerId)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        if (store == null) return new List<ApiKeyResponse>();
+
+        return await _db.StoreApiKeys
+            .Where(k => k.StoreId == store.Id && k.IsActive)
+            .OrderByDescending(k => k.CreatedAt)
+            .Select(k => new ApiKeyResponse
+            {
+                Id = k.Id.ToString(),
+                KeyLabel = k.KeyLabel ?? "Default",
+                IsActive = k.IsActive,
+                CreatedAt = k.CreatedAt,
+                LastUsedAt = k.LastUsedAt,
+                RevokedAt = k.RevokedAt
+            })
+            .ToListAsync();
+    }
+
+    public async Task<ApiKeyResponse> CreateApiKeyAsync(Guid ownerId, string label)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        if (store == null) throw new InvalidOperationException("Store not found");
+
+        // Generate a secure random key
+        var rawBytes = new byte[32];
+        System.Security.Cryptography.RandomNumberGenerator.Fill(rawBytes);
+        var plainKey = "rk_live_" + Convert.ToBase64String(rawBytes).Replace("+", "").Replace("/", "").Replace("=", "")[..32];
+        var keyHash = Convert.ToBase64String(
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(plainKey)));
+
+        var apiKey = new StoreApiKey
+        {
+            Id = Guid.NewGuid(),
+            StoreId = store.Id,
+            ApiKeyHash = keyHash,
+            KeyLabel = label,
+            IsActive = true,
+            CreatedBy = ownerId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _db.StoreApiKeys.Add(apiKey);
+        await _db.SaveChangesAsync();
+
+        return new ApiKeyResponse
+        {
+            Id = apiKey.Id.ToString(),
+            KeyLabel = apiKey.KeyLabel ?? "Default",
+            IsActive = true,
+            CreatedAt = apiKey.CreatedAt,
+            PlainKey = plainKey  // returned once only
+        };
+    }
+
+    public async Task<bool> RevokeApiKeyAsync(Guid keyId, Guid ownerId)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        if (store == null) return false;
+
+        var key = await _db.StoreApiKeys.FirstOrDefaultAsync(k => k.Id == keyId && k.StoreId == store.Id);
+        if (key == null) return false;
+
+        key.IsActive = false;
+        key.RevokedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<List<SyncRunResponse>> GetSyncRunsAsync(Guid ownerId)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        if (store == null) return new List<SyncRunResponse>();
+
+        return await _db.StoreSyncRuns
+            .Where(r => r.StoreId == store.Id)
+            .OrderByDescending(r => r.StartedAt)
+            .Take(20)
+            .Select(r => new SyncRunResponse
+            {
+                Id = r.Id.ToString(),
+                Method = r.Method,
+                Status = r.Status,
+                RecordsReceived = r.RecordsReceived,
+                RecordsProcessed = r.RecordsProcessed,
+                RecordsFailed = r.RecordsFailed,
+                Message = r.Message,
+                StartedAt = r.StartedAt,
+                FinishedAt = r.FinishedAt
+            })
+            .ToListAsync();
     }
 }

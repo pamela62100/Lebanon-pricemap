@@ -106,13 +106,17 @@ public class DiscrepancyService
             var catalogItem = await _context.StoreCatalogItems.FindAsync(report.CatalogItemId);
             if (catalogItem != null)
             {
+<<<<<<< HEAD
                 // BUG-01 FIX: Capture the OLD price BEFORE updating
+=======
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                 var previousPrice = catalogItem.OfficialPriceLbp;
 
                 catalogItem.OfficialPriceLbp = approvedPrice.Value;
                 catalogItem.LastUpdatedAt = DateTime.UtcNow;
                 catalogItem.LastUpdatedBy = adminId;
 
+<<<<<<< HEAD
                 // Also update the current_store_product_prices materialized view
                 var currentPrice = await _context.CurrentStoreProductPrices
                     .FirstOrDefaultAsync(p => p.StoreId == catalogItem.StoreId && p.ProductId == catalogItem.ProductId);
@@ -124,6 +128,8 @@ public class DiscrepancyService
                 }
 
                 // Add to audit trail with correct previous price and standardized reason
+=======
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                 _context.CatalogAuditEntries.Add(new CatalogAuditEntry
                 {
                     Id = Guid.NewGuid(),
@@ -133,7 +139,11 @@ public class DiscrepancyService
                     ChangedBy = adminId,
                     Reason = "discrepancy_approved", // BUG-03 FIX: Standardized reason
                     RelatedReportId = report.Id,
+<<<<<<< HEAD
                     PreviousPriceLbp = previousPrice, // BUG-01 FIX: Uses captured old price
+=======
+                    PreviousPriceLbp = previousPrice,
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                     NewPriceLbp = approvedPrice.Value,
                     Note = reviewNote,
                     CreatedAt = DateTime.UtcNow

@@ -231,6 +231,7 @@ public class PriceService
 
         _db.PriceSubmissions.Add(submission);
 
+<<<<<<< HEAD
         // BUG-02 FIX: Upsert the current_store_product_prices table
         var currentPrice = await _db.CurrentStoreProductPrices
             .FirstOrDefaultAsync(p => p.StoreId == storeId && p.ProductId == productId);
@@ -241,15 +242,33 @@ public class PriceService
             currentPrice.Source = "community";
             currentPrice.IsVerified = false;
             currentPrice.UpdatedAt = DateTime.UtcNow;
+=======
+        // Upsert into CurrentStoreProductPrices so searches immediately reflect new prices
+        var existing = await _db.CurrentStoreProductPrices
+            .FirstOrDefaultAsync(c => c.StoreId == submission.StoreId && c.ProductId == submission.ProductId);
+
+        if (existing != null)
+        {
+            existing.CurrentPriceLbp = submission.PriceLbp;
+            existing.Source = "community";
+            existing.IsVerified = false;
+            existing.UpdatedAt = DateTime.UtcNow;
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         }
         else
         {
             _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
             {
                 Id = Guid.NewGuid(),
+<<<<<<< HEAD
                 StoreId = storeId,
                 ProductId = productId,
                 CurrentPriceLbp = request.PriceLbp,
+=======
+                StoreId = submission.StoreId,
+                ProductId = submission.ProductId,
+                CurrentPriceLbp = submission.PriceLbp,
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
                 Source = "community",
                 IsVerified = false,
                 IsInStock = true,
@@ -257,12 +276,17 @@ public class PriceService
             });
         }
 
+<<<<<<< HEAD
         // Increment user upload count
         var user = await _db.Users.FindAsync(userId);
         if (user != null) user.UploadCount++;
 
         await _db.SaveChangesAsync();
         
+=======
+        await _db.SaveChangesAsync();
+
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
         return new PriceEntryResponse
         {
             Id = submission.Id.ToString(),
@@ -273,6 +297,40 @@ public class PriceService
             Source = "community",
             CreatedAt = submission.CreatedAt
         };
+    }
+
+    /// <summary>
+    /// Gets all price submissions made by a specific user.
+    /// </summary>
+    public async Task<List<PriceEntryResponse>> GetByUserAsync(Guid userId)
+    {
+        return await _db.PriceSubmissions
+            .Include(p => p.Product)
+            .Include(p => p.Store)
+            .Where(p => p.SubmittedBy == userId)
+            .OrderByDescending(p => p.CreatedAt)
+            .Select(p => new PriceEntryResponse
+            {
+                Id = p.Id.ToString(),
+                ProductId = p.ProductId.ToString(),
+                StoreId = p.StoreId.ToString(),
+                PriceLbp = p.PriceLbp,
+                Status = p.SubmissionStatus,
+                Source = p.Source,
+                CreatedAt = p.CreatedAt,
+                Product = p.Product == null ? null : new ProductDto {
+                    Name = p.Product.Name,
+                    Category = p.Product.Category != null ? p.Product.Category.Name : "General",
+                    Unit = p.Product.Unit
+                },
+                Store = p.Store == null ? null : new StoreDto {
+                    Name = p.Store.Name,
+                    City = p.Store.City,
+                    Latitude = p.Store.Latitude,
+                    Longitude = p.Store.Longitude
+                }
+            })
+            .ToListAsync();
     }
 
     /// <summary>
@@ -290,6 +348,27 @@ public class PriceService
 
         await _db.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Returns historical price submissions for a product to power the price chart.
+    /// </summary>
+    public async Task<List<PriceHistoryPoint>> GetHistoryByProductAsync(string productId)
+    {
+        if (!Guid.TryParse(productId, out var productGuid)) return new List<PriceHistoryPoint>();
+
+        return await _db.PriceSubmissions
+            .Include(p => p.Store)
+            .Where(p => p.ProductId == productGuid)
+            .OrderBy(p => p.CreatedAt)
+            .Take(30)
+            .Select(p => new PriceHistoryPoint
+            {
+                Date = p.CreatedAt.ToString("MMM dd"),
+                Price = p.PriceLbp,
+                StoreName = p.Store != null ? p.Store.Name : ""
+            })
+            .ToListAsync();
     }
 
     // Helper method to avoid repeating the "Mapping" code

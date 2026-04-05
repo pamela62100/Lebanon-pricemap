@@ -26,9 +26,15 @@ builder.Services.AddScoped<AlertService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<FuelService>();
 builder.Services.AddScoped<CartService>();
+<<<<<<< HEAD
 builder.Services.AddScoped<MissingProductService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddHttpClient();
+=======
+builder.Services.AddScoped<AdminService>();
+builder.Services.AddScoped<FeedbackService>();
+builder.Services.AddScoped<ApprovalService>();
+>>>>>>> 5fac94b80409dd1f2e78730c8fe497e5c36959fb
 
 
 // Add CORS
@@ -36,19 +42,16 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "http://localhost:5174",
-            "http://localhost:5175",
-            "http://localhost:3000"
-        )
-        .AllowAnyHeader()
-        .AllowAnyMethod();
+        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:3000" };
+        policy.WithOrigins(allowedOrigins)
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
 // Add JWT Authentication
-var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

@@ -38,10 +38,7 @@ export const Card: React.FC<CardProps> = ({
         {icon ? <div className="mb-4 text-primary">{icon}</div> : null}
 
         {header ? (
-          <h3
-            className="text-xl sm:text-2xl text-text-main mb-2 leading-snug font-bold"
-            style={{ fontFamily: "'DM Serif Display', serif" }}
-          >
+          <h3 className="text-xl sm:text-2xl text-text-main mb-2 leading-snug font-bold">
             {header}
           </h3>
         ) : null}
