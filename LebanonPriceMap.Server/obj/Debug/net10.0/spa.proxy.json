@@ -3,7 +3,7 @@
 "ServerUrl": "https://localhost:61206",
 "RedirectUrl": "",
 "LaunchCommand": "npm run dev",
-"WorkingDirectory": "C:\\Users\\96171\\Lebanon-pricemap\\LebanonPriceMap.Server\\..\\lebanonpricemap.client",
+"WorkingDirectory": "C:\\fyp\\Lebanon-pricemap\\LebanonPriceMap.Server\\..\\lebanonpricemap.client",
 "MaxTimeoutInSeconds": "120",
 "KeepRunning": "false"
 }

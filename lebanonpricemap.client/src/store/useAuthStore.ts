@@ -53,7 +53,10 @@ export const useAuthStore = create<AuthState>()(
 
           return { success: true };
         } catch (err: any) {
-          const message = err.response?.data?.message ?? 'Invalid email or password.';
+          const message = 
+            err.response?.data?.errors 
+              ? Object.values(err.response.data.errors).flat().join(' ') 
+              : err.response?.data?.message || 'Invalid email or password.';
           return { success: false, error: message };
         }
       },
@@ -105,7 +108,10 @@ export const useAuthStore = create<AuthState>()(
 
           return { success: true };
         } catch (err: any) {
-          const message = err.response?.data?.message ?? 'Registration failed. Please try again.';
+          const message = 
+            err.response?.data?.errors 
+              ? Object.values(err.response.data.errors).flat().join(' ') 
+              : err.response?.data?.message || 'Registration failed. Please try again.';
           return { success: false, error: message };
         }
       },

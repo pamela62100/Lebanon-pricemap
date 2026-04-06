@@ -22,22 +22,33 @@ public class AuthService
 
     public async Task<AuthResponse?> Register(RegisterRequest request)
     {
+        var emailClean = request.Email.ToLower().Trim();
+        var nameClean = request.Name.Trim();
+
         // Check if email already exists
-        var exists = await _db.Users.AnyAsync(u => u.Email == request.Email);
+        var exists = await _db.Users.AnyAsync(u => u.Email == emailClean);
         if (exists) return null;
 
-        // Create initials from name
-        var parts = request.Name.Trim().Split(' ');
-        var initials = parts.Length >= 2
-            ? $"{parts[0][0]}{parts[^1][0]}"
-            : request.Name[..1];
+        // Create initials from name (robustly)
+        string initials;
+        if (string.IsNullOrWhiteSpace(nameClean))
+        {
+            initials = "??";
+        }
+        else
+        {
+            var parts = nameClean.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            initials = parts.Length >= 2
+                ? $"{parts[0][0]}{parts[^1][0]}"
+                : nameClean.Length >= 2 ? nameClean[..2] : nameClean;
+        }
 
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Email = request.Email.ToLower().Trim(),
+            Email = emailClean,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
-            Name = request.Name,
+            Name = nameClean,
             AvatarInitials = initials.ToUpper(),
             City = request.City,
             Role = request.Role,
