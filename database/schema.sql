@@ -781,40 +781,6 @@ CREATE TABLE IF NOT EXISTS system_broadcasts (
 );
 
 -- =========================================================
--- Store Sync Items (individual records from a sync run)
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS store_sync_items (
-  id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  sync_run_id UUID        NOT NULL REFERENCES store_sync_runs(id) ON DELETE CASCADE,
-  product_id  UUID        REFERENCES products(id) ON DELETE SET NULL,
-
-  raw_name    VARCHAR(255),
-  raw_barcode VARCHAR(100),
-  raw_price   NUMERIC(12,2),
-
-  status      VARCHAR(50)  NOT NULL DEFAULT 'pending',  -- 'matched','new','failed','skipped'
-  fail_reason TEXT,
-
-  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-
--- =========================================================
--- System Settings (admin key/value configuration)
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS system_settings (
-  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
-  key         VARCHAR(150) NOT NULL UNIQUE,
-  value       TEXT         NOT NULL,
-  description TEXT,
-
-  updated_by  UUID         REFERENCES users(id) ON DELETE SET NULL,
-  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
-);
-
--- =========================================================
 -- Indexes
 -- =========================================================
 
@@ -884,12 +850,6 @@ CREATE INDEX IF NOT EXISTS idx_approval_status       ON approval_requests(status
 CREATE INDEX IF NOT EXISTS idx_approval_user         ON approval_requests(requested_by);
 
 CREATE INDEX IF NOT EXISTS idx_broadcasts_active     ON system_broadcasts(is_active);
-
-CREATE INDEX IF NOT EXISTS idx_sync_items_run        ON store_sync_items(sync_run_id);
-CREATE INDEX IF NOT EXISTS idx_sync_items_product    ON store_sync_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_sync_items_status     ON store_sync_items(status);
-
-CREATE INDEX IF NOT EXISTS idx_settings_key          ON system_settings(key);
 
 CREATE INDEX IF NOT EXISTS idx_onboarding_status     ON retailer_onboarding_applications(status);
 CREATE INDEX IF NOT EXISTS idx_onboarding_user       ON retailer_onboarding_applications(user_id);
