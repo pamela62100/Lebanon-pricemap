@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("LebanonPriceMap.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+953788a65b1b6da3950111b724385636d61d9cc1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0f52bae8db6693bab38a1939e1f40f8a2ea496a0")]
 [assembly: System.Reflection.AssemblyProductAttribute("LebanonPriceMap.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("LebanonPriceMap.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
