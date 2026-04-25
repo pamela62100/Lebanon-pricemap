@@ -18,6 +18,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("auth")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
         var result = await _authService.Register(request);
@@ -29,6 +30,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [Microsoft.AspNetCore.RateLimiting.EnableRateLimiting("auth")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var result = await _authService.Login(request);

@@ -8,6 +8,18 @@ using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
+// Add rate limiting to prevent brute force attacks
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter(policyName: "auth", configure: options =>
+    {
+        options.Window = TimeSpan.FromMinutes(1);
+        options.PermitLimit = 5;
+        options.QueueProcessingOrder = System.Net.RateLimiting.QueueProcessingOrder.OldestFirst;
+        options.QueueLimit = 2;
+    });
+});
+
 // Connect to PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
@@ -31,7 +43,7 @@ builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ApprovalService>();
 
 
-// Add CORS
+// Add CORS with strict security
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -39,8 +51,9 @@ builder.Services.AddCors(options =>
         var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
             ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:3000" };
         policy.WithOrigins(allowedOrigins)
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+            .WithMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+            .WithHeaders("Content-Type", "Authorization")
+            .AllowCredentials();
     });
 });
 
@@ -74,6 +87,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

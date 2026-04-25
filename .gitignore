@@ -17,10 +17,11 @@ dist/
 build/
 *.log
 
-# Environment
+# Environment (NEVER commit these!)
 .env
 .env.local
 .env.*.local
+*.env
 
 # OS
 .DS_Store
