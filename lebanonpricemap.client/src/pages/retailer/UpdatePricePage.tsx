@@ -153,6 +153,7 @@ export function UpdatePricePage() {
                   isPromotion: isPromo,
                   promoEndsAt: isPromo ? promoEnd : null,
                   status: 'verified',
+                  source: 'official',
                   createdAt: new Date().toISOString(),
                   verifiedAt: new Date().toISOString(),
                   verifiedBy: 'me',

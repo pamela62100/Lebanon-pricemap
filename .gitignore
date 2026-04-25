@@ -1,0 +1,31 @@
+# IDEs
+.vs/
+.vscode/
+*.sln.iml
+
+# Backend
+bin/
+obj/
+*.user
+*.userosscache
+*.suo
+*.sln.iml
+
+# Frontend
+node_modules/
+dist/
+build/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.tmp
+*.bak

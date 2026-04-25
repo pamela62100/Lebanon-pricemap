@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { pricesApi } from '@/api/prices.api';
 import { feedbackApi } from '@/api/feedback.api';
 import { timeAgo } from '@/lib/utils';
@@ -41,14 +40,24 @@ export function PriceDetailPage() {
               const pts = (hr as any).data?.data ?? [];
               setHistory(Array.isArray(pts) ? pts.map((p: any) => ({ date: p.date, price: Number(p.price) })) : []);
             })
-            .catch(() => {});
+            .catch((err) => {
+              console.error('Failed to load price history:', err);
+            });
         } else {
           setNotFound(true);
         }
       })
-      .catch(() => setNotFound(true))
+      .catch((err) => {
+        console.error('Failed to load price details:', err);
+        if (err.response?.status === 404) {
+          setNotFound(true);
+        } else {
+          addToast('Failed to load price details', 'error');
+          setNotFound(true);
+        }
+      })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, addToast]);
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">

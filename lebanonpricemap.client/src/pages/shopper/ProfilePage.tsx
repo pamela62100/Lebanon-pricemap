@@ -356,8 +356,9 @@ export function ProfilePage() {
             await usersApi.deleteSubmissions(user.id);
             setMyEntries([]);
             addToast('All submissions deleted', 'success');
-          } catch {
-            addToast('Failed to delete submissions', 'error');
+          } catch (err) {
+            console.error('Delete submissions error:', err);
+            addToast('Failed to delete submissions. Please try again.', 'error');
           }
         }}
       />
@@ -375,8 +376,9 @@ export function ProfilePage() {
             await usersApi.deleteAccount(user.id);
             logout();
             navigate('/');
-          } catch {
-            addToast('Failed to delete account', 'error');
+          } catch (err) {
+            console.error('Delete account error:', err);
+            addToast('Failed to delete account. Please try again.', 'error');
           }
         }}
       />

@@ -13,10 +13,14 @@ export function UploadReceiptPage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    pricesApi.getByUser(user.id).then((res) => {
-      const data = res.data?.data ?? res.data;
-      setEntries(Array.isArray(data) ? data : []);
-    }).catch(() => {});
+    pricesApi.getByUser(user.id)
+      .then((res) => {
+        const data = res.data?.data ?? res.data;
+        setEntries(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error('Failed to load submissions:', err);
+      });
   }, [user?.id]);
 
   const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {

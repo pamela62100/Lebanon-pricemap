@@ -8,9 +8,9 @@ import { storesApi } from '@/api/stores.api';
 import { cn } from '@/lib/utils';
 import type { Store } from '@/types';
 
-type StoreStatus = 'pending' | 'active' | 'suspended';
+type StoreStatus = 'pending' | 'verified' | 'flagged';
 
-const STATUS_TABS = ['all', 'pending', 'active', 'suspended'];
+const STATUS_TABS = ['all', 'pending', 'verified', 'flagged'];
 
 export function AdminStoresPage() {
   const [stores, setStores] = useState<Store[]>([]);
@@ -31,8 +31,8 @@ export function AdminStoresPage() {
   }, []);
 
   const getEffectiveStatus = (store: Store): StoreStatus => {
-    if (store.status === 'suspended') return 'suspended';
-    if (store.status === 'verified' || store.isVerifiedRetailer) return 'active';
+    if (store.status === 'flagged') return 'flagged';
+    if (store.status === 'verified' || store.isVerifiedRetailer) return 'verified';
     return 'pending';
   };
 
@@ -49,19 +49,19 @@ export function AdminStoresPage() {
   const counts = useMemo(() => ({
     all: stores.length,
     pending: stores.filter(s => getEffectiveStatus(s) === 'pending').length,
-    active: stores.filter(s => getEffectiveStatus(s) === 'active').length,
-    suspended: stores.filter(s => getEffectiveStatus(s) === 'suspended').length,
+    verified: stores.filter(s => getEffectiveStatus(s) === 'verified').length,
+    flagged: stores.filter(s => getEffectiveStatus(s) === 'flagged').length,
   }), [stores]);
 
   const changeStatus = async (id: string, status: StoreStatus) => {
     try {
-      const apiStatus = status === 'active' ? 'verified' : status;
-      await storesApi.updateStatus(id, apiStatus);
-      setStores(prev => prev.map(s => s.id === id ? { ...s, status: apiStatus } : s));
-      const label = { active: 'approved', pending: 'set to pending', suspended: 'suspended' }[status];
-      addToast(`Store ${label}`, status === 'active' ? 'success' : status === 'suspended' ? 'error' : 'info');
-    } catch {
-      addToast('Failed to update store status');
+      await storesApi.updateStatus(id, status);
+      setStores(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+      const label = { verified: 'approved', pending: 'set to pending', flagged: 'flagged' }[status];
+      addToast(`Store ${label}`, status === 'verified' ? 'success' : status === 'flagged' ? 'error' : 'info');
+    } catch (err) {
+      console.error('Failed to update store status:', err);
+      addToast('Failed to update store status', 'error');
     }
   };
 
@@ -78,8 +78,8 @@ export function AdminStoresPage() {
         {[
           { label: 'Total Stores',  value: counts.all,       icon: 'storefront',   color: 'text-text-main' },
           { label: 'Pending',       value: counts.pending,   icon: 'pending',      color: 'text-amber-400' },
-          { label: 'Active',        value: counts.active,    icon: 'check_circle', color: 'text-green-500' },
-          { label: 'Suspended',     value: counts.suspended, icon: 'block',        color: 'text-red-400'   },
+          { label: 'Verified',      value: counts.verified,  icon: 'check_circle', color: 'text-green-500' },
+          { label: 'Flagged',       value: counts.flagged,   icon: 'block',        color: 'text-red-400'   },
         ].map(kpi => (
           <div key={kpi.label} className="bg-bg-surface rounded-2xl border border-border-soft p-5 flex items-center gap-4">
             <span className={`material-symbols-outlined ${kpi.color}`} style={{ fontSize: '28px' }}>{kpi.icon}</span>
@@ -141,8 +141,8 @@ export function AdminStoresPage() {
                     <td className="px-5 py-4 text-sm text-text-muted">{store.district}, {store.city}</td>
                     <td className="px-5 py-4"><TrustBadge score={store.trustScore} size="sm" /></td>
                     <td className="px-5 py-4">
-                      <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full',
-                        effectiveStatus === 'active' ? 'bg-green-500/10 text-green-500'
+                      <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full capitalize',
+                        effectiveStatus === 'verified' ? 'bg-green-500/10 text-green-500'
                         : effectiveStatus === 'pending' ? 'bg-amber-400/10 text-amber-400'
                         : 'bg-red-400/10 text-red-400'
                       )}>
@@ -157,7 +157,7 @@ export function AdminStoresPage() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-1.5">
-                        {effectiveStatus !== 'active' && (
+                        {effectiveStatus !== 'verified' && (
                           <button
                             onClick={() => open('approve-store', { id: store.id })}
                             className="px-2.5 py-1 rounded-lg bg-green-500/10 text-green-500 text-[11px] font-bold hover:bg-green-500/20 transition-all uppercase tracking-wider"
@@ -165,12 +165,12 @@ export function AdminStoresPage() {
                             Approve
                           </button>
                         )}
-                        {effectiveStatus !== 'suspended' && (
+                        {effectiveStatus !== 'flagged' && (
                           <button
-                            onClick={() => open('suspend-store', { id: store.id })}
+                            onClick={() => open('flag-store', { id: store.id })}
                             className="px-2.5 py-1 rounded-lg bg-red-400/10 text-red-400 text-[11px] font-bold hover:bg-red-400/20 transition-all uppercase tracking-wider"
                           >
-                            Suspend
+                            Flag
                           </button>
                         )}
                       </div>
@@ -189,16 +189,16 @@ export function AdminStoresPage() {
         description={`Are you sure you want to approve ${activeStore?.name}? This will grant them "Verified Retailer" status.`}
         confirmLabel="Approve Store"
         variant="primary"
-        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'active'); }}
+        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'verified'); }}
       />
 
       <ConfirmDialog
-        dialogId="suspend-store"
-        title="Suspend Store"
-        description={`WARNING: Suspending ${activeStore?.name} will hide all their products from the public map.`}
-        confirmLabel="Confirm Suspension"
+        dialogId="flag-store"
+        title="Flag Store"
+        description={`Are you sure you want to flag ${activeStore?.name}? This will mark it for review.`}
+        confirmLabel="Flag Store"
         variant="danger"
-        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'suspended'); }}
+        onConfirm={() => { if (activeStoreId) changeStatus(activeStoreId, 'flagged'); }}
       />
     </div>
   );

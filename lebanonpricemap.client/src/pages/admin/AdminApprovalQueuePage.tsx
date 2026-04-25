@@ -75,18 +75,21 @@ export function AdminApprovalQueuePage() {
       {/* Queue */}
       <div className="flex flex-col gap-4">
         <AnimatePresence mode="popLayout">
-          {filtered.map((request) => (
-            <ApprovalCard
-              key={request.id}
-              request={request}
-              expanded={expandedId === request.id}
-              onToggle={() => setExpandedId(id => id === request.id ? null : request.id)}
-              reviewNote={reviewNote[request.id] ?? ''}
-              onNoteChange={(note) => setReviewNote(n => ({ ...n, [request.id]: note }))}
-              onApprove={() => { approveRequest(request.id, reviewNote[request.id]); setExpandedId(null); }}
-              onReject={() =>  { rejectRequest(request.id, reviewNote[request.id]);  setExpandedId(null); }}
-            />
-          ))}
+          {filtered.map((request) => {
+            const typedRequest = request as ApprovalRequest & { payload: string | Record<string, unknown> };
+            return (
+              <ApprovalCard
+                key={request.id}
+                request={typedRequest as ApprovalRequest}
+                expanded={expandedId === request.id}
+                onToggle={() => setExpandedId(id => id === request.id ? null : request.id)}
+                reviewNote={reviewNote[request.id] ?? ''}
+                onNoteChange={(note) => setReviewNote(n => ({ ...n, [request.id]: note }))}
+                onApprove={() => { approveRequest(request.id, reviewNote[request.id]); setExpandedId(null); }}
+                onReject={() =>  { rejectRequest(request.id, reviewNote[request.id]);  setExpandedId(null); }}
+              />
+            );
+          })}
         </AnimatePresence>
 
         {filtered.length === 0 && (

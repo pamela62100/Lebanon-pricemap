@@ -50,8 +50,14 @@ export function SearchPage() {
       sort: sortBy === 'date' ? undefined : sortBy,
       verifiedOnly: false,
     })
-      .then(res => setAllEntries((res as any).data?.data ?? []))
-      .catch(() => setAllEntries([]))
+      .then(res => {
+        const data = res.data?.data ?? [];
+        setAllEntries(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error('Search error:', err);
+        setAllEntries([]);
+      })
       .finally(() => setLoading(false));
   }, [query, activeCategory, sortBy]);
 

@@ -1,4 +1,4 @@
-import axios, { InternalAxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 const client = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5223/api',
@@ -18,7 +18,10 @@ client.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('rakis_token');
-      window.location.href = '/login';
+      // Only redirect if not already on login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

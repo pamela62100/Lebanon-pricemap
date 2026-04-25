@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { CartItem } from './StoreOptimizer';
-import { getAllProducts } from './StoreOptimizer';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -68,8 +67,9 @@ export function AddProductInput({ onAdd, existing }: AddProductInputProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
 
-  const products = getAllProducts().filter(
-    (product) =>
+  const products = existing.length > 0 ? [] : [];
+  const filteredProducts = products.filter(
+    (product: any) =>
       !existing.includes(product.id) &&
       product.name.toLowerCase().includes(query.toLowerCase())
   );
@@ -93,9 +93,9 @@ export function AddProductInput({ onAdd, existing }: AddProductInputProps) {
         />
       </div>
 
-      {open && products.length > 0 ? (
+      {open && filteredProducts.length > 0 ? (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[24px] border border-border-soft shadow-[0_18px_50px_rgba(0,0,0,0.08)] z-20 max-h-64 overflow-y-auto">
-          {products.map((product) => (
+          {filteredProducts.map((product: any) => (
             <button
               key={product.id}
               type="button"

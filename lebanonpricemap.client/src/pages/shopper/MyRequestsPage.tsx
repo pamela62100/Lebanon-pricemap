@@ -61,7 +61,8 @@ export function MyRequestsPage() {
       ) : (
         <div className="flex flex-col gap-4">
           {myRequests.map((request, index) => {
-            const config = STATUS_CONFIG[request.status];
+            const status = request.status as ApprovalStatus;
+            const config = STATUS_CONFIG[status] ?? STATUS_CONFIG.pending;
 
             return (
               <motion.div

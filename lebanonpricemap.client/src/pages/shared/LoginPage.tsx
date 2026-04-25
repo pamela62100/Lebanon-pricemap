@@ -46,23 +46,23 @@ export function LoginPage() {
   const handleLogin = async () => {
     setError('');
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    const result = await login(email, password);
-    setLoading(false);
+    try {
+      const result = await login(email, password);
+      setLoading(false);
 
-    if (!result.success) {
-      setError(result.error ?? 'Sign in failed. Please try again.');
-      return;
+      if (!result.success) {
+        setError(result.error ?? 'Sign in failed. Please try again.');
+        return;
+      }
+
+      const user = useAuthStore.getState().user;
+      const destination = ROLE_DESTINATIONS[user?.role ?? 'shopper'] ?? '/app';
+      navigate(destination);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An unexpected error occurred. Please try again.');
+      setLoading(false);
     }
-
-    const role =
-      email.includes('@admin') || email.includes('admin@')
-        ? 'admin'
-        : email.includes('retailer') || email.includes('@store')
-        ? 'retailer'
-        : 'shopper';
-
-    navigate(ROLE_DESTINATIONS[role] ?? '/app');
   };
 
   return (

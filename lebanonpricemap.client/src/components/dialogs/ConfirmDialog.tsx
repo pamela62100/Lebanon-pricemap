@@ -66,11 +66,11 @@ export function ConfirmDialog({
   };
 
   const handleRequestApproval = () => {
-    submitRequest(permission!, {
+    submitRequest(permission!, JSON.stringify({
       label: approvalLabel ?? title,
       requestedBy: user?.id,
       ...approvalPayload,
-    });
+    }));
 
     setLoading(true);
     setTimeout(() => {
