@@ -12,6 +12,7 @@ import { LandingPage }  from '@/pages/LandingPage';
 import { LoginPage }    from '@/pages/shared/LoginPage';
 import { RegisterPage } from '@/pages/shared/RegisterPage';
 import { NotFoundPage } from '@/pages/shared/NotFoundPage';
+import { ResetPasswordPage } from '@/pages/shared/ResetPasswordPage';
 
 // Public (unauthenticated) detail pages
 import { PublicMapPage }      from '@/pages/public/PublicMapPage';
@@ -39,6 +40,7 @@ import { RetailerProductsPage }   from '@/pages/retailer/RetailerProductsPage';
 import { PromotionsPage }         from '@/pages/retailer/PromotionsPage';
 import { CompetitorInsightsPage } from '@/pages/retailer/CompetitorInsightsPage';
 import { RetailerSyncPage }       from '@/pages/retailer/RetailerSyncPage';
+import { StoreOnboardingPage }    from '@/pages/retailer/StoreOnboardingPage';
 import { BulkUploadPage }         from '@/pages/retailer/BulkUploadPage';
 import { UpdatePricePage }        from '@/pages/retailer/UpdatePricePage';
 
@@ -71,8 +73,9 @@ export function AppRouter() {
     <Routes>
       {/* ── Public ─────────────────────────────────────────────── */}
       <Route path="/"            element={<LandingPage />} />
-      <Route path="/login"       element={<LoginPage />} />
-      <Route path="/register"    element={<RegisterPage />} />
+      <Route path="/login"          element={<LoginPage />} />
+      <Route path="/register"       element={<RegisterPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route path="/map"         element={<PublicMapPage />} />
       <Route path="/product/:id" element={<ProductPublicPage />} />
       <Route path="/store/:id"   element={<StorePublicPage />} />
@@ -100,6 +103,7 @@ export function AppRouter() {
       <Route element={<ProtectedRoute allowedRoles={['retailer', 'admin']} />}>
         <Route path="/retailer" element={<RetailerLayout />}>
           <Route index               element={<StoreDashboardPage />} />
+          <Route path="setup"        element={<StoreOnboardingPage />} />
           <Route path="products"     element={<RetailerProductsPage />} />
           <Route path="promotions"   element={<PromotionsPage />} />
           <Route path="insights"     element={<CompetitorInsightsPage />} />

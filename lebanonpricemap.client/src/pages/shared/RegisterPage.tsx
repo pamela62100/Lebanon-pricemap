@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 
 const ROLE_DESTINATIONS: Record<string, string> = {
   shopper: '/app',
-  retailer: '/retailer',
 };
 
 function PasswordStrengthBar({ password }: { password: string }) {
@@ -45,23 +44,8 @@ function PasswordStrengthBar({ password }: { password: string }) {
   );
 }
 
-const ROLE_CARDS = [
-  {
-    id: 'shopper' as const,
-    icon: 'shopping_cart',
-    title: 'Shopper',
-    subtitle: 'I want to compare prices',
-  },
-  {
-    id: 'retailer' as const,
-    icon: 'storefront',
-    title: 'Retailer',
-    subtitle: 'I manage a store',
-  },
-];
-
 export function RegisterPage() {
-  const [role, setRole] = useState<'shopper' | 'retailer'>('shopper');
+  const role = 'shopper';
   const [fullName, setFullName] = useState('');
   const [emailAddress, setEmailAddress] = useState('');
   const [password, setPassword] = useState('');
@@ -173,41 +157,12 @@ export function RegisterPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            {ROLE_CARDS.map((card) => (
-              <button
-                key={card.id}
-                onClick={() => setRole(card.id)}
-                className={cn(
-                  'p-5 rounded-lg border text-left transition-all relative overflow-hidden',
-                  role === card.id
-                    ? 'border-primary bg-white shadow-soft ring-1 ring-primary/20'
-                    : 'border-border-primary bg-bg-surface hover:border-primary/30'
-                )}
-              >
-                <span
-                  className={cn(
-                    'material-symbols-outlined text-[24px] block mb-3',
-                    role === card.id ? 'text-primary' : 'text-text-muted'
-                  )}
-                >
-                  {card.icon}
-                </span>
-
-                <p className="text-base font-bold text-text-main leading-none">
-                  {card.title}
-                </p>
-                <p className="text-[11px] font-bold text-text-muted mt-1.5">{card.subtitle}</p>
-
-                {role === card.id && (
-                  <motion.div layoutId="role-indicator" className="absolute top-3 right-3">
-                    <span className="material-symbols-outlined text-primary text-[20px]">
-                      check_circle
-                    </span>
-                  </motion.div>
-                )}
-              </button>
-            ))}
+          <div className="mb-6 p-4 rounded-xl bg-primary/5 border border-primary/15 flex items-start gap-3">
+            <span className="material-symbols-outlined text-primary text-[20px] shrink-0 mt-0.5">shopping_cart</span>
+            <div>
+              <p className="text-sm font-semibold text-text-main">Shopper account</p>
+              <p className="text-xs text-text-muted mt-0.5">Compare prices, track alerts, and shop smarter across Lebanon. Retailer accounts are created by admins.</p>
+            </div>
           </div>
 
           {error && (

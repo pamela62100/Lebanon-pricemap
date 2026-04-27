@@ -48,7 +48,7 @@ public class BroadcastsController : ControllerBase
     /// Admin creates a new broadcast message.
     /// </summary>
     [HttpPost]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
     public async Task<IActionResult> Create([FromBody] CreateBroadcastRequest request)
     {
         var broadcast = new Models.SystemBroadcast

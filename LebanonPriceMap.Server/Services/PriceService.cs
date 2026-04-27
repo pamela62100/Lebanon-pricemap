@@ -81,6 +81,7 @@ public class PriceService
                 Status = p.IsVerified ? "verified" : "pending",
                 Source = p.Source,
                 CreatedAt = p.UpdatedAt, // Using UpdatedAt as the active price date
+                Upvotes = p.ConfirmationCount,
                 
                 // MAP NESTED PRODUCT
                 Product = p.Product == null ? null : new ProductDto {
@@ -236,11 +237,14 @@ public class PriceService
     {
         if (!Guid.TryParse(id, out var guid)) return false;
 
-        var entry = await _db.PriceSubmissions.FindAsync(guid);
+        var entry = await _db.CurrentStoreProductPrices.FindAsync(guid);
         if (entry == null) return false;
 
-        if (value > 0) entry.Upvotes++;
-        else entry.Downvotes++;
+        if (value > 0)
+        {
+            entry.ConfirmationCount++;
+        }
+        entry.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
         return true;
@@ -279,6 +283,7 @@ public class PriceService
             Status = p.IsVerified ? "verified" : "pending",
             Source = p.Source,
             CreatedAt = p.UpdatedAt,
+            Upvotes = p.ConfirmationCount,
             Product = p.Product == null ? null : new ProductDto {
                 Name = p.Product.Name,
                 Category = p.Product.Category?.Name ?? "General",

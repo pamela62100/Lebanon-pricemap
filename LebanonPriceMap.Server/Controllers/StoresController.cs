@@ -24,9 +24,11 @@ public class StoresController : ControllerBase
     /// Returns all active stores, optionally filtered by city.
     /// </summary>
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? city)
+    public async Task<IActionResult> GetAll([FromQuery] string? city, [FromQuery] bool includeAll = false)
     {
-        var stores = await _storeService.GetAllAsync(city);
+        // Only admins can see suspended/pending stores. Non-admins always get the filtered list.
+        var isAdmin = User.IsInRole("admin");
+        var stores = await _storeService.GetAllAsync(city, includeAll && isAdmin);
         return Ok(new { success = true, data = stores });
     }
 
@@ -47,7 +49,7 @@ public class StoresController : ControllerBase
     /// Returns the store owned by the authenticated retailer.
     /// </summary>
     [HttpGet("mine")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> GetMine()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -59,8 +61,28 @@ public class StoresController : ControllerBase
         return Ok(new { success = true, data = store });
     }
 
+    /// <summary>
+    /// POST /api/stores/mine — retailer creates their own store on first login.
+    /// Store starts in 'pending' status; admin must approve before public visibility.
+    /// </summary>
+    [HttpPost("mine")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
+    public async Task<IActionResult> CreateMine([FromBody] CreateMyStoreRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            return Unauthorized();
+
+        var existing = await _storeService.GetByOwnerAsync(userId);
+        if (existing != null)
+            return Conflict(new { success = false, message = "You already have a store." });
+
+        var store = await _storeService.CreateForOwnerAsync(userId, request);
+        return Ok(new { success = true, data = store });
+    }
+
     [HttpPut("{id}")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] StoreUpdateRequest request)
     {
         var success = await _storeService.UpdateStoreAsync(id, request);
@@ -69,7 +91,7 @@ public class StoresController : ControllerBase
     }
 
     [HttpPatch("{id}/power")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> UpdatePower(Guid id, [FromBody] StorePowerStatusUpdateRequest request)
     {
         var success = await _storeService.UpdatePowerStatusAsync(id, request.PowerStatus);
@@ -78,7 +100,7 @@ public class StoresController : ControllerBase
     }
 
     [HttpPatch("{id}/status")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] StoreStatusUpdateRequest request)
     {
         var success = await _storeService.UpdateStoreStatusAsync(id, request.Status);
@@ -91,7 +113,7 @@ public class StoresController : ControllerBase
     /// Returns active API keys for the authenticated retailer's store.
     /// </summary>
     [HttpGet("mine/api-keys")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> GetApiKeys()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -107,7 +129,7 @@ public class StoresController : ControllerBase
     /// Generate a new API key for the authenticated retailer's store.
     /// </summary>
     [HttpPost("mine/api-keys")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> CreateApiKey([FromBody] CreateApiKeyRequest request)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -123,7 +145,7 @@ public class StoresController : ControllerBase
     /// Revoke an API key.
     /// </summary>
     [HttpDelete("mine/api-keys/{keyId}")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> RevokeApiKey(Guid keyId)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
@@ -140,7 +162,7 @@ public class StoresController : ControllerBase
     /// Returns the recent sync run history for the authenticated retailer's store.
     /// </summary>
     [HttpGet("mine/sync-runs")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Retailer,Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> GetSyncRuns()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

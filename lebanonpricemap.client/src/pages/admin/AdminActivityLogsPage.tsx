@@ -4,21 +4,21 @@ import { adminApi } from '@/api/admin.api';
 import { timeAgo, cn } from '@/lib/utils';
 
 const actionColors: Record<string, string> = {
-  approved: 'border-l-[var(--status-verified-text)]',
-  rejected: 'border-l-[var(--status-flagged-text)]',
-  warned:   'border-l-[var(--status-pending-text)]',
-  banned:   'border-l-[var(--status-flagged-text)]',
-  edited:   'border-l-[var(--accent-blue)]',
-  merged:   'border-l-[var(--status-info-text)]',
+  approved:  'border-l-[var(--status-verified-text)]',
+  rejected:  'border-l-[var(--status-flagged-text)]',
+  warned:    'border-l-[var(--status-pending-text)]',
+  suspended: 'border-l-[var(--status-flagged-text)]',
+  edited:    'border-l-[var(--accent-blue)]',
+  merged:    'border-l-[var(--status-info-text)]',
 };
 
 const actionIcons: Record<string, string> = {
-  approved: 'check_circle',
-  rejected: 'cancel',
-  warned:   'warning',
-  banned:   'block',
-  edited:   'edit',
-  merged:   'merge',
+  approved:  'check_circle',
+  rejected:  'cancel',
+  warned:    'warning',
+  suspended: 'block',
+  edited:    'edit',
+  merged:    'merge',
 };
 
 interface AuditLog {

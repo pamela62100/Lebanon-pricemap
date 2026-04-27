@@ -46,124 +46,89 @@ export function AdminOverviewPage() {
     : [];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-text-main">Admin Overview</h1>
-          <p className="text-sm text-text-muted mt-1">Monitor platform activity and manage community</p>
-        </div>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-bold text-text-main">Overview</h1>
+        <p className="text-sm text-text-muted mt-0.5">Platform activity and key metrics</p>
       </div>
 
       {/* KPI cards */}
-      {stats ? (
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {kpiCards.map((stat) => (
-            <KpiCard key={stat.label} {...stat} />
-          ))}
-        </div>
-      ) : (
-        <div className="grid grid-cols-4 gap-4 mb-8">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-24 rounded-xl bg-bg-muted animate-pulse" />
-          ))}
-        </div>
-      )}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {stats ? kpiCards.map((stat) => (
+          <KpiCard key={stat.label} {...stat} />
+        )) : [1,2,3,4].map(i => (
+          <div key={i} className="h-24 rounded-xl bg-bg-muted animate-pulse" />
+        ))}
+      </div>
 
-      {/* Approval Queue CTA */}
+      {/* Approval queue alert */}
       {pending > 0 && (
         <motion.div
-          initial={{ opacity: 0, y: -8 }}
+          initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           onClick={() => navigate('/admin/approvals')}
-          className="flex items-center gap-4 p-4 mb-8 bg-amber-400/5 border border-amber-400/30 rounded-2xl cursor-pointer hover:bg-amber-400/10 transition-all group"
+          className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl cursor-pointer hover:bg-amber-100 transition-all group"
         >
-          <div className="w-10 h-10 rounded-xl bg-amber-400/15 border border-amber-400/30 flex items-center justify-center shrink-0">
-            <span className="material-symbols-outlined text-amber-500" style={{ fontSize: '20px' }}>admin_panel_settings</span>
-          </div>
-          <div className="flex-1">
-            <p className="font-bold text-amber-600 text-sm">
-              {pending} approval request{pending > 1 ? 's' : ''} awaiting review
-            </p>
-            <p className="text-xs text-amber-500/70 mt-0.5">Click to open the Approval Queue →</p>
-          </div>
-          <span className="material-symbols-outlined text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity">chevron_right</span>
+          <span className="material-symbols-outlined text-amber-500 text-[20px]">admin_panel_settings</span>
+          <p className="flex-1 text-sm font-semibold text-amber-700">
+            {pending} approval request{pending > 1 ? 's' : ''} awaiting review
+          </p>
+          <span className="material-symbols-outlined text-amber-400 text-[18px]">chevron_right</span>
         </motion.div>
       )}
 
-      {/* Two column: widgets */}
-      <div className="grid grid-cols-3 gap-8 mb-8">
-        <div className="col-span-2 bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-card">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-lg font-bold text-text-main flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">analytics</span>
-                Platform Summary
-              </h3>
-              <p className="text-sm text-text-muted mt-0.5">Key metrics from the backend</p>
-            </div>
-          </div>
-
-          {stats && (
-            <div className="grid grid-cols-2 gap-4">
+      {/* Main grid */}
+      <div className="grid grid-cols-3 gap-6">
+        {/* Platform summary */}
+        <div className="col-span-2 bg-white border border-border-soft rounded-xl p-5">
+          <p className="text-sm font-semibold text-text-main mb-4">Platform summary</p>
+          {stats ? (
+            <div className="grid grid-cols-2 gap-3">
               {[
                 { label: 'Total Users', value: stats.totalUsers.toLocaleString(), icon: 'group' },
                 { label: 'Price Uploads', value: stats.totalUploads.toLocaleString(), icon: 'cloud_upload' },
                 { label: 'Flagged Entries', value: stats.flaggedEntries.toLocaleString(), icon: 'flag' },
                 { label: 'Active Stores', value: stats.activeStores.toLocaleString(), icon: 'storefront' },
               ].map((item) => (
-                <div key={item.label} className="p-4 rounded-2xl bg-bg-muted/30 border border-border-soft flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-bg-surface flex items-center justify-center border border-border-soft text-primary">
-                    <span className="material-symbols-outlined" style={{ fontSize: '20px' }}>{item.icon}</span>
-                  </div>
+                <div key={item.label} className="p-3 rounded-lg bg-bg-base border border-border-soft flex items-center gap-3">
+                  <span className="material-symbols-outlined text-primary text-[18px]">{item.icon}</span>
                   <div>
-                    <p className="text-xs text-text-muted">{item.label}</p>
-                    <p className="text-xl font-bold text-text-main font-data">{item.value}</p>
+                    <p className="text-[11px] text-text-muted">{item.label}</p>
+                    <p className="text-lg font-bold text-text-main">{item.value}</p>
                   </div>
                 </div>
               ))}
             </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {[1,2,3,4].map(i => <div key={i} className="h-16 rounded-lg bg-bg-muted animate-pulse" />)}
+            </div>
           )}
         </div>
 
-        <div className="flex flex-col gap-6">
-          {/* Moderation Queue widget */}
-          <div className="bg-bg-surface border border-border-soft rounded-3xl p-6 shadow-card">
-            <h3 className="font-bold text-text-main mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary">fact_check</span>
-              Moderation Queue
-            </h3>
-            <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-text-muted">Open feedback</span>
-                <span className="font-bold text-text-main">{openFeedbackCount}</span>
-              </div>
-              <div className="h-2 bg-bg-muted rounded-full overflow-hidden">
-                <div className="h-full bg-primary" style={{ width: openFeedbackCount > 0 ? '65%' : '0%' }} />
-              </div>
-              <button onClick={() => navigate('/admin/flagged')} className="w-full py-2.5 rounded-xl bg-primary text-white text-xs font-bold hover:opacity-90 transition-all">
-                Review queue →
-              </button>
+        {/* Side widgets */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-white border border-border-soft rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-sm font-semibold text-text-main">Moderation</p>
+              <span className="text-sm font-bold text-text-main">{openFeedbackCount}</span>
             </div>
+            <p className="text-xs text-text-muted mb-3">Open feedback items</p>
+            <button onClick={() => navigate('/admin/flagged')} className="w-full py-2 rounded-lg bg-primary text-white text-xs font-semibold hover:opacity-90 transition-all">
+              Review queue
+            </button>
           </div>
 
-          {/* Approvals widget */}
-          <div className={cn(
-            'rounded-3xl p-6 shadow-card border',
-            pending > 0 ? 'bg-amber-400/5 border-amber-400/20' : 'bg-bg-surface border-border-soft'
-          )}>
-            <h3 className={cn('font-bold mb-4 flex items-center gap-2', pending > 0 ? 'text-amber-500' : 'text-text-main')}>
-              <span className="material-symbols-outlined">admin_panel_settings</span>
+          <div className={cn('rounded-xl p-4 border', pending > 0 ? 'bg-amber-50 border-amber-200' : 'bg-white border-border-soft')}>
+            <p className={cn('text-sm font-semibold mb-1', pending > 0 ? 'text-amber-700' : 'text-text-main')}>
               Approvals
-            </h3>
-            <p className="text-[11px] leading-relaxed" style={{ color: pending > 0 ? 'var(--amber-600)' : 'var(--text-muted)' }}>
-              {pending > 0
-                ? `${pending} pending request${pending > 1 ? 's' : ''} need your review.`
-                : 'No pending approval requests.'}
+            </p>
+            <p className="text-xs text-text-muted mb-3">
+              {pending > 0 ? `${pending} pending request${pending > 1 ? 's' : ''}` : 'No pending requests'}
             </p>
             {pending > 0 && (
-              <button onClick={() => navigate('/admin/approvals')} className="mt-4 text-xs font-bold text-amber-500 flex items-center gap-1 hover:underline">
-                Review approvals →
+              <button onClick={() => navigate('/admin/approvals')} className="text-xs font-semibold text-amber-600 hover:underline">
+                Review →
               </button>
             )}
           </div>

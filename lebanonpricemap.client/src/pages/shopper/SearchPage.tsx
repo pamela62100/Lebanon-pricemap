@@ -51,7 +51,10 @@ export function SearchPage() {
       verifiedOnly: false,
     })
       .then(res => setAllEntries((res as any).data?.data ?? []))
-      .catch(() => setAllEntries([]))
+      .catch(() => {
+        addToast('Could not load prices. Check your connection.', 'error');
+        setAllEntries([]);
+      })
       .finally(() => setLoading(false));
   }, [query, activeCategory, sortBy]);
 

@@ -71,4 +71,45 @@ public class AuthController : ControllerBase
         // The client is expected to clear the token from local storage.
         return Ok(new { success = true, message = "Logged out successfully" });
     }
+
+    /// <summary>
+    /// POST /api/auth/forgot-password
+    /// Always returns success regardless of whether the email exists.
+    /// </summary>
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        var origin = Request.Headers["Origin"].ToString();
+        if (string.IsNullOrEmpty(origin)) origin = "http://localhost:5173";
+        await _authService.RequestPasswordResetAsync(request.Email, origin);
+        return Ok(new { success = true, message = "If that email exists, a reset link has been sent." });
+    }
+
+    /// <summary>
+    /// POST /api/auth/reset-password
+    /// Completes a password reset using a token from email.
+    /// </summary>
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        var success = await _authService.ResetPasswordAsync(request.Token, request.NewPassword);
+        if (!success) return BadRequest(new { success = false, message = "Invalid or expired reset link." });
+        return Ok(new { success = true, message = "Password has been reset. You can now sign in." });
+    }
+
+    /// <summary>
+    /// DELETE /api/auth/account — soft-deletes the current user.
+    /// </summary>
+    [HttpDelete("account")]
+    [Authorize]
+    public async Task<IActionResult> DeleteMyAccount()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var userId = Guid.Parse(userIdClaim.Value);
+        var success = await _authService.DeleteAccountAsync(userId);
+        if (!success) return NotFound(new { success = false, message = "User not found" });
+        return Ok(new { success = true, message = "Account deleted." });
+    }
 }

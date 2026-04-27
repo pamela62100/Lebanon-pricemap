@@ -1,15 +1,122 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { useCartStore } from '@/store/useCartStore';
+import { useExchangeRateStore } from '@/store/useExchangeRateStore';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
+import type { StoreBasketCost } from '@/store/useCartStore';
+
+function StoreCard({ store, isFeatured, featuredLabel }: { store: StoreBasketCost; isFeatured: boolean; featuredLabel?: string }) {
+  const [expanded, setExpanded] = useState(isFeatured);
+  const { rateLbpPerUsd } = useExchangeRateStore();
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'rounded-xl border transition-all overflow-hidden',
+        isFeatured
+          ? 'border-primary/30 bg-primary/[0.03]'
+          : store.isComplete
+          ? 'border-green-200 bg-green-50/40'
+          : 'border-border-soft bg-white'
+      )}
+    >
+      <button
+        onClick={() => setExpanded(v => !v)}
+        className="w-full px-5 py-4 flex items-center justify-between gap-4 text-left hover:bg-bg-base/40 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="font-semibold text-text-main">{store.storeName}</p>
+              {isFeatured && featuredLabel && (
+                <span className="px-2 py-0.5 bg-primary text-white rounded-full text-[10px] font-semibold">{featuredLabel}</span>
+              )}
+              {store.isComplete ? (
+                <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-semibold">Complete list</span>
+              ) : (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-semibold">
+                  {store.missingItems.length} missing
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-text-muted mt-0.5">
+              {store.foundCount} of {store.totalCount} items
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="text-right">
+            <p className="text-lg font-bold text-text-main font-data leading-none">
+              {store.totalLbp.toLocaleString()} <span className="text-xs font-semibold text-text-muted">LBP</span>
+            </p>
+            <p className="text-[11px] text-text-muted mt-0.5">≈ ${(store.totalLbp / rateLbpPerUsd).toFixed(2)}</p>
+          </div>
+          <span className="material-symbols-outlined text-[20px] text-text-muted">
+            {expanded ? 'expand_less' : 'expand_more'}
+          </span>
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 pt-0 border-t border-border-soft/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div>
+              <p className="text-[11px] font-semibold text-green-700 uppercase tracking-wide mb-2">
+                Found ({store.foundItems.length})
+              </p>
+              {store.foundItems.length === 0 ? (
+                <p className="text-xs text-text-muted">No items found here.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {store.foundItems.map(item => (
+                    <li key={item.productId} className="flex items-center justify-between text-sm gap-2">
+                      <span className="text-text-main truncate">
+                        {item.productName}
+                        {item.quantity > 1 && <span className="text-text-muted"> ×{item.quantity}</span>}
+                      </span>
+                      {item.unitPriceLbp != null && (
+                        <span className="text-text-muted text-xs font-data shrink-0">
+                          {(item.unitPriceLbp * item.quantity).toLocaleString()} LBP
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-amber-700 uppercase tracking-wide mb-2">
+                Missing ({store.missingItems.length})
+              </p>
+              {store.missingItems.length === 0 ? (
+                <p className="text-xs text-green-700">Has every item on your list ✓</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {store.missingItems.map(item => (
+                    <li key={item.productId} className="text-sm text-text-muted line-through">
+                      {item.productName}
+                      {item.quantity > 1 && <span> ×{item.quantity}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 export function CartOptimizePage() {
   const navigate = useNavigate();
   const { items, isLoading, optimization, fetchCart, optimizeCart } = useCartStore();
   const [hasFetched, setHasFetched] = useState(false);
 
-  // Bug fix: use getState() to read fresh items after fetch, not stale closure
   useEffect(() => {
     fetchCart().then(() => {
       const freshItems = useCartStore.getState().items;
@@ -17,24 +124,23 @@ export function CartOptimizePage() {
     }).finally(() => setHasFetched(true));
   }, []);
 
-  const bestStore = optimization?.stores?.[0] ?? null;
-  const allStores = optimization?.stores ?? [];
-
   if (!hasFetched || isLoading) {
     return (
-      <div className="px-6 lg:px-8 py-8 animate-page">
-        <div className="space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="card p-6 h-24 animate-pulse bg-bg-muted/40" />
-          ))}
-        </div>
+      <div className="px-6 lg:px-8 py-8 animate-page space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-24 rounded-xl bg-bg-muted/40 animate-pulse" />
+        ))}
       </div>
     );
   }
 
+  const stores = optimization?.stores ?? [];
+  const bestComplete = stores.find(s => s.storeId === optimization?.bestCompleteStoreId);
+  const cheapestPartial = stores.find(s => s.storeId === optimization?.cheapestPartialStoreId);
+  const noStoreHasAll = !bestComplete && stores.length > 0;
+
   return (
-    <div className="px-6 lg:px-8 py-8 animate-page">
-      {/* Back button */}
+    <div className="px-6 lg:px-8 py-8 animate-page max-w-5xl mx-auto">
       <button
         onClick={() => navigate('/app/list')}
         className="flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-main mb-6 transition-colors"
@@ -43,120 +149,88 @@ export function CartOptimizePage() {
         Back to list
       </button>
 
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-text-main mb-1">Store Finder</h1>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-text-main mb-1">Store finder</h1>
         <p className="text-sm text-text-muted">
           {items.length > 0
-            ? `Comparing ${items.length} item${items.length !== 1 ? 's' : ''} across ${allStores.length} store${allStores.length !== 1 ? 's' : ''}`
+            ? `Comparing ${items.length} item${items.length !== 1 ? 's' : ''} across ${stores.length} store${stores.length !== 1 ? 's' : ''}`
             : 'Add items to your list to compare stores'}
         </p>
       </div>
 
       {items.length === 0 ? (
-        <EmptyState
-          icon="storefront"
-          title="Your list is empty"
-          subtitle="Add products to your list to compare stores and find the lowest total."
-        />
-      ) : !optimization ? (
-        <div className="flex flex-col items-center gap-4 py-20">
-          <span className="material-symbols-outlined text-5xl text-text-muted/30 animate-pulse">storefront</span>
-          <p className="text-sm font-medium text-text-muted">Analyzing store prices...</p>
+        <EmptyState icon="storefront" title="Your list is empty" subtitle="Add products to your list to compare stores." />
+      ) : !optimization || stores.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-16">
+          <span className="material-symbols-outlined text-4xl text-text-muted/30">storefront</span>
+          <p className="text-sm text-text-muted">No store carries items from your list yet.</p>
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Best store banner */}
-          {bestStore && (
-            <div className="p-6 rounded-2xl bg-green-500 text-white flex items-center gap-5 shadow-lg shadow-green-500/20 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-6 opacity-10">
-                <span className="material-symbols-outlined text-8xl">verified</span>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-2xl">check_circle</span>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-white/70 mb-0.5">Best store for your list</p>
-                <h2 className="text-lg font-bold">
-                  {optimization.recommendedStoreName ?? bestStore.storeName}
-                </h2>
-                <p className="text-sm text-white/80 mt-0.5">
-                  Total:{' '}
-                  <span className="text-white font-bold">
-                    {(optimization.recommendedTotalLbp ?? bestStore.totalLbp).toLocaleString()} LBP
-                  </span>
+          {/* Headline cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {bestComplete ? (
+              <div className="p-5 rounded-xl bg-green-500 text-white">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/70">Best complete store</p>
+                <p className="text-xl font-bold mt-1">{bestComplete.storeName}</p>
+                <p className="text-3xl font-bold font-data mt-2">
+                  {bestComplete.totalLbp.toLocaleString()}
+                  <span className="text-sm font-semibold ml-1 opacity-70">LBP</span>
                 </p>
+                <p className="text-xs text-white/70 mt-1">All {bestComplete.totalCount} items in stock</p>
+              </div>
+            ) : (
+              <div className="p-5 rounded-xl bg-amber-50 border border-amber-200">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-700">No complete option</p>
+                <p className="text-base font-semibold text-text-main mt-1">No store has all your items</p>
+                <p className="text-xs text-amber-700 mt-1">You may need to split your shopping across stores.</p>
+              </div>
+            )}
+
+            {cheapestPartial && (!bestComplete || cheapestPartial.storeId !== bestComplete.storeId) && (
+              <div className="p-5 rounded-xl bg-text-main text-white">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-white/60">Lowest partial total</p>
+                <p className="text-xl font-bold mt-1">{cheapestPartial.storeName}</p>
+                <p className="text-3xl font-bold font-data mt-2">
+                  {cheapestPartial.totalLbp.toLocaleString()}
+                  <span className="text-sm font-semibold ml-1 opacity-60">LBP</span>
+                </p>
+                <p className="text-xs text-white/60 mt-1">
+                  Only {cheapestPartial.foundCount} of {cheapestPartial.totalCount} items
+                </p>
+              </div>
+            )}
+          </div>
+
+          {noStoreHasAll && (
+            <div className="px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-600 text-[18px] mt-0.5">info</span>
+              <div className="text-sm">
+                <p className="font-semibold text-amber-800">No store has every item on your list</p>
+                <p className="text-amber-700 text-xs mt-0.5">Click any store below to see exactly what they're missing.</p>
               </div>
             </div>
           )}
 
-          {/* Store comparison table */}
-          <div className="card overflow-hidden">
-            <div className="px-6 py-4 border-b border-border-soft flex items-center justify-between">
-              <h2 className="text-base font-semibold text-text-main">All stores</h2>
-              <div className="flex items-center gap-1.5 text-xs font-medium text-green-600">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                Live data
-              </div>
+          {/* Detailed store list */}
+          <div>
+            <p className="text-sm font-semibold text-text-main mb-3">All stores ({stores.length})</p>
+            <div className="space-y-3">
+              {stores.map((store) => (
+                <StoreCard
+                  key={store.storeId}
+                  store={store}
+                  isFeatured={store.storeId === bestComplete?.storeId || (!bestComplete && store.storeId === cheapestPartial?.storeId)}
+                  featuredLabel={
+                    bestComplete && store.storeId === bestComplete.storeId
+                      ? 'Best complete'
+                      : !bestComplete && store.storeId === cheapestPartial?.storeId
+                      ? 'Lowest partial'
+                      : undefined
+                  }
+                />
+              ))}
             </div>
-
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border-soft bg-bg-muted/30">
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-text-muted">Store</th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-text-muted">Coverage</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-text-muted">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-soft/40">
-                {allStores
-                  .sort((a, b) => a.totalLbp - b.totalLbp)
-                  .map((store, index) => (
-                    <tr key={store.storeId} className="hover:bg-bg-muted/10 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div
-                            className={cn(
-                              'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold',
-                              index === 0 ? 'bg-primary text-white' : 'bg-bg-muted text-text-muted'
-                            )}
-                          >
-                            {index + 1}
-                          </div>
-                          <span className="font-medium text-text-main">{store.storeName}</span>
-                          {index === 0 && (
-                            <span className="px-2 py-0.5 bg-green-500/10 text-green-600 rounded text-[10px] font-semibold">
-                              Best
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <span
-                          className={cn(
-                            'inline-flex px-2.5 py-1 rounded-full text-xs font-medium',
-                            store.itemsMissing === 0
-                              ? 'bg-green-500/10 text-green-600'
-                              : 'bg-amber-500/10 text-amber-600'
-                          )}
-                        >
-                          {store.itemsCovered} / {store.itemsCovered + store.itemsMissing} items
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span
-                          className={cn(
-                            'text-base font-bold font-data',
-                            index === 0 ? 'text-text-main' : 'text-text-muted'
-                          )}
-                        >
-                          {store.totalLbp.toLocaleString()} LBP
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
           </div>
         </div>
       )}

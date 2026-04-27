@@ -55,14 +55,9 @@ export function LoginPage() {
       return;
     }
 
-    const role =
-      email.includes('@admin') || email.includes('admin@')
-        ? 'admin'
-        : email.includes('retailer') || email.includes('@store')
-        ? 'retailer'
-        : 'shopper';
-
-    navigate(ROLE_DESTINATIONS[role] ?? '/app');
+    const user = useAuthStore.getState().user;
+    const destination = ROLE_DESTINATIONS[user?.role ?? 'shopper'] ?? '/app';
+    navigate(destination);
   };
 
   return (

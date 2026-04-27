@@ -22,7 +22,7 @@ export function AdminSidebar() {
   const pendingCount = useApprovalStore(s => s.pendingCount());
 
   return (
-    <aside className="w-56 bg-white border-r border-border-soft flex flex-col h-dvh sticky top-0 shrink-0 z-40">
+    <aside className="w-56 bg-white border-r border-border-soft flex flex-col shrink-0 z-40 overflow-y-auto">
       {/* Brand area */}
       <div className="h-14 flex items-center gap-3 px-5 border-b border-border-soft select-none">
         <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
@@ -31,12 +31,11 @@ export function AdminSidebar() {
         <span className="text-sm font-bold text-text-main tracking-tight">WeinArkhas</span>
       </div>
 
-      {/* Context Ticker - The Whisper */}
-      <div className="px-5 py-3 border-b border-border-soft flex items-center justify-between">
-        <span className="text-[9px] font-data font-black text-text-muted uppercase tracking-widest">System_Protocol</span>
-        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-status-verified/5 border border-status-verified/10">
-          <div className="w-1 h-1 rounded-full bg-status-verified" />
-          <span className="text-[9px] font-data font-black text-status-verified uppercase tracking-wider">Active</span>
+      <div className="px-5 py-2.5 border-b border-border-soft flex items-center justify-between">
+        <span className="text-[11px] font-semibold text-text-muted">Admin Dashboard</span>
+        <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-green-50 border border-green-100">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+          <span className="text-[10px] font-semibold text-green-700">Live</span>
         </div>
       </div>
 
@@ -75,21 +74,21 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* User footer / Bottom actions */}
+      {/* Bottom actions */}
       <div className="p-3 border-t border-border-soft flex flex-col gap-1">
         <button
           onClick={() => navigate('/app')}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-text-muted hover:text-text-main transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-text-muted hover:text-text-main hover:bg-bg-muted transition-colors"
         >
-          <span className="material-symbols-outlined text-[18px]">visibility</span>
-          Shopper_View
+          <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+          View storefront
         </button>
         <button
           onClick={() => { logout(); navigate('/'); }}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-status-danger hover:bg-status-danger/5 transition-colors"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">logout</span>
-          Sign Out
+          Sign out
         </button>
       </div>
     </aside>

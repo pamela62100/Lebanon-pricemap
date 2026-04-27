@@ -22,6 +22,10 @@ export const productsApi = {
     return response;
   },
 
+  create: async (data: { name: string; nameAr?: string; unit?: string; brand?: string; barcode?: string; category?: string }) => {
+    return client.post('/products', data);
+  },
+
   update: async (id: string, data: { name?: string; nameAr?: string; unit?: string; brand?: string; barcode?: string }) => {
     return client.put(`/products/${id}`, data);
   },

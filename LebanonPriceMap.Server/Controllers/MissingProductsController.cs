@@ -39,7 +39,7 @@ public class MissingProductsController : ControllerBase
     /// GET /api/missing-products/pending — Admin: view pending requests.
     /// </summary>
     [HttpGet("pending")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetPending()
     {
         var results = await _service.GetPendingAsync();
@@ -64,7 +64,7 @@ public class MissingProductsController : ControllerBase
     /// PATCH /api/missing-products/{id}/approve — Admin: approve a request.
     /// </summary>
     [HttpPatch("{id}/approve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] MissingProductResolveRequest request)
     {
         var adminId = GetUserId();
@@ -79,7 +79,7 @@ public class MissingProductsController : ControllerBase
     /// PATCH /api/missing-products/{id}/reject — Admin: reject a request.
     /// </summary>
     [HttpPatch("{id}/reject")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] MissingProductResolveRequest request)
     {
         var adminId = GetUserId();

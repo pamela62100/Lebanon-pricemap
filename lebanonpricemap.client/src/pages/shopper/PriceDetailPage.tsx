@@ -186,14 +186,25 @@ export function PriceDetailPage() {
                 <button
                   onClick={() => handleVote(1)}
                   disabled={voting}
-                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50"
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
                 >
-                  Verify
+                  {voting ? (
+                    <>
+                      <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                      Verify
+                    </>
+                  )}
                 </button>
                 <button
                   onClick={() => setShowReport(true)}
-                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all"
+                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
                 >
+                  <span className="material-symbols-outlined text-[16px]">flag</span>
                   Report
                 </button>
               </div>

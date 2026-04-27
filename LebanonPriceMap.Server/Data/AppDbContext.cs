@@ -49,10 +49,23 @@ public class AppDbContext : DbContext
     public DbSet<SystemBroadcast> SystemBroadcasts { get; set; }
     public DbSet<SystemSetting> SystemSettings { get; set; }
     public DbSet<StoreApiKey> StoreApiKeys { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.ToTable("password_reset_tokens");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.UserId).HasColumnName("user_id");
+            entity.Property(e => e.TokenHash).HasColumnName("token_hash");
+            entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+            entity.Property(e => e.UsedAt).HasColumnName("used_at");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.HasIndex(e => e.TokenHash).IsUnique();
+        });
+
         // 1. Map "User" model to "users" table
        modelBuilder.Entity<User>(entity =>
 {

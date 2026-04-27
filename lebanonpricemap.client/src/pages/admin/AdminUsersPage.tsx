@@ -274,9 +274,13 @@ export function AdminUsersPage() {
       setUsers((prev) =>
         prev.map((u) => (u.id === id ? { ...u, status } : u))
       );
-      addToast(`User ${status === 'warned' ? 'warned' : 'banned'} successfully`);
+      const label =
+        status === 'warned' ? 'warned' :
+        status === 'suspended' ? 'suspended' :
+        status === 'active' ? 'reactivated' : 'updated';
+      addToast(`User ${label} successfully`, status === 'suspended' ? 'error' : 'info');
     } catch {
-      addToast('Failed to update user status');
+      addToast('Failed to update user status', 'error');
     }
   };
 
@@ -368,12 +372,21 @@ export function AdminUsersPage() {
                       >
                         Warn
                       </button>
-                      <button
-                        onClick={() => open('ban-user', { id: user.id })}
-                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80"
-                      >
-                        Ban
-                      </button>
+                      {user.status === 'suspended' ? (
+                        <button
+                          onClick={() => handleUpdateStatus(user.id, 'active')}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-green-50 text-green-700 hover:bg-green-100 transition-colors"
+                        >
+                          Reactivate
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => open('suspend-user', { id: user.id })}
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                        >
+                          Suspend
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -412,13 +425,13 @@ export function AdminUsersPage() {
       />
 
       <ConfirmDialog
-        dialogId="ban-user"
-        title="Ban User"
-        description={`CRITICAL: This will permanently ban ${activeUser?.name} and revoke all access to the platform. This action is logged for audit.`}
-        confirmLabel="Confirm Ban"
+        dialogId="suspend-user"
+        title="Suspend user"
+        description={`This will revoke ${activeUser?.name}'s access. They won't be able to log in until reactivated.`}
+        confirmLabel="Suspend user"
         variant="danger"
         onConfirm={() => {
-          if (activeUserId) handleUpdateStatus(activeUserId, 'banned');
+          if (activeUserId) handleUpdateStatus(activeUserId, 'suspended');
         }}
       />
     </motion.div>

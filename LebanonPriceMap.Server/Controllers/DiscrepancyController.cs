@@ -31,7 +31,7 @@ public class DiscrepancyController : ControllerBase
     }
 
     [HttpGet("pending")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetPending()
     {
         var reports = await _discrepancyService.GetPendingReportsAsync();
@@ -39,7 +39,7 @@ public class DiscrepancyController : ControllerBase
     }
 
     [HttpGet("store/{id}")]
-    [Authorize(Roles = "Admin,Retailer")]
+    [Authorize(Roles = "retailer,admin")]
     public async Task<IActionResult> GetByStore(Guid id)
     {
         var reports = await _discrepancyService.GetReportsByStoreAsync(id);
@@ -47,7 +47,7 @@ public class DiscrepancyController : ControllerBase
     }
 
     [HttpPatch("{id}/approve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ResolveDiscrepancyRequest request)
     {
         var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -61,7 +61,7 @@ public class DiscrepancyController : ControllerBase
     }
 
     [HttpPatch("{id}/reject")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] ResolveDiscrepancyRequest request)
     {
         var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

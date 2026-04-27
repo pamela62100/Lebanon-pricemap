@@ -1,5 +1,7 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/store/useAuthStore';
+import { storesApi } from '@/api/stores.api';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -7,7 +9,7 @@ const NAV_ITEMS = [
   { to: '/retailer/products', icon: 'inventory_2',  label: 'Products' },
   { to: '/retailer/promotions',icon: 'sell',        label: 'Promotions' },
   { to: '/retailer/insights', icon: 'bar_chart',    label: 'Insights' },
-  { to: '/retailer/sync',     icon: 'sync',         label: 'Sync / API' },
+  { to: '/retailer/sync',     icon: 'sync',         label: 'Connect System' },
   { to: '/retailer/profile',  icon: 'storefront',   label: 'Store Profile' },
 ];
 
@@ -15,11 +17,55 @@ export function RetailerLayout() {
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [hasStore, setHasStore] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    storesApi.getMine()
+      .then(() => setHasStore(true))
+      .catch(() => setHasStore(false));
+  }, [location.pathname]);
+
+  // While checking, show nothing
+  if (hasStore === null) {
+    return <div className="h-dvh flex items-center justify-center bg-bg-base"><span className="material-symbols-outlined animate-spin text-text-muted">progress_activity</span></div>;
+  }
+
+  // No store yet — force onboarding (unless already on the onboarding page)
+  if (!hasStore && !location.pathname.includes('/retailer/setup')) {
+    return <Navigate to="/retailer/setup" replace />;
+  }
+
+  // Onboarding layout — no sidebar, just the form
+  if (!hasStore) {
+    return (
+      <div className="min-h-dvh bg-bg-base">
+        <header className="h-14 border-b border-border-soft bg-white flex items-center justify-between px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
+              <span className="text-white text-[10px] font-black">WA</span>
+            </div>
+            <span className="font-semibold text-sm text-text-main">WenArkhass</span>
+          </div>
+          <button
+            onClick={() => { logout(); navigate('/'); }}
+            className="text-xs font-medium text-text-muted hover:text-red-500 transition-colors flex items-center gap-1.5"
+          >
+            <span className="material-symbols-outlined text-[16px]">logout</span>
+            Sign out
+          </button>
+        </header>
+        <div className="px-6 py-8">
+          <Outlet />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-dvh flex bg-bg-base">
+    <div className="h-dvh flex bg-bg-base overflow-hidden">
       {/* Sidebar - Design System v3 */}
-      <aside className="w-56 bg-white border-r border-border-soft flex flex-col sticky top-0 h-dvh shrink-0">
+      <aside className="w-56 bg-white border-r border-border-soft flex flex-col shrink-0 overflow-y-auto">
         {/* Brand */}
         <div className="h-14 flex items-center gap-3 px-5 border-b border-border-soft select-none">
           <div className="w-8 h-8 bg-primary rounded-xl flex items-center justify-center">
@@ -57,8 +103,8 @@ export function RetailerLayout() {
               {user?.avatarInitials ?? 'WA'}
             </div>
             <div className="min-w-0">
-              <p className="text-[11px] font-bold text-text-main truncate uppercase tracking-tight">{user?.name?.split(' ')[0]}</p>
-              <p className="text-[9px] text-text-muted font-data uppercase tracking-wider">Store_Authority</p>
+              <p className="text-xs font-semibold text-text-main truncate">{user?.name?.split(' ')[0]}</p>
+              <p className="text-[10px] text-text-muted">Retailer account</p>
             </div>
           </div>
           <button
@@ -72,20 +118,20 @@ export function RetailerLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-w-0 bg-bg-base">
+      <main className="flex-1 flex flex-col min-w-0 bg-bg-base overflow-hidden">
         <header className="h-14 bg-bg-surface/90 backdrop-blur-lg border-b border-border-soft flex items-center px-8 gap-4 sticky top-0 z-30">
           <div className="flex-1" />
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => navigate('/app')} 
-              className="text-xs font-semibold text-text-muted hover:text-text-main transition-colors flex items-center gap-2"
+            <button
+              onClick={() => navigate('/app')}
+              className="text-xs font-semibold text-text-muted hover:text-text-main transition-colors flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border-soft hover:border-border-primary"
             >
-              <span className="material-symbols-outlined text-lg">visibility</span>
-              Shopper View
+              <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+              View storefront
             </button>
           </div>
         </header>
-        <div className="flex-1 p-8 md:p-12 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8">
           <div className="max-w-6xl mx-auto animate-page">
             <Outlet />
           </div>

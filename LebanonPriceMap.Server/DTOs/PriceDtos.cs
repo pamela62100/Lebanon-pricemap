@@ -46,7 +46,8 @@ public class PriceEntryResponse {
     public bool IsPromotion { get; set; }
     public DateTime? PromoEndsAt { get; set; }
     public DateTime CreatedAt { get; set; }
-    
+    public int Upvotes { get; set; }
+
     // Nested objects that the UI needs to display names and locations
     public ProductDto? Product { get; set; }
     public StoreDto? Store { get; set; }
