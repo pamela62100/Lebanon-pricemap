@@ -45,7 +45,7 @@ public class SettingsController : ControllerBase
     /// Admin can update the stored exchange rate.
     /// </summary>
     [HttpPut("exchange-rate")]
-    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "admin")]
     public async Task<IActionResult> SetExchangeRate([FromBody] SetExchangeRateRequest request)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);

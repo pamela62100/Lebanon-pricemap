@@ -36,10 +36,14 @@ public class AddCartItemRequest
 /// </summary>
 public class CartOptimizationResult
 {
+    public int TotalItemCount { get; set; }
     public List<StoreBasketCost> Stores { get; set; } = new();
-    public string? RecommendedStoreId { get; set; }
-    public string? RecommendedStoreName { get; set; }
-    public long RecommendedTotalLbp { get; set; }
+
+    // Cheapest store that has every item, or null if none do
+    public string? BestCompleteStoreId { get; set; }
+
+    // Cheapest store overall, even if it's missing items
+    public string? CheapestPartialStoreId { get; set; }
 }
 
 public class UpdateCartItemRequest
@@ -52,6 +56,17 @@ public class StoreBasketCost
     public string StoreId { get; set; } = string.Empty;
     public string StoreName { get; set; } = string.Empty;
     public long TotalLbp { get; set; }
-    public int ItemsCovered { get; set; }
-    public int ItemsMissing { get; set; }
+    public int FoundCount { get; set; }
+    public int TotalCount { get; set; }
+    public bool IsComplete => FoundCount == TotalCount && TotalCount > 0;
+    public List<BasketItem> FoundItems { get; set; } = new();
+    public List<BasketItem> MissingItems { get; set; } = new();
+}
+
+public class BasketItem
+{
+    public string ProductId { get; set; } = string.Empty;
+    public string ProductName { get; set; } = string.Empty;
+    public int Quantity { get; set; }
+    public long? UnitPriceLbp { get; set; }
 }

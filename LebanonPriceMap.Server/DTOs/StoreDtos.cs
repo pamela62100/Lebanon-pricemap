@@ -34,6 +34,17 @@ public class StoreUpdateRequest
     public decimal? Longitude { get; set; }
 }
 
+public class CreateMyStoreRequest
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Chain { get; set; }
+    public string City { get; set; } = string.Empty;
+    public string? District { get; set; }
+    public string? Region { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+}
+
 public class StoreStatusUpdateRequest
 {
     public string Status { get; set; } // 'active', 'suspended', 'flagged'

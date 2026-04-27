@@ -19,7 +19,7 @@ public class FeedbackController : ControllerBase
 
     // GET /api/feedback?status=open
     [HttpGet]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetAll([FromQuery] string? status)
     {
         var feedback = await _feedbackService.GetAllAsync(status);
@@ -40,7 +40,7 @@ public class FeedbackController : ControllerBase
 
     // PATCH /api/feedback/{id}/resolve
     [HttpPatch("{id}/resolve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Resolve(Guid id)
     {
         var success = await _feedbackService.ResolveAsync(id);

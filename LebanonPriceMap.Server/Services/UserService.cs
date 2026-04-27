@@ -126,11 +126,14 @@ public class UserService
     // ───────────────────────────────────────────────
 
     /// <summary>
-    /// Allows an admin to change a user's status (ban, warn, suspend, or re-activate).
-    /// Valid values: 'active', 'warned', 'suspended', 'banned'.
+    /// Allows an admin to change a user's status (suspend, warn, or reactivate).
+    /// Valid values: 'active', 'warned', 'suspended'.
     /// </summary>
     public async Task<bool> UpdateUserStatusAsync(Guid id, string newStatus)
     {
+        var allowed = new[] { "active", "warned", "suspended" };
+        if (!allowed.Contains(newStatus)) return false;
+
         var user = await _db.Users.FindAsync(id);
         if (user == null) return false;
 

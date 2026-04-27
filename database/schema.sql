@@ -900,4 +900,16 @@ CREATE TRIGGER trg_cart_items_updated_at BEFORE UPDATE ON cart_items FOR EACH RO
 DROP TRIGGER IF EXISTS trg_retailer_onboarding_updated_at ON retailer_onboarding_applications;
 CREATE TRIGGER trg_retailer_onboarding_updated_at BEFORE UPDATE ON retailer_onboarding_applications FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+-- Password reset tokens (for forgot-password flow)
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  token_hash  VARCHAR(128) NOT NULL UNIQUE,
+  expires_at  TIMESTAMPTZ  NOT NULL,
+  used_at     TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_password_reset_user ON password_reset_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_expires ON password_reset_tokens(expires_at);
+
 COMMIT;

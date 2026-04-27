@@ -4,7 +4,6 @@ import { pricesApi } from '@/api/prices.api';
 import { alertsApi } from '@/api/alerts.api';
 import { usersApi } from '@/api/users.api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
-import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
@@ -280,27 +279,29 @@ export function ProfilePage() {
               </div>
             </div>
 
-            {/* Danger zone */}
-            <div className="p-5 rounded-2xl bg-red-50 border border-red-200 space-y-4">
-              <h3 className="text-[11px] font-semibold text-red-600 uppercase tracking-widest flex items-center gap-1.5">
-                <span className="material-symbols-outlined text-base">warning</span>
-                Danger zone
-              </h3>
-              <div className="space-y-2.5">
-                <button
-                  onClick={() => open('delete-submissions')}
-                  className="w-full h-10 rounded-xl border border-red-300 text-red-600 text-xs font-semibold hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
-                >
-                  Delete all submissions
-                </button>
-                <button
-                  onClick={() => open('delete-account')}
-                  className="w-full h-10 rounded-xl bg-red-500 text-white text-xs font-semibold hover:bg-red-600 transition-all shadow-md shadow-red-500/20"
-                >
-                  Delete account
-                </button>
-              </div>
+            <div className="p-5 rounded-2xl bg-red-50 border border-red-200">
+              <p className="text-sm font-semibold text-red-700 mb-1">Delete account</p>
+              <p className="text-xs text-text-muted mb-3">
+                Permanently remove your account. This cannot be undone.
+              </p>
+              <button
+                onClick={async () => {
+                  if (!confirm('Are you sure? Your account will be permanently deleted.')) return;
+                  try {
+                    await usersApi.deleteMyAccount();
+                    addToast('Account deleted', 'info');
+                    logout();
+                    navigate('/');
+                  } catch {
+                    addToast('Failed to delete account', 'error');
+                  }
+                }}
+                className="w-full h-10 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all"
+              >
+                Delete my account
+              </button>
             </div>
+
           </aside>
         </div>
       </div>
@@ -342,44 +343,6 @@ export function ProfilePage() {
         </div>
       </RouteDialog>
 
-      <ConfirmDialog
-        dialogId="delete-submissions"
-        title="Delete all submissions"
-        description={`This will permanently remove all ${myEntries.length} of your price reports. This action cannot be undone.`}
-        confirmLabel="Delete all"
-        variant="danger"
-        permission="bulk:delete"
-        approvalLabel="Yes, delete all my submissions"
-        approvalPayload={{ scope: 'all_submissions', userId: user.id }}
-        onConfirm={async () => {
-          try {
-            await usersApi.deleteSubmissions(user.id);
-            setMyEntries([]);
-            addToast('All submissions deleted', 'success');
-          } catch {
-            addToast('Failed to delete submissions', 'error');
-          }
-        }}
-      />
-      <ConfirmDialog
-        dialogId="delete-account"
-        title="Delete account"
-        description="This will permanently delete your account and all associated data. This action cannot be undone."
-        confirmLabel="Delete account"
-        variant="danger"
-        permission="account:delete"
-        approvalLabel="Yes, permanently delete my account"
-        approvalPayload={{ userId: user.id, reason: 'User initiated' }}
-        onConfirm={async () => {
-          try {
-            await usersApi.deleteAccount(user.id);
-            logout();
-            navigate('/');
-          } catch {
-            addToast('Failed to delete account', 'error');
-          }
-        }}
-      />
     </div>
   );
 }

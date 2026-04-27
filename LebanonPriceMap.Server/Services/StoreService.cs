@@ -20,7 +20,7 @@ public class StoreService
     /// <summary>
     /// Returns all active stores, optionally filtered by city.
     /// </summary>
-    public async Task<List<StoreResponse>> GetAllAsync(string? city)
+    public async Task<List<StoreResponse>> GetAllAsync(string? city, bool includeAll = false)
     {
         // 1. Start with all stores
         var query = _db.Stores.AsQueryable();
@@ -31,8 +31,11 @@ public class StoreService
             query = query.Where(s => s.City == city);
         }
 
-        // 3. Only return active/verified stores (not pending or suspended)
-        query = query.Where(s => s.Status == "active" || s.Status == "verified");
+        // 3. Only return active/verified stores (not pending or suspended) — UNLESS includeAll
+        if (!includeAll)
+        {
+            query = query.Where(s => s.Status == "active" || s.Status == "verified");
+        }
 
         // 4. Order alphabetically
         query = query.OrderBy(s => s.Name);
@@ -117,6 +120,47 @@ public class StoreService
             InternalRateLbp = store.InternalRateLbp,
             PowerStatus = store.PowerStatus,
             LogoUrl = store.LogoUrl
+        };
+    }
+
+    public async Task<StoreResponse> CreateForOwnerAsync(Guid ownerId, CreateMyStoreRequest request)
+    {
+        var store = new Store
+        {
+            Id = Guid.NewGuid(),
+            OwnerUserId = ownerId,
+            Name = request.Name.Trim(),
+            Chain = string.IsNullOrWhiteSpace(request.Chain) ? null : request.Chain.Trim(),
+            City = request.City.Trim(),
+            District = request.District?.Trim(),
+            Region = request.Region?.Trim(),
+            Latitude = request.Latitude,
+            Longitude = request.Longitude,
+            Status = "pending",  // admin must approve
+            TrustScore = 50,
+            IsVerifiedRetailer = false,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        _db.Stores.Add(store);
+        await _db.SaveChangesAsync();
+
+        return new StoreResponse
+        {
+            Id = store.Id.ToString(),
+            Name = store.Name,
+            Chain = store.Chain,
+            City = store.City,
+            District = store.District,
+            Region = store.Region,
+            Latitude = store.Latitude,
+            Longitude = store.Longitude,
+            IsVerifiedRetailer = store.IsVerifiedRetailer,
+            OwnerId = ownerId.ToString(),
+            TrustScore = store.TrustScore,
+            Status = store.Status,
+            PowerStatus = store.PowerStatus
         };
     }
 

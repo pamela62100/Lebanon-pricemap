@@ -21,15 +21,15 @@ export const usersApi = {
     return client.patch(`/users/${id}/status`, { status });
   },
 
-  deleteSubmissions: async (id: string) => {
-    return client.delete(`/users/${id}/submissions`);
-  },
-
-  deleteAccount: async (id: string) => {
-    return client.delete(`/users/${id}`);
-  },
-
   forgotPassword: async (email: string) => {
     return client.post('/auth/forgot-password', { email });
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    return client.post('/auth/reset-password', { token, newPassword });
+  },
+
+  deleteMyAccount: async () => {
+    return client.delete('/auth/account');
   },
 };

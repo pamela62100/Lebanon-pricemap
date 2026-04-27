@@ -140,68 +140,80 @@ export function CartPage() {
                 Compare stores
               </button>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {optimization.recommendedStoreName && (
-                <div className="p-5 rounded-2xl bg-text-main text-white shadow-xl shadow-text-main/10">
-                  <p className="text-xs font-medium text-white/60 mb-1">Best pick</p>
-                  <p className="text-base font-bold">{optimization.recommendedStoreName}</p>
-                  <p className="text-2xl font-bold font-data mt-1">
-                    {optimization.recommendedTotalLbp.toLocaleString()}
-                    <span className="text-xs font-semibold ml-1 opacity-60">LBP</span>
-                  </p>
-                  <p className="text-xs mt-0.5 text-white/50">
-                    ≈ ${(optimization.recommendedTotalLbp / rateLbpPerUsd).toFixed(2)}
-                  </p>
-                </div>
-              )}
-
-              {optimization.stores.slice(0, 4).map((store, index) => (
-                <motion.div
-                  key={store.storeId}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                  className={cn(
-                    'p-5 rounded-2xl border transition-all',
-                    index === 0
-                      ? 'bg-green-500/10 border-green-500/20'
-                      : 'bg-white border-border-soft'
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-semibold text-text-main">{store.storeName}</h4>
-                        {index === 0 && (
-                          <span className="px-2 py-0.5 bg-green-500 text-white rounded text-[10px] font-bold">
-                            Best
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-text-muted">
-                        {store.itemsCovered} found · {store.itemsMissing} missing
-                      </p>
-                    </div>
-
-                    <div className="text-right">
-                      <p className="text-lg font-bold text-text-main font-data leading-none">
-                        {store.totalLbp.toLocaleString()}
-                      </p>
-                      <p className="text-xs text-text-muted">LBP</p>
-                    </div>
+          ) : (() => {
+            const bestComplete = optimization.stores.find(s => s.storeId === optimization.bestCompleteStoreId);
+            const cheapestPartial = optimization.stores.find(s => s.storeId === optimization.cheapestPartialStoreId);
+            const featured = bestComplete ?? cheapestPartial;
+            const featuredLabel = bestComplete ? 'Best complete store' : 'Lowest partial total';
+            return (
+              <div className="space-y-3">
+                {featured && (
+                  <div className="p-5 rounded-2xl bg-text-main text-white shadow-xl shadow-text-main/10">
+                    <p className="text-xs font-medium text-white/60 mb-1">{featuredLabel}</p>
+                    <p className="text-base font-bold">{featured.storeName}</p>
+                    <p className="text-2xl font-bold font-data mt-1">
+                      {featured.totalLbp.toLocaleString()}
+                      <span className="text-xs font-semibold ml-1 opacity-60">LBP</span>
+                    </p>
+                    <p className="text-xs mt-0.5 text-white/50">
+                      ≈ ${(featured.totalLbp / rateLbpPerUsd).toFixed(2)} · {featured.foundCount} of {featured.totalCount} items
+                    </p>
                   </div>
-                </motion.div>
-              ))}
+                )}
 
-              <button
-                onClick={() => navigate('/app/list/optimize')}
-                className="w-full h-10 rounded-xl border border-border-soft text-sm font-semibold text-text-muted hover:text-text-main hover:border-text-main/20 transition-all"
-              >
-                View full comparison
-              </button>
-            </div>
-          )}
+                {!bestComplete && optimization.stores.length > 0 && (
+                  <div className="px-4 py-3 rounded-xl bg-amber-50 border border-amber-200">
+                    <p className="text-xs font-semibold text-amber-800">No store has all items</p>
+                    <p className="text-[11px] text-amber-700 mt-0.5">You may need to visit more than one store.</p>
+                  </div>
+                )}
+
+                {optimization.stores.slice(0, 4).map((store) => (
+                  <motion.div
+                    key={store.storeId}
+                    initial={{ opacity: 0, x: 12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={cn(
+                      'p-4 rounded-2xl border transition-all',
+                      store.isComplete
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-white border-border-soft'
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h4 className="font-semibold text-text-main text-sm truncate">{store.storeName}</h4>
+                          {store.isComplete ? (
+                            <span className="px-1.5 py-0.5 bg-green-500 text-white rounded text-[10px] font-semibold">Complete</span>
+                          ) : (
+                            <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-semibold">Partial</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-text-muted">
+                          {store.foundCount} of {store.totalCount} items
+                          {store.missingItems.length > 0 && ` · ${store.missingItems.length} missing`}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold text-text-main font-data leading-none">
+                          {store.totalLbp.toLocaleString()}
+                        </p>
+                        <p className="text-[10px] text-text-muted">LBP</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+
+                <button
+                  onClick={() => navigate('/app/list/optimize')}
+                  className="w-full h-10 rounded-xl border border-border-soft text-sm font-semibold text-text-muted hover:text-text-main hover:border-text-main/20 transition-all"
+                >
+                  View full comparison
+                </button>
+              </div>
+            );
+          })()}
         </aside>
       </div>
 

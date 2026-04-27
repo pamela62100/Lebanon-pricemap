@@ -82,6 +82,28 @@ export function TopNavbar() {
 
             {/* Right side */}
             <div className="flex items-center gap-2 shrink-0">
+              {/* Back to dashboard for admin/retailer */}
+              {user.role === 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin')}
+                  className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  Admin dashboard
+                </button>
+              )}
+              {user.role === 'retailer' && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/retailer')}
+                  className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all"
+                >
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  Retailer dashboard
+                </button>
+              )}
+
               {/* Exchange rate */}
               <button
                 type="button"
@@ -140,7 +162,7 @@ export function TopNavbar() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: 4 }}
                       transition={{ duration: 0.12 }}
-                      className="absolute right-0 mt-2 w-60 rounded-2xl bg-white border border-border-soft shadow-lg p-2 z-50"
+                      className="absolute right-0 mt-2 w-60 rounded-2xl bg-white border border-border-soft shadow-lg p-2 z-[200]"
                     >
                       <div className="px-3 py-2.5 border-b border-border-soft mb-1">
                         <p className="font-semibold text-text-main text-sm truncate">{user.name}</p>

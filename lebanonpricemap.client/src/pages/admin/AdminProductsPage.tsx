@@ -75,7 +75,10 @@ export function AdminProductsPage() {
               <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '18px' }}>search</span>
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search products..." className="bg-transparent border-none outline-none text-sm text-text-main placeholder:text-text-muted flex-1" />
             </div>
-            <button className="h-10 px-4 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:bg-primary-hover">
+            <button
+              onClick={() => open('edit-product', { id: 'new' })}
+              className="h-10 px-4 rounded-xl bg-primary text-white text-sm font-semibold flex items-center gap-2 hover:bg-primary-hover transition-colors"
+            >
               <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
               Add Product
             </button>
@@ -140,23 +143,39 @@ export function AdminProductsPage() {
         </div>
       </div>
 
-      <RouteDialog dialogId="edit-product" title="Edit Product" description="Update core product information.">
+      <RouteDialog
+        dialogId="edit-product"
+        title={activeProductId === 'new' ? 'Add Product' : 'Edit Product'}
+        description={activeProductId === 'new' ? 'Add a new product to the catalog.' : 'Update core product information.'}
+      >
         <div className="flex flex-col gap-4">
           <div>
             <label className="text-xs font-bold text-text-muted uppercase tracking-wider mb-1.5 block">Product Name</label>
-            <input value={editName} onChange={e => setEditName(e.target.value)} className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm text-text-main focus:border-primary focus:outline-none" />
+            <input
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              placeholder="e.g. Whole Milk 1L"
+              className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm text-text-main focus:border-primary focus:outline-none"
+            />
           </div>
           <button
             onClick={async () => {
-              if (!activeProductId) return;
+              if (!editName.trim()) return;
               try {
-                await productsApi.update(activeProductId, { name: editName });
-                setProducts(prev => prev.map(p => p.id === activeProductId ? { ...p, name: editName } : p));
+                if (activeProductId === 'new') {
+                  const res = await productsApi.create({ name: editName.trim() });
+                  const created = (res as any).data?.data;
+                  if (created) setProducts(prev => [created, ...prev]);
+                  setEditName('');
+                } else if (activeProductId) {
+                  await productsApi.update(activeProductId, { name: editName });
+                  setProducts(prev => prev.map(p => p.id === activeProductId ? { ...p, name: editName } : p));
+                }
               } catch { /* handled silently */ }
             }}
-            className="h-10 rounded-xl bg-primary text-white text-sm font-bold hover:bg-primary-hover transition-all mt-2"
+            className="h-10 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-all mt-2"
           >
-            Save Changes
+            {activeProductId === 'new' ? 'Add Product' : 'Save Changes'}
           </button>
         </div>
       </RouteDialog>

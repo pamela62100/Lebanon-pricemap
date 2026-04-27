@@ -1,86 +1,137 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ApiKeyManager } from '@/components/retailer/ApiKeyManager';
 import { SyncStatusCard } from '@/components/retailer/SyncStatusCard';
-import { cn } from '@/lib/utils';
+
+const POS_SYSTEMS = [
+  { name: 'Odoo', icon: 'store', desc: 'Connect your Odoo POS' },
+  { name: 'QuickBooks', icon: 'receipt_long', desc: 'Sync from QuickBooks' },
+  { name: 'Custom System', icon: 'settings', desc: 'Any other system' },
+];
+
+const METHODS = [
+  {
+    id: 'manual',
+    icon: 'edit_note',
+    title: 'Update manually',
+    desc: 'Update prices one by one from the Products page.',
+    path: '/retailer/products',
+  },
+  {
+    id: 'csv',
+    icon: 'upload_file',
+    title: 'Upload a spreadsheet',
+    desc: 'Export from Excel or Google Sheets and upload weekly.',
+    path: '/retailer/upload',
+  },
+  {
+    id: 'connect',
+    icon: 'sync',
+    title: 'Connect your system',
+    desc: 'Link your POS or inventory system for automatic updates.',
+    active: true,
+  },
+];
 
 export function RetailerSyncPage() {
   const navigate = useNavigate();
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   return (
-    <div className="flex flex-col gap-6">
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-black text-text-main">API Sync & Integration</h1>
-        <p className="text-text-muted text-sm mt-1">Connect your POS or inventory system for automatic, real-time price updates</p>
-      </motion.div>
-
-      {/* Sync method cards */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { icon: 'edit', title: 'Manual Entry', desc: 'Update prices one by one. Best for stores with under 20 products.', path: '/retailer/products' },
-          { icon: 'upload_file', title: 'CSV Upload', desc: 'Upload a spreadsheet weekly. Ideal for medium stores with an Excel price list.', path: '/retailer/upload' },
-          { icon: 'api', title: 'API Sync', desc: 'Connect your POS system directly. Real-time, zero manual work. Active on your account.', path: '/retailer/sync', active: true },
-        ].map(method => (
-          <motion.div 
-            key={method.title} 
-            initial={{ opacity: 0, y: 12 }} 
-            animate={{ opacity: 1, y: 0 }}
-            onClick={() => method.path && navigate(method.path)}
-            className={cn(
-              "p-5 rounded-2xl border transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]",
-              method.active 
-                ? 'border-primary bg-primary/5 shadow-sm' 
-                : 'border-border-soft bg-bg-surface hover:border-primary/40'
-            )}
-          >
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${method.active ? 'bg-primary/15' : 'bg-bg-muted'}`}>
-              <span className="material-symbols-outlined" style={{ fontSize: '20px', color: method.active ? 'var(--primary)' : 'var(--text-muted)' }}>{method.icon}</span>
-            </div>
-            <div className="flex items-center gap-2 mb-1">
-              <p className="text-sm font-bold text-text-main">{method.title}</p>
-              {method.active && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">ACTIVE</span>}
-              {!method.active && <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-bg-muted text-text-muted border border-border-soft">AVAILABLE</span>}
-            </div>
-            <p className="text-xs text-text-muted leading-relaxed">{method.desc}</p>
-          </motion.div>
-        ))}
+    <div className="flex flex-col gap-8 max-w-3xl">
+      <div>
+        <h1 className="text-2xl font-bold text-text-main">Connect your system</h1>
+        <p className="text-sm text-text-muted mt-1">
+          Keep your prices up to date automatically — no manual work needed.
+        </p>
       </div>
 
-      <div className="grid grid-cols-5 gap-6">
-        {/* API key manager */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="col-span-3 bg-bg-surface rounded-2xl border border-border-soft p-6">
-          <h2 className="text-base font-bold text-text-main mb-5">API Credentials</h2>
-          <ApiKeyManager />
-        </motion.div>
-
-        {/* Sync log */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="col-span-2">
-          <h2 className="text-base font-bold text-text-main mb-5">Sync Log</h2>
-          <SyncStatusCard />
-        </motion.div>
-      </div>
-
-      {/* Integration tips */}
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-bg-surface rounded-2xl border border-border-soft p-6">
-        <h2 className="text-base font-bold text-text-main mb-4">Integration checklist</h2>
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            { done: true,  text: 'Generate your API key above' },
-            { done: true,  text: 'Whitelist our IP: 185.210.144.0/24' },
-            { done: false, text: 'Configure your POS to POST on price change' },
-            { done: false, text: 'Test with a single product first' },
-            { done: false, text: 'Schedule a full catalog sync for off-peak hours' },
-            { done: true,  text: 'Review the rate limits and error codes' },
-          ].map((item, i) => (
-            <div key={i} className="flex items-center gap-3">
-              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${item.done ? 'bg-green-500/15' : 'bg-bg-muted border border-border-soft'}`}>
-                {item.done && <span className="material-symbols-outlined text-green-500" style={{ fontSize: '12px' }}>check</span>}
+      {/* How do you want to sync? */}
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">How would you like to update prices?</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {METHODS.map(method => (
+            <motion.button
+              key={method.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              onClick={() => method.path ? navigate(method.path) : undefined}
+              className={`p-4 rounded-xl border text-left transition-all ${
+                method.active
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20 cursor-default'
+                  : 'border-border-soft bg-white hover:border-primary/30 hover:bg-bg-base cursor-pointer'
+              }`}
+            >
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${method.active ? 'bg-primary/10' : 'bg-bg-muted'}`}>
+                <span className="material-symbols-outlined text-[18px]" style={{ color: method.active ? 'var(--primary)' : 'var(--text-muted)' }}>
+                  {method.icon}
+                </span>
               </div>
-              <p className={`text-sm ${item.done ? 'text-text-main' : 'text-text-muted'}`}>{item.text}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="text-sm font-semibold text-text-main">{method.title}</p>
+                {method.active && (
+                  <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Active</span>
+                )}
+              </div>
+              <p className="text-xs text-text-muted leading-relaxed">{method.desc}</p>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Connection status */}
+      <div className="bg-white border border-border-soft rounded-xl p-5 flex flex-col gap-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-text-main">Sync status</p>
+            <p className="text-xs text-text-muted mt-0.5">Last sync activity from your connected system</p>
+          </div>
+        </div>
+        <SyncStatusCard />
+      </div>
+
+      {/* Compatible POS systems */}
+      <div className="flex flex-col gap-3">
+        <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Compatible systems</p>
+        <div className="grid grid-cols-3 gap-3">
+          {POS_SYSTEMS.map(pos => (
+            <div key={pos.name} className="bg-white border border-border-soft rounded-xl p-4 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-bg-muted flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[18px] text-text-muted">{pos.icon}</span>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-text-main">{pos.name}</p>
+                <p className="text-xs text-text-muted">{pos.desc}</p>
+              </div>
             </div>
           ))}
         </div>
-      </motion.div>
+      </div>
+
+      {/* Advanced / Connection key */}
+      <div className="border border-border-soft rounded-xl overflow-hidden">
+        <button
+          onClick={() => setShowAdvanced(v => !v)}
+          className="w-full flex items-center justify-between px-5 py-4 bg-white hover:bg-bg-base transition-colors text-left"
+        >
+          <div>
+            <p className="text-sm font-semibold text-text-main">Advanced: Connection key</p>
+            <p className="text-xs text-text-muted mt-0.5">For custom or developer-managed integrations</p>
+          </div>
+          <span className="material-symbols-outlined text-[18px] text-text-muted">
+            {showAdvanced ? 'expand_less' : 'expand_more'}
+          </span>
+        </button>
+        {showAdvanced && (
+          <div className="px-5 pb-5 border-t border-border-soft bg-white">
+            <p className="text-xs text-text-muted mt-4 mb-4">
+              Your connection key is used to authenticate your system. Share it only with your IT team.
+            </p>
+            <ApiKeyManager />
+          </div>
+        )}
+      </div>
     </div>
   );
 }

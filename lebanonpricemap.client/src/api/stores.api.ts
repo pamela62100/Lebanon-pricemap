@@ -1,7 +1,7 @@
 import client from './axiosClient';
 
 export const storesApi = {
-  getAll: async (params?: { city?: string }) => {
+  getAll: async (params?: { city?: string; includeAll?: boolean }) => {
     return client.get('/stores', { params });
   },
 
@@ -11,6 +11,18 @@ export const storesApi = {
 
   getMine: async () => {
     return client.get('/stores/mine');
+  },
+
+  createMine: async (data: {
+    name: string;
+    chain?: string;
+    city: string;
+    district?: string;
+    region?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => {
+    return client.post('/stores/mine', data);
   },
 
   update: async (id: string, data: {

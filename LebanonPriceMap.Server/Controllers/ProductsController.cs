@@ -45,7 +45,7 @@ public class ProductsController : ControllerBase
     /// Create a new master product in the global dictionary. Admin only.
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -61,7 +61,7 @@ public class ProductsController : ControllerBase
     /// Update an existing product. Admin only.
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateProductRequest request)
     {
         var success = await _productService.UpdateAsync(id, request);
@@ -74,7 +74,7 @@ public class ProductsController : ControllerBase
     /// Archive (soft-delete) a product. Admin only.
     /// </summary>
     [HttpPatch("{id}/archive")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Archive(string id)
     {
         var success = await _productService.ArchiveAsync(id);

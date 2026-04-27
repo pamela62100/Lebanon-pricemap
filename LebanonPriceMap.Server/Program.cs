@@ -29,6 +29,7 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ApprovalService>();
+builder.Services.AddScoped<EmailService>();
 
 
 // Add CORS

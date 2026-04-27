@@ -8,7 +8,7 @@ namespace LebanonPriceMap.Server.Controllers;
 
 [ApiController]
 [Route("api/admin")]
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = "admin")]
 public class AdminController : ControllerBase
 {
     private readonly AdminService _adminService;
@@ -30,11 +30,11 @@ public class AdminController : ControllerBase
         return Ok(new { success = true, data = stats });
     }
 
-    // POST /api/admin/users — create a user with a specific role
+    // POST /api/admin/users — create a user with a specific role (admin only)
     [HttpPost("users")]
     public async Task<IActionResult> CreateUser([FromBody] RegisterRequest request)
     {
-        var result = await _authService.Register(request);
+        var result = await _authService.Register(request, adminCreating: true);
         if (result == null)
             return Conflict(new { success = false, message = "A user with that email already exists." });
         return Ok(new { success = true, data = result });

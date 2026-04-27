@@ -8,7 +8,7 @@ namespace LebanonPriceMap.Server.Controllers;
 
 [ApiController]
 [Route("api/approvals")]
-[Authorize]
+[Authorize(Roles = "admin")]
 public class ApprovalsController : ControllerBase
 {
     private readonly ApprovalService _approvalService;
@@ -48,7 +48,7 @@ public class ApprovalsController : ControllerBase
 
     // PATCH /api/approvals/{id}/approve
     [HttpPatch("{id}/approve")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Approve(Guid id, [FromBody] ResolveApprovalRequest request)
     {
         var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -62,7 +62,7 @@ public class ApprovalsController : ControllerBase
 
     // PATCH /api/approvals/{id}/reject
     [HttpPatch("{id}/reject")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Reject(Guid id, [FromBody] ResolveApprovalRequest request)
     {
         var adminIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);

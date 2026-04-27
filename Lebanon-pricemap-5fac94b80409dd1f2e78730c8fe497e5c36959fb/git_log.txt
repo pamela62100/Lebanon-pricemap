@@ -1,5 +1,0 @@
-﻿09ae339 feat: Add a comprehensive set of new data models and extensive backend API design and sequence diagrams.
-2961ccc Merge pull request #10 from pamela62100/authv1
-b2601a7 authentication setup
-2e1baf4 merge feature/database into main
-613becd add database connection

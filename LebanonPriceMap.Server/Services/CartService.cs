@@ -181,7 +181,7 @@ public class CartService
     public async Task<CartOptimizationResult> OptimizeCartAsync(Guid userId)
     {
         var cart = await _db.Carts
-            .Include(c => c.Items)
+            .Include(c => c.Items).ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null || !cart.Items.Any())
@@ -197,21 +197,23 @@ public class CartService
             .Include(sci => sci.Store)
             .ToListAsync();
 
-        // Group by store and calculate totals
+        // Build per-store basket breakdown including found/missing items
         var storeGroups = catalogPrices
             .GroupBy(cp => cp.StoreId)
             .Select(g =>
             {
-                var store = g.First().Store;
+                var store = g.First().Store!;
                 long total = 0;
-                int covered = 0;
+                var found = new List<BasketItem>();
+                var missing = new List<BasketItem>();
 
                 foreach (var cartItem in cart.Items)
                 {
                     var catalogEntry = g.FirstOrDefault(cp => cp.ProductId == cartItem.ProductId);
+                    var productName = cartItem.Product?.Name ?? "Unknown product";
+
                     if (catalogEntry != null)
                     {
-                        // Use promo price if active, otherwise official
                         var price = (catalogEntry.IsPromotion &&
                                      catalogEntry.PromoPriceLbp.HasValue &&
                                      (catalogEntry.PromoEndsAt == null || catalogEntry.PromoEndsAt > DateTime.UtcNow))
@@ -219,31 +221,52 @@ public class CartService
                             : (long)(catalogEntry.OfficialPriceLbp ?? 0);
 
                         total += price * cartItem.Quantity;
-                        covered++;
+                        found.Add(new BasketItem
+                        {
+                            ProductId = cartItem.ProductId.ToString(),
+                            ProductName = productName,
+                            Quantity = cartItem.Quantity,
+                            UnitPriceLbp = price
+                        });
+                    }
+                    else
+                    {
+                        missing.Add(new BasketItem
+                        {
+                            ProductId = cartItem.ProductId.ToString(),
+                            ProductName = productName,
+                            Quantity = cartItem.Quantity,
+                            UnitPriceLbp = null
+                        });
                     }
                 }
 
                 return new StoreBasketCost
                 {
-                    StoreId = store!.Id.ToString(),
+                    StoreId = store.Id.ToString(),
                     StoreName = store.Name,
                     TotalLbp = total,
-                    ItemsCovered = covered,
-                    ItemsMissing = cart.Items.Count - covered
+                    FoundCount = found.Count,
+                    TotalCount = cart.Items.Count,
+                    FoundItems = found,
+                    MissingItems = missing
                 };
             })
-            .Where(s => s.ItemsCovered > 0)
+            .Where(s => s.FoundCount > 0)
             .OrderBy(s => s.TotalLbp)
             .ToList();
 
-        var best = storeGroups.FirstOrDefault();
+        // Cheapest store that has EVERY item
+        var bestComplete = storeGroups.FirstOrDefault(s => s.IsComplete);
+        // Cheapest store overall (even if partial)
+        var cheapestPartial = storeGroups.FirstOrDefault();
 
         return new CartOptimizationResult
         {
+            TotalItemCount = cart.Items.Count,
             Stores = storeGroups,
-            RecommendedStoreId = best?.StoreId,
-            RecommendedStoreName = best?.StoreName,
-            RecommendedTotalLbp = best?.TotalLbp ?? 0
+            BestCompleteStoreId = bestComplete?.StoreId,
+            CheapestPartialStoreId = cheapestPartial?.StoreId
         };
     }
 

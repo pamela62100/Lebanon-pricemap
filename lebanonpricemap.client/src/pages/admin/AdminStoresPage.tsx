@@ -24,7 +24,7 @@ export function AdminStoresPage() {
   const activeStore = stores.find(s => s.id === activeStoreId);
 
   useEffect(() => {
-    storesApi.getAll().then((res) => {
+    storesApi.getAll({ includeAll: true }).then((res) => {
       const data = res.data?.data ?? res.data;
       setStores(Array.isArray(data) ? data : []);
     }).catch(() => {}).finally(() => setIsLoading(false));
@@ -55,13 +55,12 @@ export function AdminStoresPage() {
 
   const changeStatus = async (id: string, status: StoreStatus) => {
     try {
-      const apiStatus = status === 'active' ? 'verified' : status;
-      await storesApi.updateStatus(id, apiStatus);
-      setStores(prev => prev.map(s => s.id === id ? { ...s, status: apiStatus } : s));
+      await storesApi.updateStatus(id, status);
+      setStores(prev => prev.map(s => s.id === id ? { ...s, status } : s));
       const label = { active: 'approved', pending: 'set to pending', suspended: 'suspended' }[status];
       addToast(`Store ${label}`, status === 'active' ? 'success' : status === 'suspended' ? 'error' : 'info');
     } catch {
-      addToast('Failed to update store status');
+      addToast('Failed to update store status', 'error');
     }
   };
 

@@ -11,19 +11,29 @@ interface CartItem {
   quantity: number;
 }
 
-interface CartOptimizationResult {
-  stores: StoreBasketCost[];
-  recommendedStoreId?: string;
-  recommendedStoreName?: string;
-  recommendedTotalLbp: number;
+export interface BasketItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPriceLbp?: number | null;
 }
 
-interface StoreBasketCost {
+export interface StoreBasketCost {
   storeId: string;
   storeName: string;
   totalLbp: number;
-  itemsCovered: number;
-  itemsMissing: number;
+  foundCount: number;
+  totalCount: number;
+  isComplete: boolean;
+  foundItems: BasketItem[];
+  missingItems: BasketItem[];
+}
+
+export interface CartOptimizationResult {
+  totalItemCount: number;
+  stores: StoreBasketCost[];
+  bestCompleteStoreId?: string | null;
+  cheapestPartialStoreId?: string | null;
 }
 
 interface CartState {

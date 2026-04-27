@@ -14,7 +14,7 @@ namespace LebanonPriceMap.Server.Controllers;
 ///   GET    /api/users/{id}               – Admin or Self: get profile
 ///   PUT    /api/users/{id}               – Self: update personal details
 ///   GET    /api/users/{id}/notifications  – Self: paginated notifications
-///   PATCH  /api/users/{id}/status         – Admin: ban / warn / suspend
+///   PATCH  /api/users/{id}/status         – Admin: warn / suspend / reactivate
 /// </summary>
 [ApiController]
 [Route("api/users")]
@@ -133,11 +133,11 @@ public class UsersController : ControllerBase
     // ───────────────────────────────────────────────
 
     /// <summary>
-    /// Ban, warn, or suspend a user. Admin only.
-    /// Valid status values: 'active', 'warned', 'suspended', 'banned'.
+    /// Warn, suspend, or reactivate a user. Admin only.
+    /// Valid status values: 'active', 'warned', 'suspended'.
     /// </summary>
     [HttpPatch("{id}/status")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UserStatusUpdateRequest request)
     {
         var success = await _userService.UpdateUserStatusAsync(id, request.Status);
