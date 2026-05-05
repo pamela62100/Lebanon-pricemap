@@ -17,17 +17,17 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(50)]
-        public string ReportType { get; set; }
+        public string ReportType { get; set; } = string.Empty;
 
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         [ForeignKey("PriceSubmissionId")]
-        public virtual PriceSubmission PriceSubmission { get; set; }
+        public virtual PriceSubmission? PriceSubmission { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

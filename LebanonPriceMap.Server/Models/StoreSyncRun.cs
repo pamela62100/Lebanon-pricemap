@@ -13,10 +13,10 @@ namespace LebanonPriceMap.Server.Models
         public Guid StoreId { get; set; }
 
         [Required]
-        public string Method { get; set; }
+        public SyncMethod Method { get; set; }
 
         [Required]
-        public string Status { get; set; }
+        public SyncStatus Status { get; set; }
 
         public int? RecordsReceived { get; set; }
 
@@ -24,7 +24,7 @@ namespace LebanonPriceMap.Server.Models
 
         public int? RecordsFailed { get; set; }
 
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
 
@@ -34,10 +34,10 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public virtual User CreatedByUser { get; set; }
+        public virtual User? CreatedByUser { get; set; }
 
         public virtual ICollection<StoreSyncItem> Items { get; set; } = new List<StoreSyncItem>();
     }

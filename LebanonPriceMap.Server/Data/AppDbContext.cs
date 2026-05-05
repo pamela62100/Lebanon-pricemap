@@ -54,6 +54,12 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum<SyncMethod>();
+        modelBuilder.HasPostgresEnum<SyncStatus>();
+        modelBuilder.HasPostgresEnum<SubmissionSource>();
+        modelBuilder.HasPostgresEnum<SubmissionStatus>();
+
+
         modelBuilder.Entity<PasswordResetToken>(entity =>
         {
             entity.ToTable("password_reset_tokens");
@@ -641,8 +647,9 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.ToTable("store_sync_runs");
             entity.Property(e => e.Id).HasColumnName("id");
             entity.Property(e => e.StoreId).HasColumnName("store_id");
-            entity.Property(e => e.Method).HasColumnName("method");
-            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.Method).HasColumnName("method").HasColumnType("sync_method");
+            entity.Property(e => e.Status).HasColumnName("status").HasColumnType("sync_status");
+
             entity.Property(e => e.RecordsReceived).HasColumnName("records_received");
             entity.Property(e => e.RecordsProcessed).HasColumnName("records_processed");
             entity.Property(e => e.RecordsFailed).HasColumnName("records_failed");
@@ -713,8 +720,26 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.RevokedAt).HasColumnName("revoked_at");
-            entity.HasOne(e => e.Store).WithMany().HasForeignKey(e => e.StoreId);
-            entity.HasOne(e => e.CreatedByUser).WithMany().HasForeignKey(e => e.CreatedBy);
+            
+            entity.HasOne(e => e.Store)
+                .WithMany(s => s.ApiKeys)
+                .HasForeignKey(e => e.StoreId);
+                
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy);
+        });
+
+        modelBuilder.Entity<PriceSubmission>(entity =>
+        {
+            entity.Property(e => e.Source).HasColumnType("submission_source");
+            entity.Property(e => e.OcrPayload).HasColumnType("jsonb");
+            entity.Property(e => e.SubmissionStatus).HasColumnType("submission_status");
+        });
+
+        modelBuilder.Entity<CurrentStoreProductPrice>(entity =>
+        {
+            entity.Property(e => e.Source).HasColumnType("submission_source");
         });
     }
 

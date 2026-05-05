@@ -7,17 +7,29 @@ namespace LebanonPriceMap.Server.DTOs
     {
         public Guid Id { get; set; }
         public Guid StoreId { get; set; }
-        public string StoreName { get; set; }
+        public string StoreName { get; set; } = string.Empty;
         public Guid ProductId { get; set; }
-        public string ProductName { get; set; }
-        public string ProductBrand { get; set; }
-        public string ProductUnit { get; set; }
+        public string ProductName { get; set; } = string.Empty;
+        public string ProductBrand { get; set; } = string.Empty;
+        public string ProductUnit { get; set; } = string.Empty;
         public decimal? OfficialPriceLbp { get; set; }
         public decimal? PromoPriceLbp { get; set; }
         public DateTime? PromoEndsAt { get; set; }
         public bool IsInStock { get; set; }
         public bool IsPromotion { get; set; }
+        public decimal? DiscountPercent { get; set; }
         public DateTime LastUpdatedAt { get; set; }
+
+        // Added to match frontend expectations
+        public ProductDetailsDto? Product { get; set; }
+    }
+
+    public class ProductDetailsDto
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
+        public string Barcode { get; set; } = string.Empty;
     }
 
     public class CreateCatalogItemDto
@@ -36,7 +48,7 @@ namespace LebanonPriceMap.Server.DTOs
         
         // Audit information
         public string Reason { get; set; } = "owner_update";
-        public string Note { get; set; }
+        public string Note { get; set; } = string.Empty;
     }
 
     public class UpdateCatalogItemDto
@@ -50,7 +62,7 @@ namespace LebanonPriceMap.Server.DTOs
         // Audit information
         [Required]
         public string Reason { get; set; } = "owner_update";
-        public string Note { get; set; }
+        public string Note { get; set; } = string.Empty;
     }
 
     public class CatalogAuditDto
@@ -58,11 +70,11 @@ namespace LebanonPriceMap.Server.DTOs
         public Guid Id { get; set; }
         public Guid CatalogItemId { get; set; }
         public Guid? ChangedBy { get; set; }
-        public string ChangedByName { get; set; }
-        public string Reason { get; set; }
+        public string ChangedByName { get; set; } = string.Empty;
+        public string Reason { get; set; } = string.Empty;
         public decimal? PreviousPriceLbp { get; set; }
         public decimal? NewPriceLbp { get; set; }
-        public string Note { get; set; }
+        public string Note { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
     }
 }

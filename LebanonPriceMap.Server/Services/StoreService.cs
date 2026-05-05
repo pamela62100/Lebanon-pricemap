@@ -226,10 +226,10 @@ public class StoreService
             .ToListAsync();
     }
 
-    public async Task<ApiKeyResponse> CreateApiKeyAsync(Guid ownerId, string label)
+    public async Task<ApiKeyResponse?> CreateApiKeyAsync(Guid ownerId, string label)
     {
         var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
-        if (store == null) throw new InvalidOperationException("Store not found");
+        if (store == null) return null;
 
         // Generate a secure random key
         var rawBytes = new byte[32];
@@ -262,6 +262,23 @@ public class StoreService
         };
     }
 
+    public async Task<Guid?> ValidateApiKeyAsync(string plainKey)
+    {
+        var keyHash = Convert.ToBase64String(
+            System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(plainKey)));
+
+        var key = await _db.StoreApiKeys
+            .FirstOrDefaultAsync(k => k.ApiKeyHash == keyHash && k.IsActive);
+
+        if (key == null) return null;
+
+        // Update last used
+        key.LastUsedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return key.StoreId;
+    }
+
     public async Task<bool> RevokeApiKeyAsync(Guid keyId, Guid ownerId)
     {
         var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
@@ -288,8 +305,8 @@ public class StoreService
             .Select(r => new SyncRunResponse
             {
                 Id = r.Id.ToString(),
-                Method = r.Method,
-                Status = r.Status,
+                Method = r.Method.ToString(),
+                Status = r.Status.ToString(),
                 RecordsReceived = r.RecordsReceived,
                 RecordsProcessed = r.RecordsProcessed,
                 RecordsFailed = r.RecordsFailed,

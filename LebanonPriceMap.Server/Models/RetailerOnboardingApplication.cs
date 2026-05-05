@@ -16,25 +16,25 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(150)]
-        public string ContactName { get; set; }
+        public string ContactName { get; set; } = string.Empty;
 
         [Required]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [MaxLength(50)]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(255)]
-        public string ProposedStoreName { get; set; }
+        public string ProposedStoreName { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string District { get; set; }
+        public string District { get; set; } = string.Empty;
 
-        public string AddressText { get; set; }
+        public string AddressText { get; set; } = string.Empty;
 
         public decimal? Latitude { get; set; }
 
@@ -46,7 +46,7 @@ namespace LebanonPriceMap.Server.Models
 
         public string Status { get; set; } = "pending";
 
-        public string AdminNotes { get; set; }
+        public string AdminNotes { get; set; } = string.Empty;
 
         public DateTime AppliedAt { get; set; } = DateTime.UtcNow;
 
@@ -60,13 +60,13 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("ReviewedBy")]
-        public virtual User ReviewedByUser { get; set; }
+        public virtual User? ReviewedByUser { get; set; }
         
         public virtual ICollection<RetailerOnboardingDocument> Documents { get; set; } = new List<RetailerOnboardingDocument>();
     }

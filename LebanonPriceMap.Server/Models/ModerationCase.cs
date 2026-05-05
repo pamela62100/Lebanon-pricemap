@@ -14,13 +14,13 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(50)]
-        public string CaseType { get; set; }
+        public string CaseType { get; set; } = string.Empty;
 
         public string Status { get; set; } = "pending";
 
         public string Severity { get; set; } = "medium";
 
-        public string CaseNote { get; set; }
+        public string? CaseNote { get; set; }
 
         public Guid? AssignedTo { get; set; }
 
@@ -34,12 +34,12 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("PriceSubmissionId")]
-        public virtual PriceSubmission PriceSubmission { get; set; }
+        public virtual PriceSubmission? PriceSubmission { get; set; }
 
         [ForeignKey("AssignedTo")]
-        public virtual User AssignedToUser { get; set; }
+        public virtual User? AssignedToUser { get; set; }
 
         [ForeignKey("ResolvedBy")]
-        public virtual User ResolvedByUser { get; set; }
+        public virtual User? ResolvedByUser { get; set; }
     }
 }

@@ -25,11 +25,11 @@ public class StoreResponse
 
 public class StoreUpdateRequest
 {
-    public string Name { get; set; }
-    public string Chain { get; set; }
-    public string City { get; set; }
-    public string District { get; set; }
-    public string Region { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Chain { get; set; } = string.Empty;
+    public string City { get; set; } = string.Empty;
+    public string District { get; set; } = string.Empty;
+    public string Region { get; set; } = string.Empty;
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
 }
@@ -47,12 +47,12 @@ public class CreateMyStoreRequest
 
 public class StoreStatusUpdateRequest
 {
-    public string Status { get; set; } // 'active', 'suspended', 'flagged'
+    public string Status { get; set; } = string.Empty; // 'active', 'suspended', 'flagged'
 }
 
 public class StorePowerStatusUpdateRequest
 {
-    public string PowerStatus { get; set; } // 'stable', 'unstable', 'reported_warm'
+    public string PowerStatus { get; set; } = string.Empty; // 'stable', 'unstable', 'reported_warm'
 }
 
 public class ApiKeyResponse

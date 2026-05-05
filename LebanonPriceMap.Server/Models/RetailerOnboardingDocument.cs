@@ -14,15 +14,15 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(50)]
-        public string DocumentType { get; set; }
+        public string DocumentType { get; set; } = string.Empty;
 
         [Required]
-        public string FileUrl { get; set; }
+        public string FileUrl { get; set; } = string.Empty;
 
         public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
         [ForeignKey("ApplicationId")]
-        public virtual RetailerOnboardingApplication Application { get; set; }
+        public virtual RetailerOnboardingApplication? Application { get; set; }
     }
 }

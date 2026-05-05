@@ -45,13 +45,13 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("CategoryId")]
-        public virtual Category Category { get; set; }
+        public virtual Category? Category { get; set; }
 
         [ForeignKey("MergedIntoProductId")]
-        public virtual Product MergedIntoProduct { get; set; }
+        public virtual Product? MergedIntoProduct { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public virtual User CreatedByUser { get; set; }
+        public virtual User? CreatedByUser { get; set; }
 
         public virtual ICollection<ProductAlias> Aliases { get; set; } = new List<ProductAlias>();
         public virtual ICollection<StoreCatalogItem> CatalogItems { get; set; } = new List<StoreCatalogItem>();

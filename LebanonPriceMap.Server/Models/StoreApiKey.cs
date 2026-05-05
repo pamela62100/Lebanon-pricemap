@@ -13,10 +13,10 @@ namespace LebanonPriceMap.Server.Models
         public Guid StoreId { get; set; }
 
         [Required]
-        public string ApiKeyHash { get; set; }
+        public string ApiKeyHash { get; set; } = string.Empty;
 
         [MaxLength(150)]
-        public string KeyLabel { get; set; }
+        public string KeyLabel { get; set; } = string.Empty;
 
         public bool IsActive { get; set; } = true;
 
@@ -30,9 +30,9 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public virtual User CreatedByUser { get; set; }
+        public virtual User? CreatedByUser { get; set; }
     }
 }

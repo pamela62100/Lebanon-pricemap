@@ -14,6 +14,7 @@ interface PromoEntry {
   officialPriceLbp: number;
   promoPriceLbp?: number;
   promoEndsAt?: string | null;
+  discountPercent?: number;
   product?: { name: string; category?: string; unit?: string };
 }
 
@@ -88,8 +89,15 @@ export function PromotionsPage() {
                   <div className="w-16 h-16 rounded-2xl bg-bg-muted flex items-center justify-center border border-border-soft">
                     <span className="material-symbols-outlined text-text-muted" style={{ fontSize: '28px' }}>shopping_bag</span>
                   </div>
-                  <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isExpired ? 'bg-bg-muted text-text-sub' : 'bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] shadow-card'}`}>
-                    {isExpired ? 'Expired' : countdown}
+                  <div className="flex flex-col items-end gap-1.5">
+                    <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isExpired ? 'bg-bg-muted text-text-sub' : 'bg-[var(--status-pending-bg)] text-[var(--status-pending-text)] shadow-card'}`}>
+                      {isExpired ? 'Expired' : countdown}
+                    </div>
+                    {promo.discountPercent && !isExpired && (
+                      <div className="px-2 py-1 rounded bg-primary text-white text-[10px] font-black tracking-tighter uppercase shadow-card animate-pulse">
+                        -{promo.discountPercent}% OFF
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="relative z-10 mt-2">

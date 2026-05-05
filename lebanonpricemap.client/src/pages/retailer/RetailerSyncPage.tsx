@@ -129,6 +129,48 @@ export function RetailerSyncPage() {
               Your connection key is used to authenticate your system. Share it only with your IT team.
             </p>
             <ApiKeyManager />
+
+            <div className="mt-6 pt-6 border-t border-border-soft flex flex-col gap-4">
+              <div>
+                <p className="text-sm font-bold text-text-main">API Integration Guide</p>
+                <p className="text-xs text-text-muted mt-1">Push price updates from your system using this endpoint:</p>
+              </div>
+
+              <div className="bg-bg-muted rounded-xl p-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-white bg-text-main px-1.5 py-0.5 rounded uppercase">Post</span>
+                  <code className="text-xs font-mono text-text-main">http://localhost:5223/api/retailer/v1/sync</code>
+                </div>
+                
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Required Headers</p>
+                  <div className="flex items-center justify-between bg-white/50 rounded-lg px-3 py-2 border border-border-soft">
+                    <code className="text-xs font-mono text-text-main">X-Api-Key</code>
+                    <span className="text-[10px] text-text-muted">Your Connection Key</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Payload Example (JSON)</p>
+                  <pre className="text-[10px] font-mono text-text-main bg-white/50 p-3 rounded-lg border border-border-soft overflow-x-auto">
+{`{
+  "rows": [
+    {
+      "barcode": "5281234567890",
+      "productName": "Lebanese Labneh 500g",
+      "priceLbp": 125000
+    }
+  ]
+}`}
+                  </pre>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-2 text-xs text-text-muted italic bg-bg-base p-3 rounded-lg">
+                <span className="material-symbols-outlined text-[16px] shrink-0">verified</span>
+                <p>Note: Prices pushed via API are automatically marked as "Verified" and updated in your public catalog instantly.</p>
+              </div>
+            </div>
           </div>
         )}
       </div>

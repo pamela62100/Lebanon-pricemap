@@ -19,9 +19,9 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("PriceSubmissionId")]
-        public virtual PriceSubmission PriceSubmission { get; set; }
+        public virtual PriceSubmission? PriceSubmission { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

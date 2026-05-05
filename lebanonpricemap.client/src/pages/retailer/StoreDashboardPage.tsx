@@ -98,6 +98,10 @@ export function StoreDashboardPage() {
         </div>
 
         <div className="flex gap-3 mt-6 md:mt-0 relative z-10">
+          <button onClick={() => navigate('/retailer/upload')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm flex items-center gap-2">
+            <span className="material-symbols-outlined text-[18px]">upload_file</span>
+            Upload CSV
+          </button>
           <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm">
             Manage Promos
           </button>

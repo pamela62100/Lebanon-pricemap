@@ -26,6 +26,6 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("UpdatedBy")]
-        public virtual User UpdatedByUser { get; set; }
+        public virtual User? UpdatedByUser { get; set; }
     }
 }

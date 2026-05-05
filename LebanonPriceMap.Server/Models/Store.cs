@@ -14,7 +14,7 @@ namespace LebanonPriceMap.Server.Models
 
         [Required]
         [MaxLength(255)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [MaxLength(150)]
         public string? Chain { get; set; }
@@ -58,7 +58,7 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("OwnerUserId")]
-        public virtual User Owner { get; set; }
+        public virtual User? Owner { get; set; }
 
         public virtual ICollection<StoreApiKey> ApiKeys { get; set; } = new List<StoreApiKey>();
         public virtual ICollection<StoreCatalogItem> CatalogItems { get; set; } = new List<StoreCatalogItem>();

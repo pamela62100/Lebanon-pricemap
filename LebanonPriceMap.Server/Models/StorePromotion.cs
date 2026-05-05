@@ -16,7 +16,7 @@ namespace LebanonPriceMap.Server.Models
         public Guid ProductId { get; set; }
 
         [MaxLength(255)]
-        public string Title { get; set; }
+        public string Title { get; set; } = string.Empty;
 
         public decimal? DiscountPercent { get; set; }
 
@@ -39,12 +39,12 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
 
         [ForeignKey("CreatedBy")]
-        public virtual User CreatedByUser { get; set; }
+        public virtual User? CreatedByUser { get; set; }
     }
 }

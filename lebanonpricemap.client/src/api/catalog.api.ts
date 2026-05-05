@@ -48,6 +48,10 @@ export const catalogApi = {
   getAudit: async (id: string) => {
     return client.get(`/catalog/${id}/audit`);
   },
+
+  getInsights: async () => {
+    return client.get('/catalog/insights');
+  },
 };
 
 // ─── Discrepancy API ──────────────────────────────────────────────────────────

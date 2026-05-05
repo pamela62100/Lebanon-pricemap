@@ -23,6 +23,6 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
     }
 }

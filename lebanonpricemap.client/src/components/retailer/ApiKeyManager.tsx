@@ -32,13 +32,19 @@ export function ApiKeyManager() {
     try {
       const res = await storesApi.createApiKey('Default');
       const created = (res as any).data?.data;
-      if (created?.plainKey) {
+      
+      if (created && created.plainKey) {
         setNewKey(created.plainKey);
-        setKeys(prev => [{ ...created }, ...prev]);
+        setKeys(prev => [created, ...prev]);
         addToast('Connection key created. Copy it before closing.', 'success');
+      } else {
+        console.error('Unexpected API response:', res.data);
+        addToast('Received unexpected response from server', 'error');
       }
-    } catch {
-      addToast('Failed to create connection key', 'error');
+    } catch (err: any) {
+      console.error('Failed to create key:', err);
+      const msg = err.response?.data?.message || 'Failed to create connection key';
+      addToast(msg, 'error');
     } finally {
       setIsCreating(false);
     }

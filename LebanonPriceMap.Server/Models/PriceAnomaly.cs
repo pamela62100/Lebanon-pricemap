@@ -36,7 +36,7 @@ namespace LebanonPriceMap.Server.Models
 
         public DateTime? InvestigatedAt { get; set; }
 
-        public string ResolutionNote { get; set; }
+        public string? ResolutionNote { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -44,15 +44,15 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
 
         [ForeignKey("PriceSubmissionId")]
-        public virtual PriceSubmission PriceSubmission { get; set; }
+        public virtual PriceSubmission? PriceSubmission { get; set; }
 
         [ForeignKey("InvestigatedBy")]
-        public virtual User InvestigatedByUser { get; set; }
+        public virtual User? InvestigatedByUser { get; set; }
     }
 }

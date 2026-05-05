@@ -67,6 +67,29 @@ public class PriceSubmissionRequest
     public string? Note { get; set; }
 }
 
+public class BulkPriceSubmissionRow
+{
+    public string? ProductName { get; set; }
+    public string? Barcode { get; set; }
+    public decimal? PriceLbp { get; set; }
+    public string? Unit { get; set; }
+}
+
+public class BulkPriceSubmissionRequest
+{
+    public List<BulkPriceSubmissionRow> Rows { get; set; } = new();
+    public string Method { get; set; } = "csv";
+}
+
+public class BulkPriceSubmissionResult
+{
+    public int RecordsReceived { get; set; }
+    public int RecordsProcessed { get; set; }
+    public int RecordsFailed { get; set; }
+    public string Status { get; set; } = "pending";
+    public string Message { get; set; } = string.Empty;
+}
+
 /// <summary>
 /// Data required to vote on a price entry.
 /// </summary>

@@ -40,13 +40,13 @@ namespace LebanonPriceMap.Server.Models
         public virtual User? User { get; set; }
 
         [ForeignKey("RelatedPriceEntryId")]
-        public virtual PriceSubmission RelatedPriceEntry { get; set; }
+        public virtual PriceSubmission? RelatedPriceEntry { get; set; }
 
         [ForeignKey("RelatedStoreId")]
-        public virtual Store RelatedStore { get; set; }
+        public virtual Store? RelatedStore { get; set; }
 
         [ForeignKey("RelatedProductId")]
-        public virtual Product RelatedProduct { get; set; }
+        public virtual Product? RelatedProduct { get; set; }
 
         [ForeignKey("RelatedAlertId")]
         public virtual Alert? RelatedAlert { get; set; }

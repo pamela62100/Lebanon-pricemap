@@ -117,10 +117,13 @@ public class StoresController : ControllerBase
     public async Task<IActionResult> GetApiKeys()
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        Console.WriteLine($"[DEBUG] GetMyApiKeys hit. UserID Claim: {userIdClaim?.Value ?? "null"}");
+        
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             return Unauthorized();
 
         var keys = await _storeService.GetApiKeysAsync(userId);
+        Console.WriteLine($"[DEBUG] GetMyApiKeys success for UserID: {userId}. Found {keys.Count} keys.");
         return Ok(new { success = true, data = keys });
     }
 
@@ -133,10 +136,20 @@ public class StoresController : ControllerBase
     public async Task<IActionResult> CreateApiKey([FromBody] CreateApiKeyRequest request)
     {
         var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        Console.WriteLine($"[DEBUG] CreateApiKey hit. UserID Claim: {userIdClaim?.Value ?? "null"}");
+        
         if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
             return Unauthorized();
 
+        Console.WriteLine($"[DEBUG] CreateApiKey for UserID: {userId}");
         var result = await _storeService.CreateApiKeyAsync(userId, request.KeyLabel);
+        if (result == null) 
+        {
+            Console.WriteLine($"[DEBUG] CreateApiKey failed: Store not found for UserID: {userId}");
+            return NotFound(new { success = false, message = "You must create your store profile first before generating API keys." });
+        }
+            
+        Console.WriteLine($"[DEBUG] CreateApiKey success for UserID: {userId}");
         return Ok(new { success = true, data = result });
     }
 

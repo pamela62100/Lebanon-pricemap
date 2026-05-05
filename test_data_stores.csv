@@ -1,0 +1,31 @@
+id,owner_user_id,name,chain,city,district,region,latitude,longitude,logo_url,trust_score,status,is_verified_retailer,power_status,internal_rate_lbp
+13000000-0000-0000-0000-000000000001,,Spinneys Achrafieh,Spinneys,Beirut,Achrafieh,Beirut,33.8886,35.5160,https://upload.wikimedia.org/wikipedia/en/thumb/8/87/Spinneys_logo.svg/1200px-Spinneys_logo.svg.png,96,verified,true,stable,91500
+13000000-0000-0000-0000-000000000002,,Charcutier Aoun Fassouh,,Beirut,Fassouh,Beirut,33.8920,35.5210,,82,verified,false,unstable,89500
+13000000-0000-0000-0000-000000000003,,Happy Supermarket Mar Mkhael,Happy,Beirut,Mar Mkhael,Beirut,33.8840,35.5130,https://happy.com.lb/logo.png,89,verified,true,reported_warm,92500
+13000000-0000-0000-0000-000000000004,,Bou Khalil Hamra,Bou Khalil,Beirut,Hamra,Beirut,33.8950,35.4850,https://boukhalil.com/logo.png,91,verified,true,stable,90000
+13000000-0000-0000-0000-000000000005,,TSC Dbayeh,TSC,Dbayeh,Dbayeh,Metn,33.9370,35.5950,https://tsc.com.lb/logo.png,94,verified,true,stable,93000
+13000000-0000-0000-0000-000000000006,,Carrefour Dora,Carrefour,Beirut,Dora,Beirut,33.9020,35.5750,https://upload.wikimedia.org/wikipedia/en/thumb/0/05/Carrefour_logo.svg/1200px-Carrefour_logo.svg.png,97,verified,true,stable,89600
+13000000-0000-0000-0000-000000000007,10000000-0000-0000-0000-000000000004,Habib Market Gemmayzeh,,Beirut,Gemmayzeh,Beirut,33.8900,35.5180,https://habibmarket.com/logo.png,92,verified,true,stable,89500
+13000000-0000-0000-0000-000000000008,,Fuel Station Dora,Dora Fuel,Beirut,Dora,Beirut,33.9025,35.5745,,88,verified,true,stable,88000
+13000000-0000-0000-0000-000000000009,,Fuel Station Hamra,Hamra Fuel,Beirut,Hamra,Beirut,33.8955,35.4855,,91,verified,true,stable,89500
+13000000-0000-0000-0000-000000000010,,Fuel Station Achrafieh,Achrafieh Fuel,Beirut,Achrafieh,Beirut,33.8890,35.5165,,89,verified,true,stable,90000
+13000000-0000-0000-0000-000000000011,,Beirut Central Supermarket,,Beirut,Downtown,Beirut,33.8744,35.4833,,85,verified,true,stable,92000
+13000000-0000-0000-0000-000000000012,,Spinneys Tripoli,Spinneys,Tripoli,City Center,Tripoli,34.4372,35.8516,,95,verified,true,stable,91200
+13000000-0000-0000-0000-000000000013,,LCC Tripoli,LCC,Tripoli,Mina,Tripoli,34.4443,35.8301,,90,verified,true,unstable,90500
+13000000-0000-0000-0000-000000000014,,ABC Mart Tripoli,,Tripoli,City Center,Tripoli,34.4382,35.8531,,83,verified,false,stable,89200
+13000000-0000-0000-0000-000000000015,,Spinneys Sidon,Spinneys,Sidon,City Center,Sidon,33.5631,35.3704,,94,verified,true,stable,91000
+13000000-0000-0000-0000-000000000016,,New Mart Sidon,,Sidon,Mina,Sidon,33.5643,35.3684,,81,verified,false,stable,89800
+13000000-0000-0000-0000-000000000017,,TSC Zahle,TSC,Zahle,City Center,Zahle,33.8551,35.8875,,92,verified,true,stable,92500
+13000000-0000-0000-0000-000000000018,,Carrefour Zahle,Carrefour,Zahle,City Center,Zahle,33.8560,35.8900,,91,verified,true,stable,91800
+13000000-0000-0000-0000-000000000019,,ABC Mart Zahle,,Zahle,City Center,Zahle,33.8545,35.8865,,79,verified,false,stable,89600
+13000000-0000-0000-0000-000000000020,,Spinneys Dbayeh,Spinneys,Dbayeh,Dbayeh,Metn,33.9375,35.5955,,96,verified,true,stable,91500
+13000000-0000-0000-0000-000000000021,,Carrefour Dbayeh,Carrefour,Dbayeh,Dbayeh,Metn,33.9365,35.5950,,93,verified,true,stable,90200
+13000000-0000-0000-0000-000000000022,,TSC Keserwan,TSC,Jounieh,Jounieh,Keserwan,33.9720,35.6251,,90,verified,true,stable,92000
+13000000-0000-0000-0000-000000000023,,Spinneys Jounieh,Spinneys,Jounieh,Jounieh,Keserwan,33.9730,35.6265,,95,verified,true,stable,91300
+13000000-0000-0000-0000-000000000024,,Fuel Station Zahle,Zahle Fuel,Zahle,City Center,Zahle,33.8555,35.8885,,87,verified,true,stable,91000
+13000000-0000-0000-0000-000000000025,,Fuel Station Sidon,Sidon Fuel,Sidon,Mina,Sidon,33.5640,35.3690,,86,verified,true,stable,89900
+13000000-0000-0000-0000-000000000026,,Fuel Station Tripoli,Tripoli Fuel,Tripoli,Mina,Tripoli,34.4450,35.8310,,85,verified,true,stable,90300
+13000000-0000-0000-0000-000000000027,10000000-0000-0000-0000-000000000009,Ali Express Market,,Tripoli,City Center,Tripoli,34.4385,35.8535,,82,verified,false,stable,88900
+13000000-0000-0000-0000-000000000028,10000000-0000-0000-0000-000000000025,Hussein Fuel Center,Hussein Fuel,Beirut,Ras Beirut,Beirut,33.8826,35.4648,,91,verified,true,stable,89800
+13000000-0000-0000-0000-000000000029,,ABC Mart Metn,,Metn,Metn City,Metn,33.9280,35.5780,,80,verified,false,stable,89500
+13000000-0000-0000-0000-000000000030,,Fuel Station Jounieh,Jounieh Fuel,Jounieh,Jounieh,Keserwan,33.9725,35.6260,,88,verified,true,stable,90500

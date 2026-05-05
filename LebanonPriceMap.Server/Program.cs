@@ -12,7 +12,13 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        o => o.MapEnum<AlertStatus>("alert_status")
+        o => {
+            o.MapEnum<AlertStatus>("alert_status");
+            o.MapEnum<SyncMethod>("sync_method");
+            o.MapEnum<SyncStatus>("sync_status");
+            o.MapEnum<SubmissionSource>("submission_source");
+            o.MapEnum<SubmissionStatus>("submission_status");
+        }
     ));
 
 // Register Services
@@ -30,6 +36,7 @@ builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<FeedbackService>();
 builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<DataSeederService>();
 
 
 // Add CORS
@@ -44,6 +51,9 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+// Set the default backend URL for local development
+builder.WebHost.UseUrls("http://localhost:5223");
 
 // Add JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -68,8 +78,15 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Seed database in development
 if (app.Environment.IsDevelopment())
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var seeder = scope.ServiceProvider.GetRequiredService<DataSeederService>();
+        await seeder.SeedAllAsync();
+    }
+    
     app.UseSwagger();
     app.UseSwaggerUI();
 }

@@ -1,0 +1,30 @@
+id,owner_user_id,name,chain,city,district,region,latitude,longitude,logo_url,trust_score,status,is_verified_retailer,power_status,internal_rate_lbp
+13000000-0000-0000-0000-000000000031,10000000-0000-0000-0000-000000000036,Nada Market Jounieh,,Jounieh,Jounieh,Keserwan,33.9735,35.6270,,84,verified,true,stable,89700
+13000000-0000-0000-0000-000000000032,,Mini Mart Baalbek,,Baalbek,Baalbek,Baalbek,34.0072,36.2069,,72,verified,false,stable,88500
+13000000-0000-0000-0000-000000000033,,Malik Market Tyre,,Tyre,Tyre,Tyre,33.2731,35.1898,,75,verified,false,unstable,89000
+13000000-0000-0000-0000-000000000034,,Hermel Food Store,,Hermel,Hermel,Hermel,34.4531,36.5564,,70,verified,false,stable,87800
+13000000-0000-0000-0000-000000000035,,Star Market Metn,,Metn,Metn City,Metn,33.9285,35.5785,,78,verified,true,stable,90200
+13000000-0000-0000-0000-000000000036,,Martakla Beirut,,Beirut,Badaro,Beirut,33.8615,35.4879,,82,verified,true,stable,91800
+13000000-0000-0000-0000-000000000037,,ABC Mart Keserwan,,Keserwan,Jounieh,Keserwan,33.9725,35.6250,,76,verified,false,stable,89400
+13000000-0000-0000-0000-000000000038,,A-One Zahle,,Zahle,City Center,Zahle,33.8555,35.8880,,80,verified,true,stable,91500
+13000000-0000-0000-0000-000000000039,,Fresh Market Sidon,,Sidon,City Center,Sidon,33.5635,35.3700,,77,verified,false,stable,89600
+13000000-0000-0000-0000-000000000040,10000000-0000-0000-0000-000000000046,Nasri Supermarket,,Beirut,Downtown,Beirut,33.8750,35.4835,,88,verified,true,stable,91000
+13000000-0000-0000-0000-000000000041,,City Center Market,,Tripoli,City Center,Tripoli,34.4385,35.8535,,81,verified,true,stable,90100
+13000000-0000-0000-0000-000000000042,,Quick Market Metn,,Metn,Metn City,Metn,33.9290,35.5790,,74,verified,false,stable,88900
+13000000-0000-0000-0000-000000000043,,Discount Store Beirut,,Beirut,Ras Beirut,Beirut,33.8830,35.4650,,73,verified,false,stable,89200
+13000000-0000-0000-0000-000000000044,,Premium Market Zahle,,Zahle,City Center,Zahle,33.8560,35.8895,,86,verified,true,stable,91700
+13000000-0000-0000-0000-000000000045,,Valley Store Keserwan,,Keserwan,Jounieh,Keserwan,33.9720,35.6245,,79,verified,false,stable,89900
+13000000-0000-0000-0000-000000000046,,Essential Mart Sidon,,Sidon,Mina,Sidon,33.5640,35.3695,,75,verified,false,stable,89100
+13000000-0000-0000-0000-000000000047,,Daily Market Tripoli,,Tripoli,City Center,Tripoli,34.4390,35.8540,,80,verified,true,stable,90500
+13000000-0000-0000-0000-000000000048,,Grand Store Beirut,,Beirut,Achrafieh,Beirut,33.8890,35.5160,,85,verified,true,stable,91400
+13000000-0000-0000-0000-000000000049,,Express Mart Metn,,Metn,Metn City,Metn,33.9275,35.5775,,71,verified,false,stable,88700
+13000000-0000-0000-0000-000000000050,,Fuel Station Mountain,Mountain Fuel,Keserwan,Jounieh,Keserwan,33.9730,35.6260,,87,verified,true,stable,90400
+13000000-0000-0000-0000-000000000051,,Fuel Station Valley,Valley Fuel,Zahleh,City Center,Zahleh,33.8550,35.8885,,86,verified,true,stable,90800
+13000000-0000-0000-0000-000000000052,,Fuel Station North,North Fuel,Tripoli,Mina,Tripoli,34.4450,35.8310,,85,verified,true,stable,90200
+13000000-0000-0000-0000-000000000053,,Fuel Station South,South Fuel,Sidon,Mina,Sidon,33.5640,35.3690,,85,verified,true,stable,89800
+13000000-0000-0000-0000-000000000054,10000000-0000-0000-0000-000000000055,Elias Market Metn,,Metn,Metn City,Metn,33.9280,35.5780,,86,verified,true,stable,91200
+13000000-0000-0000-0000-000000000055,,Community Mart Beirut,,Beirut,Mar Mkhael,Beirut,33.8840,35.5135,,81,verified,true,stable,90900
+13000000-0000-0000-0000-000000000056,,Local Store Keserwan,,Keserwan,Jounieh,Keserwan,33.9715,35.6240,,77,verified,false,stable,89300
+13000000-0000-0000-0000-000000000057,,People Market Zahle,,Zahle,City Center,Zahle,33.8545,35.8870,,83,verified,true,stable,91600
+13000000-0000-0000-0000-000000000058,,Main Store Sidon,,Sidon,City Center,Sidon,33.5630,35.3705,,78,verified,false,stable,89700
+13000000-0000-0000-0000-000000000059,,Central Mart Tripoli,,Tripoli,City Center,Tripoli,34.4380,35.8530,,82,verified,true,stable,90600

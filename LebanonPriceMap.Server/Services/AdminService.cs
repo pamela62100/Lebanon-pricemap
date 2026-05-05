@@ -1,5 +1,6 @@
 using LebanonPriceMap.Server.Data;
 using LebanonPriceMap.Server.DTOs;
+using LebanonPriceMap.Server.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LebanonPriceMap.Server.Services;
@@ -17,7 +18,7 @@ public class AdminService
     {
         var totalUsers = await _db.Users.CountAsync();
         var totalUploads = await _db.PriceSubmissions.CountAsync();
-        var flaggedEntries = await _db.PriceSubmissions.CountAsync(p => p.SubmissionStatus == "flagged");
+        var flaggedEntries = await _db.PriceSubmissions.CountAsync(p => p.SubmissionStatus == SubmissionStatus.flagged);
         var activeStores = await _db.Stores.CountAsync(s => s.Status == "active");
 
         return new AdminStatsResponse

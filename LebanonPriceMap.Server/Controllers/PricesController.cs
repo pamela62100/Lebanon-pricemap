@@ -9,7 +9,7 @@ namespace LebanonPriceMap.Server.Controllers;
 /// It receives HTTP requests from the frontend and routes them to the PriceService.
 /// </summary>
 [ApiController]
-[Route("api/prices")] // This makes the URL: http://localhost:5000/api/prices
+[Route("api/prices")] // This makes the URL: http://localhost:5223/api/prices
 public class PricesController : ControllerBase
 {
     private readonly PriceService _priceService;
@@ -104,6 +104,35 @@ public class PricesController : ControllerBase
         var result = await _priceService.SubmitPriceAsync(request, userId);
         
         return Ok(new { success = true, data = result });
+    }
+
+    /// <summary>
+    /// POST /api/prices/bulk
+    /// Upload multiple price rows in one request and record a sync run.
+    /// </summary>
+    [HttpPost("bulk")]
+    [Microsoft.AspNetCore.Authorization.Authorize(Roles = "retailer,admin")]
+    public async Task<IActionResult> SubmitBulk([FromBody] BulkPriceSubmissionRequest request)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        try
+        {
+            var result = await _priceService.SubmitBulkPricesAsync(request, userId);
+            return Ok(new { success = true, data = result });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { success = false, message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            var message = ex.InnerException?.Message ?? ex.Message;
+            return StatusCode(500, new { success = false, message = $"Database error: {message}" });
+        }
     }
 
     /// <summary>

@@ -79,7 +79,7 @@ public class PriceService
                 StoreId = p.StoreId.ToString(),
                 PriceLbp = p.CurrentPriceLbp,
                 Status = p.IsVerified ? "verified" : "pending",
-                Source = p.Source,
+                Source = p.Source.ToString(),
                 CreatedAt = p.UpdatedAt, // Using UpdatedAt as the active price date
                 Upvotes = p.ConfirmationCount,
                 
@@ -149,8 +149,8 @@ public class PriceService
             IsPromotion = request.IsPromotion,
             PromoEndsAt = request.PromoEndsAt,
             CreatedAt = DateTime.UtcNow,
-            SubmissionStatus = "pending",
-            Source = "community"
+            SubmissionStatus = SubmissionStatus.pending,
+            Source = SubmissionSource.community
         };
 
         _db.PriceSubmissions.Add(submission);
@@ -163,7 +163,7 @@ public class PriceService
         if (existing != null)
         {
             existing.CurrentPriceLbp = submission.PriceLbp;
-            existing.Source = "community";
+            existing.Source = SubmissionSource.community;
             existing.IsVerified = false;
             existing.UpdatedAt = DateTime.UtcNow;
         }
@@ -175,7 +175,7 @@ public class PriceService
                 StoreId = submission.StoreId,
                 ProductId = submission.ProductId,
                 CurrentPriceLbp = submission.PriceLbp,
-                Source = "community",
+                Source = SubmissionSource.community,
                 IsVerified = false,
                 IsInStock = true,
                 UpdatedAt = DateTime.UtcNow
@@ -197,6 +197,360 @@ public class PriceService
     }
 
     /// <summary>
+    /// Processes a bulk CSV import for the logged-in store owner.
+    /// Each row is validated, saved as a submission, and recorded as a sync run.
+    /// </summary>
+    public async Task<BulkPriceSubmissionResult> SubmitBulkPricesAsync(BulkPriceSubmissionRequest request, Guid userId)
+    {
+        var store = await _db.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == userId);
+        if (store == null) throw new InvalidOperationException("Store not found for current user.");
+
+        var run = new StoreSyncRun
+        {
+            Id = Guid.NewGuid(),
+            StoreId = store.Id,
+            Method = Enum.TryParse<SyncMethod>(request.Method, true, out var m) ? m : SyncMethod.csv,
+            Status = SyncStatus.running,
+            RecordsReceived = request.Rows.Count,
+            StartedAt = DateTime.UtcNow,
+            CreatedBy = userId
+        };
+        _db.StoreSyncRuns.Add(run);
+        await _db.SaveChangesAsync();
+
+        var processed = 0;
+        var failed = 0;
+
+        foreach (var row in request.Rows)
+        {
+            var price = row.PriceLbp;
+            var barcode = row.Barcode?.Trim();
+            var name = row.ProductName?.Trim();
+            var unit = row.Unit?.Trim();
+
+            var item = new StoreSyncItem
+            {
+                Id = Guid.NewGuid(),
+                SyncRunId = run.Id,
+                RawName = name,
+                RawBarcode = barcode,
+                RawPrice = price,
+                Status = "failed",
+                FailReason = string.Empty
+            };
+
+            if (price == null || price <= 0)
+            {
+                item.FailReason = "Invalid price";
+                failed++;
+                _db.StoreSyncItems.Add(item);
+                continue;
+            }
+
+            Product? product = null;
+            if (!string.IsNullOrWhiteSpace(barcode))
+            {
+                var normalizedBarcode = barcode;
+                product = await _db.Products
+                    .Include(p => p.Aliases)
+                    .FirstOrDefaultAsync(p => p.Barcode == normalizedBarcode || p.Aliases.Any(a => a.Alias == normalizedBarcode));
+            }
+
+            if (product == null && !string.IsNullOrWhiteSpace(name))
+            {
+                var normalizedName = name.ToLower();
+                product = await _db.Products
+                    .Include(p => p.Aliases)
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == normalizedName || p.Aliases.Any(a => a.Alias.ToLower() == normalizedName));
+            }
+
+            if (product == null)
+            {
+                item.FailReason = "Product not found; use barcode or exact name";
+                failed++;
+                _db.StoreSyncItems.Add(item);
+                continue;
+            }
+
+            item.ProductId = product.Id;
+            item.Status = "processed";
+
+            var submission = new PriceSubmission
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                StoreId = store.Id,
+                PriceLbp = price.Value,
+                SubmittedBy = userId,
+                IsPromotion = false,
+                PromoEndsAt = null,
+                CreatedAt = DateTime.UtcNow,
+                SubmissionStatus = SubmissionStatus.verified,
+                Source = SubmissionSource.csv,
+                OcrBarcode = barcode,
+                Note = name
+            };
+            _db.PriceSubmissions.Add(submission);
+
+            var existing = await _db.CurrentStoreProductPrices
+                .FirstOrDefaultAsync(c => c.StoreId == store.Id && c.ProductId == product.Id);
+
+            if (existing != null)
+            {
+                existing.CurrentPriceLbp = submission.PriceLbp;
+                existing.Source = SubmissionSource.csv;
+                existing.IsVerified = true;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = store.Id,
+                    ProductId = product.Id,
+                    CurrentPriceLbp = submission.PriceLbp,
+                    Source = SubmissionSource.csv,
+                    IsVerified = true,
+                    IsInStock = true,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            // --- ALSO UPDATE THE OFFICIAL STORE CATALOG ---
+            var catalogItem = await _db.StoreCatalogItems
+                .FirstOrDefaultAsync(c => c.StoreId == store.Id && c.ProductId == product.Id);
+
+            if (catalogItem != null)
+            {
+                catalogItem.OfficialPriceLbp = submission.PriceLbp;
+                catalogItem.LastUpdatedAt = DateTime.UtcNow;
+                catalogItem.LastUpdatedBy = userId;
+                catalogItem.IsInStock = true;
+            }
+            else
+            {
+                _db.StoreCatalogItems.Add(new StoreCatalogItem
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = store.Id,
+                    ProductId = product.Id,
+                    OfficialPriceLbp = submission.PriceLbp,
+                    IsInStock = true,
+                    LastUpdatedAt = DateTime.UtcNow,
+                    LastUpdatedBy = userId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            processed++;
+            _db.StoreSyncItems.Add(item);
+        }
+
+        run.RecordsProcessed = processed;
+        run.RecordsFailed = failed;
+        run.Status = failed == 0 ? SyncStatus.ok : processed == 0 ? SyncStatus.fail : SyncStatus.partial;
+        run.Message = failed == 0 ? "All rows imported successfully." : $"Imported {processed} rows, {failed} failed.";
+        run.FinishedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return new BulkPriceSubmissionResult
+        {
+            RecordsReceived = request.Rows.Count,
+            RecordsProcessed = processed,
+            RecordsFailed = failed,
+            Status = run.Status.ToString(),
+            Message = run.Message
+        };
+    }
+
+    public async Task<BulkPriceSubmissionResult> SubmitBulkPricesByStoreAsync(BulkPriceSubmissionRequest request, Guid storeId)
+    {
+        var store = await _db.Stores.FindAsync(storeId);
+        if (store == null) throw new InvalidOperationException("Store not found");
+
+        var run = new StoreSyncRun
+        {
+            Id = Guid.NewGuid(),
+            StoreId = storeId,
+            Method = SyncMethod.api,
+            Status = SyncStatus.running,
+            StartedAt = DateTime.UtcNow
+        };
+        _db.StoreSyncRuns.Add(run);
+        await _db.SaveChangesAsync();
+
+        int processed = 0;
+        int failed = 0;
+
+        foreach (var row in request.Rows)
+        {
+            var barcode = row.Barcode;
+            var price = row.PriceLbp;
+            var name = row.ProductName;
+
+            var item = new StoreSyncItem
+            {
+                Id = Guid.NewGuid(),
+                SyncRunId = run.Id,
+                RawBarcode = barcode,
+                RawPrice = price,
+                RawName = name,
+                Status = "pending"
+            };
+
+            if (price == null || price <= 0)
+            {
+                item.FailReason = "Invalid price";
+                failed++;
+                _db.StoreSyncItems.Add(item);
+                continue;
+            }
+
+            Product? product = null;
+            if (!string.IsNullOrWhiteSpace(barcode))
+            {
+                product = await _db.Products
+                    .Include(p => p.Aliases)
+                    .FirstOrDefaultAsync(p => p.Barcode == barcode || p.Aliases.Any(a => a.Alias == barcode));
+            }
+
+            if (product == null && !string.IsNullOrWhiteSpace(name))
+            {
+                var normalizedName = name.ToLower();
+                product = await _db.Products
+                    .Include(p => p.Aliases)
+                    .FirstOrDefaultAsync(p => p.Name.ToLower() == normalizedName || p.Aliases.Any(a => a.Alias.ToLower() == normalizedName));
+            }
+
+            if (product == null)
+            {
+                // Smart Sync: Auto-create the product in the master catalog
+                if (string.IsNullOrWhiteSpace(name))
+                {
+                    item.FailReason = "Product not found and no name provided to create one";
+                    failed++;
+                    _db.StoreSyncItems.Add(item);
+                    continue;
+                }
+
+                product = new Product
+                {
+                    Id = Guid.NewGuid(),
+                    Name = name.Trim(),
+                    Unit = row.Unit ?? "unit",
+                    Barcode = barcode,
+                    UploadCount = 1,
+                    IsArchived = false,
+                    CreatedBy = store.OwnerUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _db.Products.Add(product);
+
+                // Also add the name as an alias for future fuzzy matching
+                _db.ProductAliases.Add(new ProductAlias
+                {
+                    ProductId = product.Id,
+                    Alias = name.Trim()
+                });
+            }
+
+            item.ProductId = product.Id;
+            item.Status = "processed";
+
+            // Verified submission
+            var submission = new PriceSubmission
+            {
+                Id = Guid.NewGuid(),
+                ProductId = product.Id,
+                StoreId = storeId,
+                PriceLbp = price.Value,
+                IsPromotion = false,
+                CreatedAt = DateTime.UtcNow,
+                SubmissionStatus = SubmissionStatus.verified,
+                Source = SubmissionSource.api,
+                OcrBarcode = barcode,
+                Note = "Sync via API"
+            };
+            _db.PriceSubmissions.Add(submission);
+
+            // Current price
+            var existingPrice = await _db.CurrentStoreProductPrices
+                .FirstOrDefaultAsync(c => c.StoreId == storeId && c.ProductId == product.Id);
+
+            if (existingPrice != null)
+            {
+                existingPrice.CurrentPriceLbp = submission.PriceLbp;
+                existingPrice.Source = SubmissionSource.api;
+                existingPrice.IsVerified = true;
+                existingPrice.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = storeId,
+                    ProductId = product.Id,
+                    CurrentPriceLbp = submission.PriceLbp,
+                    Source = SubmissionSource.api,
+                    IsVerified = true,
+                    IsInStock = true,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            // Catalog
+            var catalogItem = await _db.StoreCatalogItems
+                .FirstOrDefaultAsync(c => c.StoreId == storeId && c.ProductId == product.Id);
+
+            if (catalogItem != null)
+            {
+                catalogItem.OfficialPriceLbp = submission.PriceLbp;
+                catalogItem.LastUpdatedAt = DateTime.UtcNow;
+                catalogItem.IsInStock = true;
+            }
+            else
+            {
+                _db.StoreCatalogItems.Add(new StoreCatalogItem
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = storeId,
+                    ProductId = product.Id,
+                    OfficialPriceLbp = submission.PriceLbp,
+                    IsInStock = true,
+                    LastUpdatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            processed++;
+            _db.StoreSyncItems.Add(item);
+        }
+
+        run.RecordsProcessed = processed;
+        run.RecordsFailed = failed;
+         run.Status = failed == 0 ? SyncStatus.ok : processed == 0 ? SyncStatus.fail : SyncStatus.partial;
+         run.Message = processed > 0 && failed == 0 
+             ? $"All {processed} rows imported successfully." 
+             : $"Imported {processed} rows, {failed} failed.";
+         run.FinishedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync();
+
+        return new BulkPriceSubmissionResult
+        {
+            RecordsReceived = request.Rows.Count,
+            RecordsProcessed = processed,
+            RecordsFailed = failed,
+            Status = run.Status.ToString(),
+            Message = run.Message
+        };
+    }
+
+    /// <summary>
     /// Gets all price submissions made by a specific user.
     /// </summary>
     public async Task<List<PriceEntryResponse>> GetByUserAsync(Guid userId)
@@ -212,8 +566,8 @@ public class PriceService
                 ProductId = p.ProductId.ToString(),
                 StoreId = p.StoreId.ToString(),
                 PriceLbp = p.PriceLbp,
-                Status = p.SubmissionStatus,
-                Source = p.Source,
+                Status = p.SubmissionStatus.ToString(),
+                Source = p.Source.ToString(),
                 CreatedAt = p.CreatedAt,
                 Product = p.Product == null ? null : new ProductDto {
                     Name = p.Product.Name,
@@ -281,7 +635,7 @@ public class PriceService
             StoreId = p.StoreId.ToString(),
             PriceLbp = p.CurrentPriceLbp,
             Status = p.IsVerified ? "verified" : "pending",
-            Source = p.Source,
+            Source = p.Source.ToString(),
             CreatedAt = p.UpdatedAt,
             Upvotes = p.ConfirmationCount,
             Product = p.Product == null ? null : new ProductDto {

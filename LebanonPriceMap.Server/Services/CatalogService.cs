@@ -9,10 +9,12 @@ namespace LebanonPriceMap.Server.Services
     public class CatalogService
     {
         private readonly AppDbContext _context;
+        private readonly AlertService _alertService;
 
-        public CatalogService(AppDbContext context)
+        public CatalogService(AppDbContext context, AlertService alertService)
         {
             _context = context;
+            _alertService = alertService;
         }
 
         public async Task<IEnumerable<CatalogItemDto>> GetByStoreIdAsync(Guid storeId)
@@ -20,15 +22,79 @@ namespace LebanonPriceMap.Server.Services
             return await _context.StoreCatalogItems
                 .Where(c => c.StoreId == storeId)
                 .Include(c => c.Product)
+                    .ThenInclude(p => p.Category)
                 .Include(c => c.Store)
                 .Select(c => MapToDto(c))
                 .ToListAsync();
+        }
+
+        public async Task<object> GetMasterProductsAsync()
+        {
+            return await _context.Products
+                .Select(p => new { p.Id, p.Name, p.Barcode })
+                .Take(20)
+                .ToListAsync();
+        }
+
+        public async Task<List<MarketInsightDto>> GetMarketInsightsAsync(Guid storeId)
+        {
+            // 1. Get the retailer's catalog
+            var myItems = await _context.StoreCatalogItems
+                .Where(c => c.StoreId == storeId)
+                .Include(c => c.Product)
+                .ThenInclude(p => p.Category)
+                .ToListAsync();
+
+            var results = new List<MarketInsightDto>();
+
+            foreach (var item in myItems)
+            {
+                if (item.Product == null) continue;
+
+                // 2. Calculate market average for this product (from other stores)
+                // We'll look at official catalog prices from all stores except this one
+                var marketPrices = await _context.StoreCatalogItems
+                    .Where(c => c.ProductId == item.ProductId && c.StoreId != storeId && c.OfficialPriceLbp > 0)
+                    .Select(c => c.OfficialPriceLbp)
+                    .ToListAsync();
+
+                decimal average = 0;
+                if (marketPrices.Any())
+                {
+                    average = marketPrices.Average() ?? 0;
+                }
+
+                decimal yourPrice = item.IsPromotion ? (item.PromoPriceLbp ?? item.OfficialPriceLbp ?? 0) : (item.OfficialPriceLbp ?? 0);
+
+                string position = "fair";
+                if (average > 0)
+                {
+                    var diff = (yourPrice - average) / average;
+                    if (diff > 0.05m) position = "higher";
+                    else if (diff < -0.05m) position = "lower";
+                }
+
+                results.Add(new MarketInsightDto
+                {
+                    ProductId = item.ProductId,
+                    ProductName = item.Product.Name,
+                    Category = item.Product.Category?.Name ?? "General",
+                    Unit = item.Product.Unit,
+                    YourPrice = yourPrice,
+                    MarketAverage = average,
+                    CompetitorCount = marketPrices.Count,
+                    PricePosition = position
+                });
+            }
+
+            return results;
         }
 
         public async Task<CatalogItemDto?> GetByIdAsync(Guid id)
         {
             var item = await _context.StoreCatalogItems
                 .Include(c => c.Product)
+                    .ThenInclude(p => p.Category)
                 .Include(c => c.Store)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -46,7 +112,7 @@ namespace LebanonPriceMap.Server.Services
                 PromoPriceLbp = dto.PromoPriceLbp,
                 PromoEndsAt = dto.PromoEndsAt,
                 IsInStock = dto.IsInStock,
-                IsPromotion = dto.IsPromotion,
+                IsPromotion = dto.IsPromotion && dto.PromoPriceLbp.HasValue && dto.PromoPriceLbp < (dto.OfficialPriceLbp ?? decimal.MaxValue),
                 LastUpdatedBy = userId,
                 LastUpdatedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
@@ -69,6 +135,13 @@ namespace LebanonPriceMap.Server.Services
             });
 
             await _context.SaveChangesAsync();
+
+            // Sync with StorePromotion table for historical tracking
+            if (item.IsPromotion && item.PromoPriceLbp.HasValue)
+            {
+                await CreateHistoricalPromotion(item, userId);
+            }
+
             return MapToDto(item);
         }
 
@@ -87,7 +160,7 @@ namespace LebanonPriceMap.Server.Services
             item.PromoPriceLbp = dto.PromoPriceLbp;
             item.PromoEndsAt = dto.PromoEndsAt;
             item.IsInStock = dto.IsInStock;
-            item.IsPromotion = dto.IsPromotion;
+            item.IsPromotion = dto.IsPromotion && dto.PromoPriceLbp.HasValue && dto.PromoPriceLbp < (dto.OfficialPriceLbp ?? decimal.MaxValue);
             item.LastUpdatedBy = userId;
             item.LastUpdatedAt = DateTime.UtcNow;
 
@@ -109,6 +182,27 @@ namespace LebanonPriceMap.Server.Services
             });
 
             await _context.SaveChangesAsync();
+
+            // Sync with StorePromotion table
+            if (item.IsPromotion && item.PromoPriceLbp.HasValue)
+            {
+                await CreateHistoricalPromotion(item, userId);
+            }
+            else
+            {
+                // If promotion ended manually, mark historical records as inactive
+                var activePromos = await _context.StorePromotions
+                    .Where(p => p.StoreId == item.StoreId && p.ProductId == item.ProductId && p.Status == "active")
+                    .ToListAsync();
+                
+                foreach (var p in activePromos)
+                {
+                    p.Status = "ended";
+                    p.UpdatedAt = DateTime.UtcNow;
+                }
+                await _context.SaveChangesAsync();
+            }
+
             return MapToDto(item);
         }
 
@@ -133,7 +227,7 @@ namespace LebanonPriceMap.Server.Services
                     Id = a.Id,
                     CatalogItemId = a.CatalogItemId,
                     ChangedBy = a.ChangedBy,
-                    ChangedByName = a.ChangedByUser != null ? a.ChangedByUser.Name : "System",
+                    ChangedByName = a.ChangedByUser == null ? "System" : a.ChangedByUser.Name,
                     Reason = a.Reason,
                     PreviousPriceLbp = a.PreviousPriceLbp,
                     NewPriceLbp = a.NewPriceLbp,
@@ -234,15 +328,124 @@ namespace LebanonPriceMap.Server.Services
                 StoreName = item.Store?.Name ?? "Unknown Store",
                 ProductId = item.ProductId,
                 ProductName = item.Product?.Name ?? "Unknown Product",
-                ProductBrand = item.Product?.Brand,
-                ProductUnit = item.Product?.Unit,
+                ProductBrand = item.Product?.Brand ?? string.Empty,
+                ProductUnit = item.Product?.Unit ?? string.Empty,
                 OfficialPriceLbp = item.OfficialPriceLbp,
                 PromoPriceLbp = item.PromoPriceLbp,
                 PromoEndsAt = item.PromoEndsAt,
                 IsInStock = item.IsInStock,
                 IsPromotion = item.IsPromotion,
-                LastUpdatedAt = item.LastUpdatedAt
+                DiscountPercent = (item.IsPromotion && item.PromoPriceLbp.HasValue && item.OfficialPriceLbp.HasValue && item.OfficialPriceLbp > 0) 
+                    ? Math.Round((1 - (item.PromoPriceLbp.Value / item.OfficialPriceLbp.Value)) * 100, 0) 
+                    : null,
+                LastUpdatedAt = item.LastUpdatedAt,
+                Product = new ProductDetailsDto
+                {
+                    Name = item.Product?.Name ?? "Unknown Product",
+                    Category = item.Product?.Category?.Name ?? "General",
+                    Unit = item.Product?.Unit ?? "",
+                    Barcode = item.Product?.Barcode ?? ""
+                }
             };
+        }
+
+        public async Task<Store?> GetStoreByOwnerAsync(Guid ownerId)
+        {
+            return await _context.Stores.FirstOrDefaultAsync(s => s.OwnerUserId == ownerId);
+        }
+
+        private async Task CreateHistoricalPromotion(StoreCatalogItem item, Guid? userId)
+        {
+            // Close any existing active promos for this product in this store
+            var existing = await _context.StorePromotions
+                .Where(p => p.StoreId == item.StoreId && p.ProductId == item.ProductId && p.Status == "active")
+                .ToListAsync();
+
+            foreach (var e in existing)
+            {
+                e.Status = "superseded";
+                e.UpdatedAt = DateTime.UtcNow;
+            }
+
+            var promo = new StorePromotion
+            {
+                Id = Guid.NewGuid(),
+                StoreId = item.StoreId,
+                ProductId = item.ProductId,
+                Title = $"Promo: {item.Product?.Name ?? "Product"}",
+                OriginalPriceLbp = item.OfficialPriceLbp,
+                PromoPriceLbp = item.PromoPriceLbp ?? 0,
+                StartsAt = DateTime.UtcNow,
+                EndsAt = item.PromoEndsAt,
+                Status = "active",
+                CreatedBy = userId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // Calculate discount percent if possible
+            if (item.OfficialPriceLbp.HasValue && item.OfficialPriceLbp.Value > 0)
+            {
+                if (item.OfficialPriceLbp.HasValue && item.OfficialPriceLbp.Value > 0 && item.PromoPriceLbp.HasValue)
+                {
+                    promo.DiscountPercent = Math.Round((1 - (item.PromoPriceLbp.Value / item.OfficialPriceLbp.Value)) * 100, 2);
+                }
+            }
+
+            _context.StorePromotions.Add(promo);
+            if (item.PromoPriceLbp.HasValue)
+            {
+                await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, item.PromoPriceLbp.Value, item.StoreId);
+            }
+
+            // Notify users who have alerts for this product
+            await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, item.PromoPriceLbp.Value, item.StoreId);
+        }
+
+        /// <summary>
+        /// Scans the catalog for expired promotions and reverts them to official prices.
+        /// Should be called by a background job or periodic trigger.
+        /// </summary>
+        public async Task<int> AutoExpirePromotionsAsync()
+        {
+            var expiredItems = await _context.StoreCatalogItems
+                .Where(c => c.IsPromotion && c.PromoEndsAt != null && c.PromoEndsAt < DateTime.UtcNow)
+                .ToListAsync();
+
+            if (!expiredItems.Any()) return 0;
+
+            foreach (var item in expiredItems)
+            {
+                item.IsPromotion = false;
+                // We keep PromoPriceLbp/EndsAt values as history in the catalog item 
+                // until the next update, but IsPromotion = false makes the system ignore them.
+                
+                // Update historical table
+                var activePromos = await _context.StorePromotions
+                    .Where(p => p.StoreId == item.StoreId && p.ProductId == item.ProductId && p.Status == "active")
+                    .ToListAsync();
+
+                foreach (var p in activePromos)
+                {
+                    p.Status = "expired";
+                    p.UpdatedAt = DateTime.UtcNow;
+                }
+
+                _context.CatalogAuditEntries.Add(new CatalogAuditEntry
+                {
+                    Id = Guid.NewGuid(),
+                    CatalogItemId = item.Id,
+                    StoreId = item.StoreId,
+                    ProductId = item.ProductId,
+                    Reason = "promo_ended",
+                    PreviousPriceLbp = item.PromoPriceLbp,
+                    NewPriceLbp = item.OfficialPriceLbp,
+                    Note = "Promotion automatically expired by system",
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            return await _context.SaveChangesAsync();
         }
     }
 }

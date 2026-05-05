@@ -15,9 +15,9 @@ namespace LebanonPriceMap.Server.Models
         public Guid? SubmittedBy { get; set; }
 
         [Required]
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
 
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public string Status { get; set; } = "open";
 
@@ -25,9 +25,9 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("PriceEntryId")]
-        public virtual PriceSubmission PriceEntry { get; set; }
+        public virtual PriceSubmission? PriceEntry { get; set; }
 
         [ForeignKey("SubmittedBy")]
-        public virtual User SubmittedByUser { get; set; }
+        public virtual User? SubmittedByUser { get; set; }
     }
 }

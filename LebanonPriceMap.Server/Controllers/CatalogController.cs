@@ -24,6 +24,29 @@ namespace LebanonPriceMap.Server.Controllers
             return Ok(new { success = true, data = items });
         }
 
+        [HttpGet("master-list")]
+        public async Task<IActionResult> GetMasterList()
+        {
+            var products = await _catalogService.GetMasterProductsAsync();
+            return Ok(new { success = true, data = products });
+        }
+
+        [Authorize(Roles = "retailer,admin")]
+        [HttpGet("insights")]
+        public async Task<IActionResult> GetInsights()
+        {
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdStr == null) return Unauthorized();
+            var userId = Guid.Parse(userIdStr);
+
+            // Find store owned by this user
+            var store = await _catalogService.GetStoreByOwnerAsync(userId);
+            if (store == null) return NotFound(new { success = false, message = "Store not found for this user." });
+
+            var insights = await _catalogService.GetMarketInsightsAsync(store.Id);
+            return Ok(new { success = true, data = insights });
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -84,6 +107,13 @@ namespace LebanonPriceMap.Server.Controllers
         {
             var audit = await _catalogService.GetAuditTrailAsync(id);
             return Ok(new { success = true, data = audit });
+        }
+        [Authorize(Roles = "admin")]
+        [HttpPost("maintenance/cleanup-promos")]
+        public async Task<IActionResult> CleanupExpiredPromos()
+        {
+            var count = await _catalogService.AutoExpirePromotionsAsync();
+            return Ok(new { success = true, message = $"{count} promotions expired.", count });
         }
     }
 }

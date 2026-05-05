@@ -27,13 +27,13 @@ namespace LebanonPriceMap.Server.Models
 
         public decimal? ObservedPriceLbp { get; set; }
 
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public string Status { get; set; } = "pending";
 
         public decimal? ApprovedNewPriceLbp { get; set; }
 
-        public string ReviewNote { get; set; }
+        public string? ReviewNote { get; set; }
 
         public Guid? ReviewedBy { get; set; }
 

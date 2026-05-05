@@ -14,9 +14,9 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("ReportId")]
-        public virtual StationReport Report { get; set; }
+        public virtual StationReport? Report { get; set; }
 
         [ForeignKey("UserId")]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
     }
 }

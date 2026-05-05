@@ -34,13 +34,13 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
 
         [ForeignKey("LastUpdatedBy")]
-        public virtual User LastUpdatedByUser { get; set; }
+        public virtual User? LastUpdatedByUser { get; set; }
 
         public virtual ICollection<CatalogDiscrepancyReport> DiscrepancyReports { get; set; } = new List<CatalogDiscrepancyReport>();
     }

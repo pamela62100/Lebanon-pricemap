@@ -17,9 +17,9 @@ namespace LebanonPriceMap.Server.Models
 
         public Guid? SubmittedBy { get; set; }
 
-        public string Source { get; set; } = "community";
+        public SubmissionSource Source { get; set; } = SubmissionSource.community;
 
-        public string SubmissionStatus { get; set; } = "pending";
+        public SubmissionStatus SubmissionStatus { get; set; } = SubmissionStatus.pending;
 
         [Required]
         public decimal PriceLbp { get; set; }
@@ -28,9 +28,9 @@ namespace LebanonPriceMap.Server.Models
 
         public DateTime? PromoEndsAt { get; set; }
 
-        public string ReceiptImageUrl { get; set; }
+        public string? ReceiptImageUrl { get; set; }
 
-        public string Note { get; set; }
+        public string? Note { get; set; }
 
         public short? SubmitterTrustScore { get; set; }
 
@@ -40,24 +40,24 @@ namespace LebanonPriceMap.Server.Models
 
         public bool IsDisputed { get; set; } = false;
 
-        public string DisputeReason { get; set; }
+        public string? DisputeReason { get; set; }
 
         [MaxLength(255)]
-        public string OcrStoreName { get; set; }
+        public string? OcrStoreName { get; set; }
 
         [MaxLength(255)]
-        public string OcrProductName { get; set; }
+        public string? OcrProductName { get; set; }
 
         [MaxLength(100)]
-        public string OcrBarcode { get; set; }
+        public string? OcrBarcode { get; set; }
 
         public decimal? OcrPriceLbp { get; set; }
 
-        public string OcrPayload { get; set; }
+        public string? OcrPayload { get; set; }
 
         public bool MismatchDetected { get; set; } = false;
 
-        public string MismatchReason { get; set; }
+        public string? MismatchReason { get; set; }
 
         public Guid? VerifiedBy { get; set; }
 
@@ -75,21 +75,21 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("StoreId")]
-        public virtual Store Store { get; set; }
+        public virtual Store? Store { get; set; }
 
         [ForeignKey("ProductId")]
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
 
         [ForeignKey("SubmittedBy")]
-        public virtual User SubmittedByUser { get; set; }
+        public virtual User? SubmittedByUser { get; set; }
 
         [ForeignKey("VerifiedBy")]
-        public virtual User VerifiedByUser { get; set; }
+        public virtual User? VerifiedByUser { get; set; }
 
         [ForeignKey("RejectedBy")]
-        public virtual User RejectedByUser { get; set; }
+        public virtual User? RejectedByUser { get; set; }
 
         [ForeignKey("SupersededBy")]
-        public virtual PriceSubmission SupersededBySubmission { get; set; }
+        public virtual PriceSubmission? SupersededBySubmission { get; set; }
     }
 }

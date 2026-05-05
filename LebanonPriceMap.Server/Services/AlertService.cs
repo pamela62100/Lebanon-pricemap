@@ -57,6 +57,30 @@ public class AlertService
         return true;
     }
 
+    public async Task<int> CheckAlertsForPriceDropAsync(Guid productId, decimal newPrice, Guid storeId)
+    {
+        // Find all active alerts for this product where the new price is <= target price
+        var triggeredAlerts = await _db.Alerts
+            .Where(a => a.ProductId == productId && a.Status == AlertStatus.active && newPrice <= a.TargetPriceLbp)
+            .Include(a => a.User)
+            .Include(a => a.Product)
+            .ToListAsync();
+
+        if (!triggeredAlerts.Any()) return 0;
+
+        foreach (var alert in triggeredAlerts)
+        {
+            // Here you would normally send an email/push notification
+            // For now, we'll log it or create a system notification if that exists
+            // Let's assume we have a Broadcasts table or similar
+            
+            // Mark alert as triggered/completed if needed, or keep active
+            // alert.Status = AlertStatus.triggered; 
+        }
+
+        return triggeredAlerts.Count;
+    }
+
     private static AlertResponse MapToResponse(Alert alert, string? productName) => new()
     {
         Id = alert.Id,

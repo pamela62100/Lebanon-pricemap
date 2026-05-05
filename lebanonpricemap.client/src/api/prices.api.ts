@@ -26,6 +26,10 @@ export const pricesApi = {
     return client.post(`/prices/${id}/vote`, { value });
   },
 
+  bulkSubmit: async (data: { rows: { productName?: string; barcode?: string; priceLbp: number; unit?: string }[] }) => {
+    return client.post<ApiResponse<{ recordsReceived: number; recordsProcessed: number; recordsFailed: number; status: string; message: string }>>('/prices/bulk', data);
+  },
+
   getHistory: async (productId: string) => {
     return client.get<ApiResponse<{ date: string; price: number; storeName: string }[]>>(
       `/prices/product/${productId}/history`

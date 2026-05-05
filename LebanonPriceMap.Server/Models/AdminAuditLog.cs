@@ -12,7 +12,7 @@ namespace LebanonPriceMap.Server.Models
         public Guid? PerformedBy { get; set; }
 
         [Required]
-        public string Action { get; set; }
+        public string Action { get; set; } = string.Empty;
 
         public Guid? TargetUserId { get; set; }
 
@@ -20,7 +20,7 @@ namespace LebanonPriceMap.Server.Models
 
         public Guid? TargetProductId { get; set; }
 
-        public string Note { get; set; }
+        public string Note { get; set; } = string.Empty;
 
         public string Metadata { get; set; } = "{}";
 
@@ -28,15 +28,15 @@ namespace LebanonPriceMap.Server.Models
 
         // Navigation properties
         [ForeignKey("PerformedBy")]
-        public virtual User PerformedByUser { get; set; }
+        public virtual User? PerformedByUser { get; set; }
 
         [ForeignKey("TargetUserId")]
-        public virtual User TargetUser { get; set; }
+        public virtual User? TargetUser { get; set; }
 
         [ForeignKey("TargetPriceEntryId")]
-        public virtual PriceSubmission TargetPriceEntry { get; set; }
+        public virtual PriceSubmission? TargetPriceEntry { get; set; }
 
         [ForeignKey("TargetProductId")]
-        public virtual Product TargetProduct { get; set; }
+        public virtual Product? TargetProduct { get; set; }
     }
 }

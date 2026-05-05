@@ -27,14 +27,25 @@ const STATUS_STYLES: Record<string, string> = {
 
 export function SyncStatusCard({ className }: SyncStatusCardProps) {
   const [runs, setRuns] = useState<SyncRun[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchRuns = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await storesApi.getSyncRuns();
+      const data = (res as any).data?.data ?? [];
+      setRuns(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch sync runs:', err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
-    storesApi.getSyncRuns()
-      .then(res => {
-        const data = (res as any).data?.data ?? [];
-        setRuns(Array.isArray(data) ? data : []);
-      })
-      .catch(() => {});
+    fetchRuns();
+    const interval = setInterval(fetchRuns, 10000); // Poll every 10s
+    return () => clearInterval(interval);
   }, []);
 
   const latest = runs[0];
@@ -47,9 +58,18 @@ export function SyncStatusCard({ className }: SyncStatusCardProps) {
           <span className="material-symbols-outlined" style={{ fontSize: '20px', color: 'var(--text-muted)' }}>sync</span>
         </div>
         <div className="flex-1">
-          <p className="text-sm font-bold text-text-main">Sync history</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-text-main">Sync history</p>
+            <button 
+              onClick={fetchRuns}
+              className={cn("p-1 rounded-full hover:bg-bg-muted transition-all", isRefreshing && "animate-spin")}
+              title="Refresh history"
+            >
+              <span className="material-symbols-outlined text-[16px] text-text-muted">refresh</span>
+            </button>
+          </div>
           <p className="text-xs text-text-muted mt-0.5">
-            {latest ? `Last sync: ${new Date(latest.startedAt).toLocaleDateString()}` : 'No syncs yet'}
+            {latest ? `Last sync: ${new Date(latest.startedAt).toLocaleString()}` : 'No syncs yet'}
           </p>
         </div>
         {latest && (

@@ -20,7 +20,7 @@ namespace LebanonPriceMap.Server.Models
         public decimal CurrentPriceLbp { get; set; }
 
         [Required]
-        public string Source { get; set; }
+        public SubmissionSource Source { get; set; }
 
         public short ConfidenceScore { get; set; } = 50;
 
