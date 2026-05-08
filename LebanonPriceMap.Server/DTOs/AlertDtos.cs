@@ -16,4 +16,6 @@ public class AlertResponse
     public bool Active { get; set; }
     public bool VerifiedOnly { get; set; }
     public DateTime CreatedAt { get; set; }
+    public bool AlreadyBelowThreshold { get; set; }
+    public decimal? CurrentBestPriceLbp { get; set; }
 }

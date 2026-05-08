@@ -204,11 +204,24 @@ ON CONFLICT DO NOTHING;
 -- Station Reports
 -- =========================================================
 
+-- Real fuel station stores
+INSERT INTO stores (id, owner_user_id, name, chain, city, district, region, latitude, longitude, trust_score, status, is_verified_retailer, power_status)
+VALUES
+  ('13000000-0000-0000-0000-000000000011', NULL, 'Total Achrafieh',  'Total', 'Beirut',  'Achrafieh', 'Beirut',   33.8902, 35.5193, 90, 'verified', true, 'stable'),
+  ('13000000-0000-0000-0000-000000000012', NULL, 'Total Hamra',      'Total', 'Beirut',  'Hamra',     'Beirut',   33.8953, 35.4838, 90, 'verified', true, 'stable'),
+  ('13000000-0000-0000-0000-000000000013', NULL, 'Coral Dora',       'Coral', 'Beirut',  'Dora',      'Beirut',   33.9025, 35.5741, 88, 'verified', true, 'stable'),
+  ('13000000-0000-0000-0000-000000000014', NULL, 'Medco Dbayeh',     'Medco', 'Dbayeh',  'Dbayeh',    'Metn',     33.9389, 35.5943, 87, 'verified', true, 'stable'),
+  ('13000000-0000-0000-0000-000000000015', NULL, 'IPT Jounieh',      'IPT',   'Jounieh', 'Jounieh',   'Keserwan', 33.9810, 35.6176, 86, 'verified', true, 'stable'),
+  ('13000000-0000-0000-0000-000000000016', NULL, 'Total Verdun',     'Total', 'Beirut',  'Verdun',    'Beirut',   33.8785, 35.4912, 90, 'verified', true, 'stable')
+ON CONFLICT DO NOTHING;
+
 INSERT INTO station_reports (id, store_id, fuel_type, is_open, has_stock, queue_minutes, queue_depth, is_rationed, limit_amount_lbp, reported_by, created_at) VALUES
-  ('1a000000-0000-0000-0000-000000000001', '13000000-0000-0000-0000-000000000001', 'gasoline_95', true,  true,  5,  2,  true,  2000000, '10000000-0000-0000-0000-000000000001', '2025-03-08T07:30:00Z'),
-  ('1a000000-0000-0000-0000-000000000002', '13000000-0000-0000-0000-000000000002', 'gasoline_95', false, false, 0,  0,  false, NULL,    '10000000-0000-0000-0000-000000000003', '2025-03-08T06:00:00Z'),
-  ('1a000000-0000-0000-0000-000000000003', '13000000-0000-0000-0000-000000000004', 'diesel',      true,  true, 20, 18,  true,  1500000, '10000000-0000-0000-0000-000000000001', '2025-03-08T08:00:00Z'),
-  ('1a000000-0000-0000-0000-000000000004', '13000000-0000-0000-0000-000000000003', 'gasoline_95', true,  false, 0,  0,  false, NULL,    '10000000-0000-0000-0000-000000000002', '2025-03-08T05:00:00Z')
+  ('1a000000-0000-0000-0000-000000000011', '13000000-0000-0000-0000-000000000011', 'gasoline_95', true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000001', NOW()),
+  ('1a000000-0000-0000-0000-000000000012', '13000000-0000-0000-0000-000000000012', 'gasoline_95', true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000002', NOW()),
+  ('1a000000-0000-0000-0000-000000000013', '13000000-0000-0000-0000-000000000013', 'diesel',      true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000001', NOW()),
+  ('1a000000-0000-0000-0000-000000000014', '13000000-0000-0000-0000-000000000014', 'gasoline_98', true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000003', NOW()),
+  ('1a000000-0000-0000-0000-000000000015', '13000000-0000-0000-0000-000000000015', 'gasoline_95', true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000002', NOW()),
+  ('1a000000-0000-0000-0000-000000000016', '13000000-0000-0000-0000-000000000016', 'diesel',      true, true, 0, 0, false, NULL, '10000000-0000-0000-0000-000000000001', NOW())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO station_report_confirmations (report_id, user_id) VALUES

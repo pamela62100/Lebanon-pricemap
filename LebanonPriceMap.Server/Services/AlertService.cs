@@ -33,7 +33,15 @@ public class AlertService
 
         var product = await _db.Products.FindAsync(request.ProductId);
 
-        return MapToResponse(alert, product?.Name);
+        // Check if the price is already below the threshold right now
+        var currentBestPrice = await _db.CurrentStoreProductPrices
+            .Where(p => p.ProductId == request.ProductId && (!request.VerifiedOnly || p.IsVerified))
+            .MinAsync(p => (decimal?)p.CurrentPriceLbp);
+
+        var response = MapToResponse(alert, product?.Name);
+        response.AlreadyBelowThreshold = currentBestPrice.HasValue && currentBestPrice.Value <= request.TargetPriceLbp;
+        response.CurrentBestPriceLbp = currentBestPrice;
+        return response;
     }
 
     public async Task<List<AlertResponse>> GetUserAlertsAsync(Guid userId)
@@ -59,25 +67,38 @@ public class AlertService
 
     public async Task<int> CheckAlertsForPriceDropAsync(Guid productId, decimal newPrice, Guid storeId)
     {
-        // Find all active alerts for this product where the new price is <= target price
         var triggeredAlerts = await _db.Alerts
             .Where(a => a.ProductId == productId && a.Status == AlertStatus.active && newPrice <= a.TargetPriceLbp)
-            .Include(a => a.User)
             .Include(a => a.Product)
             .ToListAsync();
 
         if (!triggeredAlerts.Any()) return 0;
 
+        var store = await _db.Stores.FindAsync(storeId);
+
         foreach (var alert in triggeredAlerts)
         {
-            // Here you would normally send an email/push notification
-            // For now, we'll log it or create a system notification if that exists
-            // Let's assume we have a Broadcasts table or similar
-            
-            // Mark alert as triggered/completed if needed, or keep active
-            // alert.Status = AlertStatus.triggered; 
+            var productName = alert.Product?.Name ?? "a product";
+            var storeName = store?.Name ?? "a store";
+
+            _db.Notifications.Add(new Notification
+            {
+                Id = Guid.NewGuid(),
+                UserId = alert.UserId,
+                Type = "price_alert",
+                Title = $"Price drop: {productName}",
+                Message = $"{productName} is now {newPrice:N0} LBP at {storeName} — below your alert of {alert.TargetPriceLbp:N0} LBP.",
+                RelatedProductId = productId,
+                RelatedStoreId = storeId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            alert.Status = AlertStatus.triggered;
+            alert.UpdatedAt = DateTime.UtcNow;
         }
 
+        await _db.SaveChangesAsync();
         return triggeredAlerts.Count;
     }
 
