@@ -65,32 +65,4 @@ public class AdminController : ControllerBase
         return Ok(new { success = true, data = logs });
     }
 
-    // GET /api/admin/anomalies?status=active
-    [HttpGet("anomalies")]
-    public async Task<IActionResult> GetAnomalies([FromQuery] string? status)
-    {
-        var results = await _adminService.GetAnomaliesAsync(status);
-        return Ok(new { success = true, data = results });
-    }
-
-    // GET /api/admin/onboarding?status=pending
-    [HttpGet("onboarding")]
-    public async Task<IActionResult> GetOnboarding([FromQuery] string? status)
-    {
-        var results = await _adminService.GetOnboardingApplicationsAsync(status);
-        return Ok(new { success = true, data = results });
-    }
-
-    // PATCH /api/admin/onboarding/{id}/step
-    [HttpPatch("onboarding/{id}/step")]
-    public async Task<IActionResult> UpdateOnboardingStep(Guid id, [FromBody] UpdateOnboardingStepRequest request)
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
-        var adminId = Guid.Parse(userIdClaim.Value);
-
-        var success = await _adminService.UpdateOnboardingStepAsync(id, request, adminId);
-        if (!success) return NotFound(new { success = false, message = "Application not found" });
-        return Ok(new { success = true });
-    }
 }

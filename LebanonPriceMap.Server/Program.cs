@@ -33,8 +33,6 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<FuelService>();
 builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<AdminService>();
-builder.Services.AddScoped<FeedbackService>();
-builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<DataSeederService>();
 
@@ -51,9 +49,6 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
-
-// Set the default backend URL for local development
-builder.WebHost.UseUrls("http://localhost:5223");
 
 // Add JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");

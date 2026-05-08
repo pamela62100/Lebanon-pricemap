@@ -31,7 +31,7 @@ namespace LebanonPriceMap.Server.Controllers
             return Ok(new { success = true, data = products });
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpGet("insights")]
         public async Task<IActionResult> GetInsights()
         {
@@ -55,39 +55,63 @@ namespace LebanonPriceMap.Server.Controllers
             return Ok(new { success = true, data = item });
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCatalogItemDto dto)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Guid? userId = userIdStr != null ? Guid.Parse(userIdStr) : null;
 
-            var item = await _catalogService.CreateAsync(dto, userId);
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, new { success = true, data = item });
+            try
+            {
+                var item = await _catalogService.CreateAsync(dto, userId);
+                return CreatedAtAction(nameof(GetById), new { id = item.Id }, new { success = true, data = item });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { success = false, message = ex.Message });
+            }
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCatalogItemDto dto)
         {
             var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             Guid? userId = userIdStr != null ? Guid.Parse(userIdStr) : null;
 
-            var item = await _catalogService.UpdateAsync(id, dto, userId);
-            if (item == null) return NotFound(new { success = false, message = "Catalog item not found" });
-            return Ok(new { success = true, data = item });
+            try
+            {
+                var item = await _catalogService.UpdateAsync(id, dto, userId);
+                if (item == null) return NotFound(new { success = false, message = "Catalog item not found" });
+                return Ok(new { success = true, data = item });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { success = false, message = ex.Message });
+            }
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var success = await _catalogService.DeleteAsync(id);
-            if (!success) return NotFound(new { success = false, message = "Catalog item not found" });
-            return Ok(new { success = true, message = "Catalog item deleted" });
+            var userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? userId = userIdStr != null ? Guid.Parse(userIdStr) : null;
+
+            try
+            {
+                var success = await _catalogService.DeleteAsync(id, userId);
+                if (!success) return NotFound(new { success = false, message = "Catalog item not found" });
+                return Ok(new { success = true, message = "Catalog item deleted" });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return StatusCode(403, new { success = false, message = ex.Message });
+            }
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpPost("upload")]
         public async Task<IActionResult> Upload([FromQuery] Guid storeId, IFormFile file)
         {
@@ -101,7 +125,7 @@ namespace LebanonPriceMap.Server.Controllers
             return Ok(result);
         }
 
-        [Authorize(Roles = "retailer,admin")]
+        [Authorize(Roles = "retailer")]
         [HttpGet("{id}/audit")]
         public async Task<IActionResult> GetAudit(Guid id)
         {

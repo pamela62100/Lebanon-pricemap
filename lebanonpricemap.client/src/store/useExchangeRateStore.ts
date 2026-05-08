@@ -20,7 +20,7 @@ export const useExchangeRateStore = create<ExchangeRateState>()(
       fetchRate: async () => {
         set({ isLoading: true });
         try {
-          const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5223/api';
+          const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
           const res = await fetch(`${base}/settings/exchange-rate`);
           const json = await res.json();
           const rate = json?.data?.rate ?? 89500;

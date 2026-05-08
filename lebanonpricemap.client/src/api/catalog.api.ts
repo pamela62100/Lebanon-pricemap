@@ -54,36 +54,6 @@ export const catalogApi = {
   },
 };
 
-// ─── Discrepancy API ──────────────────────────────────────────────────────────
-export const discrepancyApi = {
-  submit: async (data: {
-    catalogItemId: string;
-    storeId: string;
-    productId: string;
-    reportType: string;
-    observedPriceLbp?: number;
-    note?: string;
-  }) => {
-    return client.post('/discrepancy', data);
-  },
-
-  getPending: async () => {
-    return client.get('/discrepancy/pending');
-  },
-
-  getByStore: async (storeId: string) => {
-    return client.get(`/discrepancy/store/${storeId}`);
-  },
-
-  approve: async (id: string, data: { approvedPrice?: number; note?: string }) => {
-    return client.patch(`/discrepancy/${id}/approve`, data);
-  },
-
-  reject: async (id: string, data: { note: string }) => {
-    return client.patch(`/discrepancy/${id}/reject`, data);
-  },
-};
-
 // ─── Missing Product Request API (placeholder — no backend endpoint yet) ─────
 export const missingProductApi = {
   getAll(): MissingProductRequest[] {

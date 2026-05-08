@@ -1,4 +1,4 @@
-@LebanonPriceMap.Server_HostAddress = http://localhost:5223
+@LebanonPriceMap.Server_HostAddress = http://localhost:5000
 
 GET {{LebanonPriceMap.Server_HostAddress}}/weatherforecast/
 Accept: application/json

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { storesApi } from '@/api/stores.api';
-import { catalogApi, discrepancyApi } from '@/api/catalog.api';
+import { catalogApi } from '@/api/catalog.api';
+import { discrepancyApi } from '@/api/discrepancy.api';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -194,9 +195,6 @@ export function StoreDashboardPage() {
                     )}
                   </div>
                 ))}
-                <button onClick={() => navigate('/admin/approvals')} className="w-full mt-2 py-2 text-[11px] font-bold text-primary hover:underline border-t border-border-soft pt-4">
-                  Review in Admin Queue →
-                </button>
               </div>
             )}
             <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">

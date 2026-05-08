@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { productsApi } from '@/api/products.api';
 import { pricesApi } from '@/api/prices.api';
-import { feedbackApi } from '@/api/feedback.api';
 import type { Product } from '@/types';
 
 type ScanPhase = 'scanner' | 'result' | 'not_found' | 'submitted';
@@ -61,18 +60,10 @@ export function BarcodeScannerPage() {
 
   const handleSubmitForReview = async () => {
     setIsSubmitting(true);
-    try {
-      await feedbackApi.submit({
-        priceEntryId: 'barcode-review',
-        type: 'missing_barcode',
-        note: `Barcode not found: ${manualInput}`,
-      });
-    } catch {
-      // Best-effort — show success regardless
-    } finally {
+    setTimeout(() => {
       setIsSubmitting(false);
       setPhase('submitted');
-    }
+    }, 400);
   };
 
   return (

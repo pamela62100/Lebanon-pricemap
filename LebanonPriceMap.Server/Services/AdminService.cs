@@ -18,15 +18,15 @@ public class AdminService
     {
         var totalUsers = await _db.Users.CountAsync();
         var totalUploads = await _db.PriceSubmissions.CountAsync();
-        var flaggedEntries = await _db.PriceSubmissions.CountAsync(p => p.SubmissionStatus == SubmissionStatus.flagged);
-        var activeStores = await _db.Stores.CountAsync(s => s.Status == "active");
+        var activeStores = await _db.Stores.CountAsync(s => s.Status == "active" || s.Status == "verified");
+        var pendingReports = await _db.CatalogDiscrepancyReports.CountAsync(r => r.Status == "pending");
 
         return new AdminStatsResponse
         {
             TotalUsers = totalUsers,
             TotalUploads = totalUploads,
-            FlaggedEntries = flaggedEntries,
-            ActiveStores = activeStores
+            ActiveStores = activeStores,
+            PendingReports = pendingReports
         };
     }
 
@@ -82,76 +82,4 @@ public class AdminService
             .ToListAsync();
     }
 
-    public async Task<List<AnomalyResponse>> GetAnomaliesAsync(string? status)
-    {
-        var query = _db.PriceAnomalies
-            .Include(a => a.Store)
-            .Include(a => a.Product)
-            .AsQueryable();
-
-        if (!string.IsNullOrEmpty(status))
-            query = query.Where(a => a.Status == status);
-
-        return await query
-            .OrderByDescending(a => a.DetectedAt)
-            .Select(a => new AnomalyResponse
-            {
-                Id = a.Id.ToString(),
-                StoreId = a.StoreId.ToString(),
-                StoreName = a.Store != null ? a.Store.Name : "",
-                ProductId = a.ProductId.ToString(),
-                ProductName = a.Product != null ? a.Product.Name : "",
-                OldPriceLbp = a.OldPriceLbp,
-                NewPriceLbp = a.NewPriceLbp,
-                ChangePercent = a.ChangePercent,
-                Severity = a.Severity,
-                Status = a.Status,
-                DetectedAt = a.DetectedAt
-            })
-            .ToListAsync();
-    }
-
-    public async Task<List<OnboardingApplicationResponse>> GetOnboardingApplicationsAsync(string? status)
-    {
-        var query = _db.RetailerOnboardingApplications.AsQueryable();
-
-        if (!string.IsNullOrEmpty(status))
-            query = query.Where(a => a.Status == status);
-
-        return await query
-            .OrderByDescending(a => a.AppliedAt)
-            .Select(a => new OnboardingApplicationResponse
-            {
-                Id = a.Id.ToString(),
-                ContactName = a.ContactName,
-                Email = a.Email,
-                Phone = a.Phone,
-                ProposedStoreName = a.ProposedStoreName,
-                City = a.City,
-                District = a.District,
-                CurrentStep = a.CurrentStep,
-                TotalSteps = a.TotalSteps,
-                Status = a.Status,
-                AdminNotes = a.AdminNotes,
-                AppliedAt = a.AppliedAt,
-                ReviewedAt = a.ReviewedAt
-            })
-            .ToListAsync();
-    }
-
-    public async Task<bool> UpdateOnboardingStepAsync(Guid id, UpdateOnboardingStepRequest request, Guid adminId)
-    {
-        var app = await _db.RetailerOnboardingApplications.FindAsync(id);
-        if (app == null) return false;
-
-        app.CurrentStep = request.Step;
-        if (request.AdminNotes != null) app.AdminNotes = request.AdminNotes;
-        if (request.Status != null) app.Status = request.Status;
-        app.ReviewedAt = DateTime.UtcNow;
-        app.ReviewedBy = adminId;
-        app.UpdatedAt = DateTime.UtcNow;
-
-        await _db.SaveChangesAsync();
-        return true;
-    }
 }

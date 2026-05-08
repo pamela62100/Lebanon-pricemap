@@ -155,16 +155,6 @@ INSERT INTO price_submissions (
   ('14000000-0000-0000-0000-000000000028', '13000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000004', '10000000-0000-0000-0000-000000000005', 'official',  'verified', 590000, false, NULL,                    100, 3,  0, false, NULL,                            '10000000-0000-0000-0000-000000000005', '2025-03-08T09:00:00Z', '2025-03-08T09:00:00Z')
 ON CONFLICT DO NOTHING;
 
--- =========================================================
--- Price Feedback
--- =========================================================
-
-INSERT INTO price_feedback (id, price_entry_id, submitted_by, type, note, status, created_at) VALUES
-  ('15000000-0000-0000-0000-000000000001', '14000000-0000-0000-0000-000000000002', '10000000-0000-0000-0000-000000000001', 'outdated',    'Checked today — it''s LBP 148,000 now at Charcutier Aoun',      'open',     '2025-03-07T07:00:00Z'),
-  ('15000000-0000-0000-0000-000000000002', '14000000-0000-0000-0000-000000000007', '10000000-0000-0000-0000-000000000002', 'wrong_price', '535,000 is impossible for eggs, must be a mistake',              'reviewed', '2025-03-07T13:00:00Z'),
-  ('15000000-0000-0000-0000-000000000003', '14000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000003', 'general',     'Confirmed the promo — Bou Khalil Hamra is definitely cheapest', 'resolved', '2025-03-07T08:00:00Z'),
-  ('15000000-0000-0000-0000-000000000004', '14000000-0000-0000-0000-000000000026', '10000000-0000-0000-0000-000000000001', 'wrong_price', '145,000 for lemons makes no sense — market rate is ~95,000',    'open',     '2025-03-07T14:00:00Z')
-ON CONFLICT DO NOTHING;
 
 -- =========================================================
 -- Notifications
@@ -300,38 +290,6 @@ INSERT INTO catalog_audit_entries (
   ('1e000000-0000-0000-0000-000000000003', '1b000000-0000-0000-0000-000000000001', '13000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000005', 'owner_update',         NULL,                                   122000, 128000, 'Regular weekly price update by store manager.', '2025-03-07T08:00:00Z')
 ON CONFLICT DO NOTHING;
 
--- =========================================================
--- Approval Requests
--- =========================================================
-
-INSERT INTO approval_requests (
-  id, requested_by, reviewed_by, action, label, payload, status, review_note, created_at, resolved_at
-) VALUES
-  ('1f000000-0000-0000-0000-000000000001',
-    '10000000-0000-0000-0000-000000000001', NULL,
-    'account:delete', 'Delete Account',
-    '{"reason": "I no longer want to participate", "userId": "10000000-0000-0000-0000-000000000001"}'::jsonb,
-    'pending', NULL,
-    NOW() - INTERVAL '20 minutes', NULL),
-  ('1f000000-0000-0000-0000-000000000002',
-    '10000000-0000-0000-0000-000000000002', NULL,
-    'bulk:delete', 'Bulk Delete Price Submissions',
-    '{"count": 6, "reason": "Submitted incorrect prices by mistake", "priceIds": ["14000000-0000-0000-0000-000000000005","14000000-0000-0000-0000-000000000006","14000000-0000-0000-0000-000000000007"]}'::jsonb,
-    'pending', NULL,
-    NOW() - INTERVAL '55 minutes', NULL),
-  ('1f000000-0000-0000-0000-000000000003',
-    '10000000-0000-0000-0000-000000000003', '10000000-0000-0000-0000-000000000005',
-    'account:delete', 'Delete Account',
-    '{"reason": "Privacy concerns", "userId": "10000000-0000-0000-0000-000000000003"}'::jsonb,
-    'approved', 'Verified identity. Approved deletion per user request.',
-    NOW() - INTERVAL '3 hours', NOW() - INTERVAL '2 hours'),
-  ('1f000000-0000-0000-0000-000000000004',
-    '10000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000005',
-    'bulk:delete', 'Bulk Delete Price Submissions',
-    '{"count": 2, "reason": "Old data, no longer accurate", "priceIds": ["14000000-0000-0000-0000-000000000001","14000000-0000-0000-0000-000000000002"]}'::jsonb,
-    'rejected', 'Cannot delete verified submissions — these are part of the price history.',
-    NOW() - INTERVAL '24 hours', NOW() - INTERVAL '23 hours')
-ON CONFLICT DO NOTHING;
 
 -- =========================================================
 -- System Broadcasts / Global Alerts

@@ -6,6 +6,7 @@ import { pricesApi } from '@/api/prices.api';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { TrustBadge } from '@/components/ui/TrustBadge';
+import { Seo } from '@/components/Seo';
 import type { Store, PriceEntry } from '@/types';
 
 export function StorePublicPage() {
@@ -58,8 +59,30 @@ export function StorePublicPage() {
 
   const marker = [{ position: [store.latitude, store.longitude] as [number, number], label: store.name, price: '', category: undefined }];
 
+  const storeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "GroceryStore",
+    name: store.name,
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: store.city,
+      addressCountry: "LB",
+    },
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: store.latitude,
+      longitude: store.longitude,
+    },
+  };
+
   return (
     <div className="min-h-dvh bg-bg-base">
+      <Seo
+        path={`/store/${slug}`}
+        title={`${store.name} — Prices in ${store.city ?? 'Lebanon'}`}
+        description={`See live prices at ${store.name}${store.city ? ` in ${store.city}` : ''}. ${entries.length} verified products tracked on WeinArkhass.`}
+        jsonLd={storeJsonLd}
+      />
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-3 sticky top-0 z-30">
         <button onClick={() => navigate('/map')} className="flex items-center gap-1.5 text-text-sub hover:text-primary transition-colors text-sm">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>

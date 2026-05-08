@@ -1,6 +1,5 @@
 export type UserRole = 'shopper' | 'retailer' | 'admin';
 export type PriceStatus = 'pending' | 'verified' | 'flagged';
-export type FeedbackType = 'wrong_price' | 'wrong_store' | 'outdated' | 'fake_receipt' | 'general';
 export type NotifType = 'price_verified' | 'price_flagged' | 'price_alert' | 'trust_earned' | 'feedback_received';
 export type AuditAction = 'approved' | 'rejected' | 'warned' | 'banned' | 'edited' | 'merged';
 export type FuelType = 'gasoline_95' | 'gasoline_98' | 'diesel';
@@ -100,16 +99,6 @@ export interface PriceEntry {
   product?: Product;
 }
 
-export interface Feedback {
-  id: string;
-  priceEntryId: string;
-  submittedBy: string;
-  type: FeedbackType;
-  note: string;
-  status: 'open' | 'reviewed' | 'resolved';
-  createdAt: string;
-}
-
 export interface AuditLog {
   id: string;
   performedBy: string;
@@ -156,30 +145,6 @@ export interface StationReport {
   confirmedBy: string[];
   reportedBy: string;
   createdAt: string;
-}
-
-// ─── Approval Queue ────────────────────────────────────────────────────────────
-export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
-
-export interface ApprovalRequest {
-  id: string;
-  requestedBy: string;
-  action: string;
-  label: string;
-  payload: Record<string, unknown>;
-  status: ApprovalStatus;
-  reviewedBy: string | null;
-  reviewNote: string | null;
-  createdAt: string;
-  resolvedAt: string | null;
-  // Enriched at runtime
-  requester?: {
-    id: string;
-    name: string;
-    avatarInitials: string;
-    trustScore: number;
-    role: string;
-  };
 }
 
 export interface ApiResponse<T> {

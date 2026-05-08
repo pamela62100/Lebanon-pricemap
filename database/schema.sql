@@ -19,6 +19,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION set_last_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.last_updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 -- =========================================================
 -- Enums
 -- =========================================================
@@ -86,6 +94,8 @@ BEGIN
       'trust_earned',
       'approval_update',
       'store_update',
+      'discrepancy_resolved',
+      'catalog_action_required',
       'system'
     );
   END IF;
@@ -140,6 +150,18 @@ BEGIN
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'catalog_change_reason') THEN
     CREATE TYPE catalog_change_reason AS ENUM ('discrepancy_approved', 'promo_started', 'promo_ended', 'owner_update', 'admin_override');
+  END IF;
+END
+$$;
+
+-- Add new notification types for existing databases
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'discrepancy_resolved' AND enumtypid = 'notification_type'::regtype) THEN
+    ALTER TYPE notification_type ADD VALUE 'discrepancy_resolved';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_enum WHERE enumlabel = 'catalog_action_required' AND enumtypid = 'notification_type'::regtype) THEN
+    ALTER TYPE notification_type ADD VALUE 'catalog_action_required';
   END IF;
 END
 $$;
@@ -214,9 +236,9 @@ CREATE TABLE IF NOT EXISTS stores (
   cover_image_url      TEXT,
 
   trust_score          SMALLINT      NOT NULL DEFAULT 50 CHECK (trust_score BETWEEN 0 AND 100),
-  status               store_status  NOT NULL DEFAULT 'pending',
+  status               VARCHAR(20)   NOT NULL DEFAULT 'pending',
   is_verified_retailer BOOLEAN       NOT NULL DEFAULT FALSE,
-  power_status         power_status  NOT NULL DEFAULT 'stable',
+  power_status         VARCHAR(20)   NOT NULL DEFAULT 'stable',
 
   internal_rate_lbp    NUMERIC(12,2),
   sync_method          sync_method   NOT NULL DEFAULT 'manual',
@@ -241,43 +263,6 @@ CREATE TABLE IF NOT EXISTS store_api_keys (
 -- =========================================================
 -- Retailer Onboarding
 -- =========================================================
-
-CREATE TABLE IF NOT EXISTS retailer_onboarding_applications (
-  id                   UUID               PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id              UUID               REFERENCES users(id) ON DELETE SET NULL,
-  store_id             UUID               REFERENCES stores(id) ON DELETE SET NULL,
-
-  contact_name         VARCHAR(150)       NOT NULL,
-  email                CITEXT             NOT NULL,
-  phone                VARCHAR(50),
-
-  proposed_store_name  VARCHAR(255)       NOT NULL,
-  city                 VARCHAR(100),
-  district             VARCHAR(100),
-  address_text         TEXT,
-  latitude             NUMERIC(10,7),
-  longitude            NUMERIC(10,7),
-
-  current_step         SMALLINT           NOT NULL DEFAULT 1 CHECK (current_step BETWEEN 1 AND 5),
-  total_steps          SMALLINT           NOT NULL DEFAULT 5,
-  status               onboarding_status  NOT NULL DEFAULT 'pending',
-  admin_notes          TEXT,
-
-  applied_at           TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
-  reviewed_at          TIMESTAMPTZ,
-  reviewed_by          UUID               REFERENCES users(id) ON DELETE SET NULL,
-
-  created_at           TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
-  updated_at           TIMESTAMPTZ        NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS retailer_onboarding_documents (
-  id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_id UUID        NOT NULL REFERENCES retailer_onboarding_applications(id) ON DELETE CASCADE,
-  document_type  VARCHAR(50) NOT NULL,
-  file_url       TEXT        NOT NULL,
-  uploaded_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
 
 -- =========================================================
 -- Categories
@@ -519,48 +504,16 @@ CREATE TABLE IF NOT EXISTS current_store_product_prices (
 );
 
 -- =========================================================
--- Price Feedback
 -- =========================================================
-
-CREATE TABLE IF NOT EXISTS price_feedback (
-  id             UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
-  price_entry_id UUID            NOT NULL REFERENCES price_submissions(id) ON DELETE CASCADE,
-  submitted_by   UUID            REFERENCES users(id) ON DELETE SET NULL,
-
-  type           feedback_type   NOT NULL,
-  note           TEXT,
-  status         feedback_status NOT NULL DEFAULT 'open',
-
-  created_at     TIMESTAMPTZ     NOT NULL DEFAULT NOW()
-);
-
--- =========================================================
--- Price Confirmations, Reports & Notes
+-- Price Confirmations (one-verify-per-user tracking)
 -- =========================================================
 
 CREATE TABLE IF NOT EXISTS price_confirmations (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  price_submission_id UUID        NOT NULL REFERENCES price_submissions(id) ON DELETE CASCADE,
+  price_submission_id UUID        NOT NULL REFERENCES current_store_product_prices(id) ON DELETE CASCADE,
   user_id             UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   CONSTRAINT uq_price_confirmation UNIQUE (price_submission_id, user_id)
-);
-
-CREATE TABLE IF NOT EXISTS price_reports (
-  id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  price_submission_id UUID        NOT NULL REFERENCES price_submissions(id) ON DELETE CASCADE,
-  user_id             UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  report_type         VARCHAR(50) NOT NULL,
-  note                TEXT,
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS price_notes (
-  id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  price_submission_id UUID        NOT NULL REFERENCES price_submissions(id) ON DELETE CASCADE,
-  user_id             UUID        NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  note                TEXT        NOT NULL,
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- =========================================================
@@ -723,26 +676,6 @@ CREATE TABLE IF NOT EXISTS station_report_confirmations (
 );
 
 -- =========================================================
--- Approval Requests
--- =========================================================
-
-CREATE TABLE IF NOT EXISTS approval_requests (
-  id           UUID             PRIMARY KEY DEFAULT gen_random_uuid(),
-  requested_by UUID             NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  reviewed_by  UUID             REFERENCES users(id) ON DELETE SET NULL,
-
-  action       VARCHAR(100)     NOT NULL,  -- e.g. 'account:delete', 'bulk:delete'
-  label        VARCHAR(255)     NOT NULL,
-  payload      JSONB            NOT NULL DEFAULT '{}'::jsonb,
-
-  status       approval_status  NOT NULL DEFAULT 'pending',
-  review_note  TEXT,
-
-  created_at   TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
-  resolved_at  TIMESTAMPTZ,
-  updated_at   TIMESTAMPTZ      NOT NULL DEFAULT NOW()
-);
-
 -- =========================================================
 -- Cart
 -- =========================================================
@@ -870,8 +803,6 @@ CREATE INDEX IF NOT EXISTS idx_current_prices_store    ON current_store_product_
 CREATE INDEX IF NOT EXISTS idx_current_prices_product  ON current_store_product_prices(product_id);
 CREATE INDEX IF NOT EXISTS idx_current_prices_verified ON current_store_product_prices(is_verified);
 
-CREATE INDEX IF NOT EXISTS idx_feedback_entry        ON price_feedback(price_entry_id);
-CREATE INDEX IF NOT EXISTS idx_feedback_status       ON price_feedback(status);
 
 CREATE INDEX IF NOT EXISTS idx_moderation_status     ON moderation_cases(status);
 CREATE INDEX IF NOT EXISTS idx_moderation_severity   ON moderation_cases(severity);
@@ -896,13 +827,9 @@ CREATE INDEX IF NOT EXISTS idx_fuel_effective        ON fuel_prices(effective_fr
 CREATE INDEX IF NOT EXISTS idx_station_store         ON station_reports(store_id);
 CREATE INDEX IF NOT EXISTS idx_station_fuel          ON station_reports(fuel_type);
 
-CREATE INDEX IF NOT EXISTS idx_approval_status       ON approval_requests(status);
-CREATE INDEX IF NOT EXISTS idx_approval_user         ON approval_requests(requested_by);
 
 CREATE INDEX IF NOT EXISTS idx_broadcasts_active     ON system_broadcasts(is_active);
 
-CREATE INDEX IF NOT EXISTS idx_onboarding_status     ON retailer_onboarding_applications(status);
-CREATE INDEX IF NOT EXISTS idx_onboarding_user       ON retailer_onboarding_applications(user_id);
 
 -- =========================================================
 -- updated_at triggers
@@ -921,7 +848,7 @@ DROP TRIGGER IF EXISTS trg_products_updated_at ON products;
 CREATE TRIGGER trg_products_updated_at BEFORE UPDATE ON products FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 DROP TRIGGER IF EXISTS trg_store_catalog_items_updated_at ON store_catalog_items;
-CREATE TRIGGER trg_store_catalog_items_updated_at BEFORE UPDATE ON store_catalog_items FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+CREATE TRIGGER trg_store_catalog_items_updated_at BEFORE UPDATE ON store_catalog_items FOR EACH ROW EXECUTE FUNCTION set_last_updated_at();
 
 DROP TRIGGER IF EXISTS trg_store_promotions_updated_at ON store_promotions;
 CREATE TRIGGER trg_store_promotions_updated_at BEFORE UPDATE ON store_promotions FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -938,8 +865,6 @@ CREATE TRIGGER trg_price_anomalies_updated_at BEFORE UPDATE ON price_anomalies F
 DROP TRIGGER IF EXISTS trg_price_alerts_updated_at ON price_alerts;
 CREATE TRIGGER trg_price_alerts_updated_at BEFORE UPDATE ON price_alerts FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-DROP TRIGGER IF EXISTS trg_approval_requests_updated_at ON approval_requests;
-CREATE TRIGGER trg_approval_requests_updated_at BEFORE UPDATE ON approval_requests FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 DROP TRIGGER IF EXISTS trg_carts_updated_at ON carts;
 CREATE TRIGGER trg_carts_updated_at BEFORE UPDATE ON carts FOR EACH ROW EXECUTE FUNCTION set_updated_at();
@@ -947,8 +872,6 @@ CREATE TRIGGER trg_carts_updated_at BEFORE UPDATE ON carts FOR EACH ROW EXECUTE 
 DROP TRIGGER IF EXISTS trg_cart_items_updated_at ON cart_items;
 CREATE TRIGGER trg_cart_items_updated_at BEFORE UPDATE ON cart_items FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
-DROP TRIGGER IF EXISTS trg_retailer_onboarding_updated_at ON retailer_onboarding_applications;
-CREATE TRIGGER trg_retailer_onboarding_updated_at BEFORE UPDATE ON retailer_onboarding_applications FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Password reset tokens (for forgot-password flow)
 CREATE TABLE IF NOT EXISTS password_reset_tokens (

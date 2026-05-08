@@ -8,7 +8,7 @@ interface TickerItem {
 
 async function fetchBroadcasts(): Promise<TickerItem[]> {
   try {
-    const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5223/api';
+    const base = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
     const res = await fetch(`${base}/broadcasts`);
     const json = await res.json();
     const data = json?.data;

@@ -1,11 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Seo } from '@/components/Seo';
 
 export function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-dvh bg-bg-base flex flex-col items-center justify-center p-4 text-center">
+      <Seo title="Page Not Found" noIndex />
       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
         <span className="text-6xl mb-6 block">🧭</span>
         <h1 className="text-4xl font-bold text-text-main mb-2">404</h1>

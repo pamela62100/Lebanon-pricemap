@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { MapComponent } from '@/components/ui/MapComponent';
 import { pricesApi } from '@/api/prices.api';
 import { cn } from '@/lib/utils';
+import { Seo } from '@/components/Seo';
 import type { PriceEntry } from '@/types';
 
 const CATEGORIES = ['All', 'Dairy', 'Bakery', 'Oil', 'Fuel', 'Meat', 'Grains', 'Beverages', 'Produce'];
@@ -50,6 +51,11 @@ export function PublicMapPage() {
 
   return (
     <div className="flex flex-col min-h-dvh bg-bg-base">
+      <Seo
+        path="/map"
+        title="Live Price Map of Lebanon"
+        description="Interactive map showing live verified prices at supermarkets and fuel stations across Lebanon — Beirut, Tripoli, Sidon, Zahle and beyond."
+      />
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-4 z-30 shrink-0">
         <button onClick={() => navigate('/')} className="flex items-center gap-2 text-primary font-bold text-base">
           <span className="material-symbols-outlined text-primary" style={{ fontSize: '22px' }}>map</span>

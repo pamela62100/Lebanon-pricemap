@@ -93,12 +93,16 @@ namespace LebanonPriceMap.Server.Services
                     return;
                 }
 
-                // Seed in order
+                // Seed in order — SaveChanges between steps that depend on prior data
                 await SeedRegionsAndDistrictsAsync();
                 await SeedCategoriesAsync();
                 await SeedUsersAsync();
+                await _context.SaveChangesAsync();  // flush before steps that query categories/users
+
                 await SeedProductsAsync();
                 await SeedStoresAsync();
+                await _context.SaveChangesAsync();  // flush before steps that query products/stores
+
                 await SeedPriceSubmissionsAsync();
                 await SeedFuelDataAsync();
                 await SeedStoreCatalogAsync();

@@ -14,14 +14,6 @@ export const pricesApi = {
     return client.get<ApiResponse<PriceEntry>>(`/prices/${id}`);
   },
 
-  getByUser: async (userId: string) => {
-    return client.get<ApiResponse<PriceEntry[]>>(`/prices/user/${userId}`);
-  },
-
-  submit: async (data: { productId: string; storeId: string; priceLbp: number; receiptImageBase64?: string }) => {
-    return client.post<ApiResponse<PriceEntry>>('/prices', data);
-  },
-
   vote: async (id: string, value: 1 | -1) => {
     return client.post(`/prices/${id}/vote`, { value });
   },
