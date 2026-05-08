@@ -1,25 +1,20 @@
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useApprovalStore } from '@/store/useApprovalStore';
 
 const navItems = [
   { path: '/admin',           icon: 'dashboard',            label: 'Dashboard' },
-  { path: '/admin/approvals', icon: 'admin_panel_settings', label: 'Approval Queue',  badge: true },
   { path: '/admin/users',     icon: 'group',                label: 'Users' },
   { path: '/admin/products',  icon: 'inventory_2',          label: 'Products' },
   { path: '/admin/stores',    icon: 'storefront',           label: 'Stores' },
-  { path: '/admin/flagged',   icon: 'flag',                 label: 'Flagged Prices' },
-  { path: '/admin/anomalies', icon: 'warning',              label: 'Anomalies' },
+  { path: '/admin/reports',   icon: 'rate_review',          label: 'Reports' },
   { path: '/admin/logs',      icon: 'history',              label: 'Activity Logs' },
-  { path: '/admin/onboarding',icon: 'rocket_launch',        label: 'Onboarding' },
 ];
 
 export function AdminSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const logout = useAuthStore(s => s.logout);
-  const pendingCount = useApprovalStore(s => s.pendingCount());
 
   return (
     <aside className="w-56 bg-white border-r border-border-soft flex flex-col shrink-0 z-40 overflow-y-auto">
@@ -61,14 +56,6 @@ export function AdminSidebar() {
                 {item.icon}
               </span>
               <span className="flex-1 truncate">{item.label}</span>
-              {item.badge && pendingCount > 0 && (
-                <span className={cn(
-                  "font-data text-[9px] font-black px-2 py-0.5 rounded-md",
-                  isActive ? "bg-white/20 text-white" : "bg-primary text-white"
-                )}>
-                  {pendingCount}
-                </span>
-              )}
             </NavLink>
           );
         })}

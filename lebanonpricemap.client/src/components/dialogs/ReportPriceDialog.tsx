@@ -1,20 +1,22 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { FeedbackType } from '@/types';
+
+type ReportType = 'price_higher' | 'price_lower' | 'out_of_stock' | 'wrong_unit' | 'other';
 
 interface ReportPriceDialogProps {
   isOpen: boolean;
   onClose: () => void;
   currentPrice: number;
-  onSubmit: (type: FeedbackType, note: string) => void;
+  onSubmit: (type: ReportType, note: string) => void;
 }
 
-const REPORT_OPTIONS: { value: FeedbackType; label: string; icon: string }[] = [
-  { value: 'wrong_price', label: 'Wrong price', icon: 'sell' },
-  { value: 'wrong_store', label: 'Wrong store', icon: 'storefront' },
-  { value: 'outdated', label: 'Outdated information', icon: 'schedule' },
-  { value: 'fake_receipt', label: 'Suspicious proof or receipt', icon: 'flag' },
+const REPORT_OPTIONS: { value: ReportType; label: string; icon: string }[] = [
+  { value: 'price_higher',  label: 'Shelf price is higher',  icon: 'trending_up' },
+  { value: 'price_lower',   label: 'Shelf price is lower',   icon: 'trending_down' },
+  { value: 'out_of_stock',  label: 'Out of stock',           icon: 'remove_shopping_cart' },
+  { value: 'wrong_unit',    label: 'Wrong unit / size',      icon: 'straighten' },
+  { value: 'other',         label: 'Something else',         icon: 'help' },
 ];
 
 export function ReportPriceDialog({
@@ -23,7 +25,7 @@ export function ReportPriceDialog({
   currentPrice,
   onSubmit,
 }: ReportPriceDialogProps) {
-  const [selectedType, setSelectedType] = useState<FeedbackType>('wrong_price');
+  const [selectedType, setSelectedType] = useState<ReportType>('price_higher');
   const [note, setNote] = useState('');
 
   const handleSubmit = () => {

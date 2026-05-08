@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 const MOBILE_NAV = [
   { icon: 'search',               path: '/app',         title: 'Search', end: true  },
   { icon: 'storefront',           path: '/app/catalog', title: 'Stores', end: false },
-  { icon: 'barcode_scanner',      path: '/app/scan',    title: 'Scan',   end: false },
   { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false },
   { icon: 'checklist',            path: '/app/list',    title: 'My List',end: false },
 ];
@@ -19,7 +18,7 @@ export function DesktopLayout() {
   return (
     <div className="min-h-dvh bg-bg-base flex flex-col">
       {/* Sticky top chrome */}
-      <div className="sticky top-0 z-40 flex flex-col w-full shrink-0" data-sticky-header>
+      <div className="sticky top-0 z-[1000] flex flex-col w-full shrink-0" data-sticky-header>
         <OfflineBanner />
         <TopNavbar />
         <GlobalEssentialsTicker />

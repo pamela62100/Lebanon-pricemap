@@ -1,15 +1,12 @@
 import { useAuthStore } from '@/store/useAuthStore';
 import { cn } from '@/lib/utils';
-import { pricesApi } from '@/api/prices.api';
 import { alertsApi } from '@/api/alerts.api';
 import { usersApi } from '@/api/users.api';
-import { StatusBadge } from '@/components/ui/StatusBadge';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { useToastStore } from '@/store/useToastStore';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { PriceEntry } from '@/types';
 
 interface TrackedAlert {
   id: string;
@@ -24,7 +21,6 @@ export function ProfilePage() {
   const addToast = useToastStore((s) => s.addToast);
   const navigate = useNavigate();
 
-  const [myEntries, setMyEntries] = useState<PriceEntry[]>([]);
   const [trackedAlerts, setTrackedAlerts] = useState<TrackedAlert[]>([]);
   const [editName, setEditName] = useState(user?.name ?? '');
   const [editCity, setEditCity] = useState(user?.city ?? '');
@@ -32,10 +28,6 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    pricesApi.getByUser(user.id).then((res) => {
-      const data = res.data?.data ?? res.data;
-      setMyEntries(Array.isArray(data) ? data : []);
-    }).catch(() => {});
 
     alertsApi.getAll().then((res) => {
       const data = res.data?.data ?? res.data;
@@ -169,88 +161,8 @@ export function ProfilePage() {
         {/* Main content */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-          {/* Submission history */}
-          <section className="lg:col-span-8 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-text-main tracking-tight">
-                My submissions
-              </h2>
-              <span className="px-2.5 py-1 bg-primary text-white rounded-full text-[10px] font-bold uppercase tracking-wide">
-                {myEntries.length} reports
-              </span>
-            </div>
-
-            <div className="card overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="bg-bg-muted/40 border-b border-border-soft">
-                      <th className="py-3.5 px-5 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
-                        Product
-                      </th>
-                      <th className="py-3.5 px-5 text-[10px] font-semibold text-text-muted uppercase tracking-wide">
-                        Price (LBP)
-                      </th>
-                      <th className="py-3.5 px-5 text-[10px] font-semibold text-text-muted uppercase tracking-wide text-center">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border-soft/40">
-                    {myEntries.slice(0, 10).map((entry) => (
-                      <tr
-                        key={entry.id}
-                        className="group hover:bg-bg-muted/20 transition-colors"
-                      >
-                        <td className="py-4 px-5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-lg bg-bg-muted flex items-center justify-center text-text-muted group-hover:bg-primary group-hover:text-white transition-colors shrink-0">
-                              <span className="material-symbols-outlined text-base">
-                                inventory_2
-                              </span>
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-text-main truncate">
-                                {entry.product?.name}
-                              </p>
-                              <p className="text-[10px] text-text-muted truncate mt-0.5">
-                                {entry.store?.name}
-                              </p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-5">
-                          <p className="text-base font-bold text-text-main font-data tracking-tight">
-                            {entry.priceLbp.toLocaleString()}
-                          </p>
-                        </td>
-                        <td className="py-4 px-5 text-center">
-                          <StatusBadge status={entry.status} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {myEntries.length === 0 && (
-                <div className="p-16 flex flex-col items-center text-center">
-                  <span className="material-symbols-outlined text-4xl text-text-muted/20 mb-4">
-                    receipt_long
-                  </span>
-                  <p className="text-sm font-semibold text-text-muted mb-1">
-                    No submissions yet
-                  </p>
-                  <p className="text-sm text-text-muted/60 max-w-xs">
-                    Start reporting prices at local stores to help your community.
-                  </p>
-                </div>
-              )}
-            </div>
-          </section>
-
           {/* Sidebar */}
-          <aside className="lg:col-span-4 space-y-6">
+          <aside className="lg:col-span-12 space-y-6">
             {/* Tracked products */}
             <div className="space-y-3">
               <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">

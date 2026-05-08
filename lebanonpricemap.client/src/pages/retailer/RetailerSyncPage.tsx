@@ -139,7 +139,7 @@ export function RetailerSyncPage() {
               <div className="bg-bg-muted rounded-xl p-4 flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-white bg-text-main px-1.5 py-0.5 rounded uppercase">Post</span>
-                  <code className="text-xs font-mono text-text-main">http://localhost:5223/api/retailer/v1/sync</code>
+                  <code className="text-xs font-mono text-text-main">http://localhost:5000/api/retailer/v1/sync</code>
                 </div>
                 
                 <div className="flex flex-col gap-1.5">

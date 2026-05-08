@@ -9,7 +9,6 @@ import { useState, useRef, useEffect } from 'react';
 const NAV_ITEMS = [
   { icon: 'search',               path: '/app',         title: 'Search', end: true,  mobileOnly: false },
   { icon: 'storefront',           path: '/app/catalog', title: 'Stores', end: false, mobileOnly: false },
-  { icon: 'barcode_scanner',      path: '/app/scan',    title: 'Scan',   end: false, mobileOnly: true  },
   { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false, mobileOnly: false },
   { icon: 'notifications_active', path: '/app/alerts',  title: 'Alerts', end: false, mobileOnly: false },
 ];

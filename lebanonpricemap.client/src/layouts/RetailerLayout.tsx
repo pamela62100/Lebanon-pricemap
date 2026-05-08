@@ -1,7 +1,5 @@
-import { Outlet, NavLink, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/useAuthStore';
-import { storesApi } from '@/api/stores.api';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
@@ -17,50 +15,6 @@ export function RetailerLayout() {
   const user = useAuthStore(s => s.user);
   const logout = useAuthStore(s => s.logout);
   const navigate = useNavigate();
-  const location = useLocation();
-  const [hasStore, setHasStore] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    storesApi.getMine()
-      .then(() => setHasStore(true))
-      .catch(() => setHasStore(false));
-  }, [location.pathname]);
-
-  // While checking, show nothing
-  if (hasStore === null) {
-    return <div className="h-dvh flex items-center justify-center bg-bg-base"><span className="material-symbols-outlined animate-spin text-text-muted">progress_activity</span></div>;
-  }
-
-  // No store yet — force onboarding (unless already on the onboarding page)
-  if (!hasStore && !location.pathname.includes('/retailer/setup')) {
-    return <Navigate to="/retailer/setup" replace />;
-  }
-
-  // Onboarding layout — no sidebar, just the form
-  if (!hasStore) {
-    return (
-      <div className="min-h-dvh bg-bg-base">
-        <header className="h-14 border-b border-border-soft bg-white flex items-center justify-between px-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-white text-[10px] font-black">WA</span>
-            </div>
-            <span className="font-semibold text-sm text-text-main">WenArkhass</span>
-          </div>
-          <button
-            onClick={() => { logout(); navigate('/'); }}
-            className="text-xs font-medium text-text-muted hover:text-red-500 transition-colors flex items-center gap-1.5"
-          >
-            <span className="material-symbols-outlined text-[16px]">logout</span>
-            Sign out
-          </button>
-        </header>
-        <div className="px-6 py-8">
-          <Outlet />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="h-dvh flex bg-bg-base overflow-hidden">
@@ -132,7 +86,7 @@ export function RetailerLayout() {
           </div>
         </header>
         <div className="flex-1 overflow-y-auto p-6 md:p-8">
-          <div className="max-w-6xl mx-auto animate-page">
+          <div className="w-full animate-page">
             <Outlet />
           </div>
         </div>

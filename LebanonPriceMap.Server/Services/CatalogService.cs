@@ -103,6 +103,8 @@ namespace LebanonPriceMap.Server.Services
 
         public async Task<CatalogItemDto> CreateAsync(CreateCatalogItemDto dto, Guid? userId)
         {
+            await EnsureUserOwnsStoreAsync(dto.StoreId, userId);
+
             var item = new StoreCatalogItem
             {
                 Id = Guid.NewGuid(),
@@ -153,6 +155,7 @@ namespace LebanonPriceMap.Server.Services
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (item == null) return null;
+            await EnsureUserOwnsStoreAsync(item.StoreId, userId);
 
             var previousPrice = item.IsPromotion ? item.PromoPriceLbp : item.OfficialPriceLbp;
 
@@ -206,14 +209,26 @@ namespace LebanonPriceMap.Server.Services
             return MapToDto(item);
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid id, Guid? userId = null)
         {
             var item = await _context.StoreCatalogItems.FindAsync(id);
             if (item == null) return false;
+            await EnsureUserOwnsStoreAsync(item.StoreId, userId);
 
             _context.StoreCatalogItems.Remove(item);
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // Throws UnauthorizedAccessException if the user doesn't own the store.
+        // userId can be null for admin contexts where ownership isn't applicable.
+        private async Task EnsureUserOwnsStoreAsync(Guid storeId, Guid? userId)
+        {
+            if (!userId.HasValue) return;
+            var owns = await _context.Stores
+                .AnyAsync(s => s.Id == storeId && s.OwnerUserId == userId.Value);
+            if (!owns)
+                throw new UnauthorizedAccessException("You don't own this store.");
         }
 
         public async Task<IEnumerable<CatalogAuditDto>> GetAuditTrailAsync(Guid catalogItemId)

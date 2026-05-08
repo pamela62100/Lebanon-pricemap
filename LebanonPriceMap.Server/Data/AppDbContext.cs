@@ -30,19 +30,13 @@ public class AppDbContext : DbContext
     public DbSet<Cart> Carts { get; set; }
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<AdminAuditLog> AdminAuditLogs { get; set; }
-    public DbSet<ApprovalRequest> ApprovalRequests { get; set; }
     public DbSet<MissingProductRequest> MissingProductRequests { get; set; }
     public DbSet<ModerationCase> ModerationCases { get; set; }
     public DbSet<PriceAnomaly> PriceAnomalies { get; set; }
     public DbSet<PriceConfirmation> PriceConfirmations { get; set; }
-    public DbSet<PriceFeedback> PriceFeedbacks { get; set; }
-    public DbSet<PriceNote> PriceNotes { get; set; }
-    public DbSet<PriceReport> PriceReports { get; set; }
     public DbSet<Region> Regions { get; set; }
     public DbSet<District> Districts { get; set; }
     public DbSet<PriceAlertRegion> PriceAlertRegions { get; set; }
-    public DbSet<RetailerOnboardingApplication> RetailerOnboardingApplications { get; set; }
-    public DbSet<RetailerOnboardingDocument> RetailerOnboardingDocuments { get; set; }
     public DbSet<StorePromotion> StorePromotions { get; set; }
     public DbSet<StoreSyncRun> StoreSyncRuns { get; set; }
     public DbSet<StoreSyncItem> StoreSyncItems { get; set; }
@@ -408,23 +402,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.HasOne(e => e.TargetProduct).WithMany().HasForeignKey(e => e.TargetProductId);
         });
 
-        // 17. ApprovalRequest
-        modelBuilder.Entity<ApprovalRequest>(entity =>
-        {
-            entity.ToTable("approval_requests");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.RequestedBy).HasColumnName("requested_by");
-            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
-            entity.Property(e => e.Action).HasColumnName("action");
-            entity.Property(e => e.Label).HasColumnName("label");
-            entity.Property(e => e.Payload).HasColumnName("payload");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.ReviewNote).HasColumnName("review_note");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-        });
-
         // 18. MissingProductRequest
         modelBuilder.Entity<MissingProductRequest>(entity =>
         {
@@ -500,51 +477,9 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.PriceSubmissionId).HasColumnName("price_submission_id");
             entity.Property(e => e.UserId).HasColumnName("user_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasOne(e => e.PriceSubmission).WithMany().HasForeignKey(e => e.PriceSubmissionId);
             entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
         });
 
-        // 22. PriceFeedback
-        modelBuilder.Entity<PriceFeedback>(entity =>
-        {
-            entity.ToTable("price_feedback");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PriceEntryId).HasColumnName("price_entry_id");
-            entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
-            entity.Property(e => e.Type).HasColumnName("type");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasOne(e => e.PriceEntry).WithMany().HasForeignKey(e => e.PriceEntryId);
-            entity.HasOne(e => e.SubmittedByUser).WithMany().HasForeignKey(e => e.SubmittedBy);
-        });
-
-        // 23. PriceNote
-        modelBuilder.Entity<PriceNote>(entity =>
-        {
-            entity.ToTable("price_notes");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PriceSubmissionId).HasColumnName("price_submission_id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasOne(e => e.PriceSubmission).WithMany().HasForeignKey(e => e.PriceSubmissionId);
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
-        });
-
-        // 24. PriceReport
-        modelBuilder.Entity<PriceReport>(entity =>
-        {
-            entity.ToTable("price_reports");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.PriceSubmissionId).HasColumnName("price_submission_id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.ReportType).HasColumnName("report_type");
-            entity.Property(e => e.Note).HasColumnName("note");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.HasOne(e => e.PriceSubmission).WithMany().HasForeignKey(e => e.PriceSubmissionId);
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
-        });
 
         // 25. Region
         modelBuilder.Entity<Region>(entity =>
@@ -575,48 +510,6 @@ entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.RegionId).HasColumnName("region_id");
             entity.HasOne(e => e.Alert).WithMany().HasForeignKey(e => e.AlertId);
             entity.HasOne(e => e.Region).WithMany().HasForeignKey(e => e.RegionId);
-        });
-
-        // 28. RetailerOnboardingApplication
-        modelBuilder.Entity<RetailerOnboardingApplication>(entity =>
-        {
-            entity.ToTable("retailer_onboarding_applications");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.UserId).HasColumnName("user_id");
-            entity.Property(e => e.StoreId).HasColumnName("store_id");
-            entity.Property(e => e.ContactName).HasColumnName("contact_name");
-            entity.Property(e => e.Email).HasColumnName("email");
-            entity.Property(e => e.Phone).HasColumnName("phone");
-            entity.Property(e => e.ProposedStoreName).HasColumnName("proposed_store_name");
-            entity.Property(e => e.City).HasColumnName("city");
-            entity.Property(e => e.District).HasColumnName("district");
-            entity.Property(e => e.AddressText).HasColumnName("address_text");
-            entity.Property(e => e.Latitude).HasColumnName("latitude");
-            entity.Property(e => e.Longitude).HasColumnName("longitude");
-            entity.Property(e => e.CurrentStep).HasColumnName("current_step");
-            entity.Property(e => e.TotalSteps).HasColumnName("total_steps");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.AdminNotes).HasColumnName("admin_notes");
-            entity.Property(e => e.AppliedAt).HasColumnName("applied_at");
-            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
-            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
-            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
-            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
-            entity.HasOne(e => e.User).WithMany().HasForeignKey(e => e.UserId);
-            entity.HasOne(e => e.Store).WithMany().HasForeignKey(e => e.StoreId);
-            entity.HasOne(e => e.ReviewedByUser).WithMany().HasForeignKey(e => e.ReviewedBy);
-        });
-
-        // 29. RetailerOnboardingDocument
-        modelBuilder.Entity<RetailerOnboardingDocument>(entity =>
-        {
-            entity.ToTable("retailer_onboarding_documents");
-            entity.Property(e => e.Id).HasColumnName("id");
-            entity.Property(e => e.ApplicationId).HasColumnName("application_id");
-            entity.Property(e => e.DocumentType).HasColumnName("document_type");
-            entity.Property(e => e.FileUrl).HasColumnName("file_url");
-            entity.Property(e => e.UploadedAt).HasColumnName("uploaded_at");
-            entity.HasOne(e => e.Application).WithMany(a => a.Documents).HasForeignKey(e => e.ApplicationId);
         });
 
         // 30. StorePromotion

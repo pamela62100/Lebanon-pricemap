@@ -18,9 +18,6 @@ namespace LebanonPriceMap.Server.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation properties
-        [ForeignKey("PriceSubmissionId")]
-        public virtual PriceSubmission? PriceSubmission { get; set; }
-
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }
     }

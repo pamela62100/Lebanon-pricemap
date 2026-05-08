@@ -26,6 +26,8 @@ public class DiscrepancyController : ControllerBase
         
         var userId = Guid.Parse(userIdClaim.Value);
         var report = await _discrepancyService.SubmitReportAsync(request, userId);
+        if (report == null)
+            return BadRequest(new { success = false, message = "This product is not in the store's catalog." });
 
         return Ok(new { success = true, data = report });
     }

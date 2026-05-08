@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { pricesApi } from '@/api/prices.api';
-import { feedbackApi } from '@/api/feedback.api';
+import { discrepancyApi } from '@/api/discrepancy.api';
 import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
@@ -11,7 +11,9 @@ import { NotFoundPage } from '@/pages/shared/NotFoundPage';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
-import type { PriceEntry, FeedbackType } from '@/types';
+import type { PriceEntry } from '@/types';
+
+type ReportType = 'price_higher' | 'price_lower' | 'out_of_stock' | 'wrong_unit' | 'other';
 
 export function PriceDetailPage() {
   const { id } = useParams();
@@ -71,10 +73,13 @@ export function PriceDetailPage() {
     try {
       await pricesApi.vote(entry.id, value);
       addToast(value === 1 ? 'Price confirmed — thanks!' : 'Report submitted', value === 1 ? 'success' : 'info');
-      // Optimistically update upvotes display
       setEntry(prev => prev ? { ...prev, upvotes: (prev.upvotes ?? 0) + (value === 1 ? 1 : 0) } : prev);
-    } catch {
-      addToast('Could not record vote', 'error');
+    } catch (err: any) {
+      if (err?.response?.status === 409) {
+        addToast('You already verified this price', 'info');
+      } else {
+        addToast('Could not record vote', 'error');
+      }
     } finally {
       setVoting(false);
     }
@@ -225,9 +230,14 @@ export function PriceDetailPage() {
         isOpen={showReport}
         onClose={() => setShowReport(false)}
         currentPrice={entry.priceLbp}
-        onSubmit={async (type: FeedbackType, note: string) => {
+        onSubmit={async (type: ReportType, note: string) => {
           try {
-            await feedbackApi.submit({ priceEntryId: entry.id, type, note });
+            await discrepancyApi.submit({
+              storeId: entry.storeId,
+              productId: entry.productId,
+              reportType: type,
+              note,
+            });
             addToast('Report submitted — thanks!', 'info');
           } catch {
             addToast('Could not submit report', 'error');

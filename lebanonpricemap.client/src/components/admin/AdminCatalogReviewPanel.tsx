@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { discrepancyApi } from '@/api/catalog.api';
+import { discrepancyApi } from '@/api/discrepancy.api';
 import { cn, timeAgo } from '@/lib/utils';
 
 const DISC_STATUS_STYLES = {
@@ -24,7 +24,6 @@ export function AdminCatalogReviewPanel() {
   const [discrepancies, setDiscrepancies] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
-  const [newPrice, setNewPrice] = useState<Record<string, string>>({});
 
   useEffect(() => {
     discrepancyApi.getPending().then((res) => {
@@ -36,8 +35,7 @@ export function AdminCatalogReviewPanel() {
   const remove = (id: string) => setDiscrepancies(prev => prev.filter(d => d.id !== id));
 
   const handleApprove = async (id: string) => {
-    const price = newPrice[id] ? parseInt(newPrice[id]) : undefined;
-    await discrepancyApi.approve(id, { approvedPrice: price, note: reviewNote[id] });
+    await discrepancyApi.approve(id, { note: reviewNote[id] });
     remove(id);
     setExpandedId(null);
   };
@@ -96,7 +94,7 @@ export function AdminCatalogReviewPanel() {
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <p className="font-bold text-text-main text-sm">{report.reportedBy ?? 'Community'}</p>
+                      <p className="font-bold text-text-main text-sm">{report.reportedByUser?.name ?? 'Community member'}</p>
                       <span className="text-xs text-text-muted">·</span>
                       <span className="text-xs text-text-muted">{timeAgo(report.createdAt)}</span>
                       <span className={cn('ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full border', style.bg, style.text)}>
@@ -134,42 +132,29 @@ export function AdminCatalogReviewPanel() {
                       exit={{ opacity: 0, height: 0 }}
                       className="overflow-hidden"
                     >
-                      <div className="mt-5 pt-5 border-t border-border-soft">
-                        <div className="flex flex-col gap-3">
-                          {(report.reportType === 'price_higher' || report.reportType === 'price_lower') && (
-                            <div>
-                              <label className="text-[10px] font-black uppercase text-text-muted tracking-widest block mb-1.5">New catalog price (LBP)</label>
-                              <input
-                                type="number"
-                                placeholder={`e.g. ${report.observedPriceLbp ?? ''}`}
-                                value={newPrice[report.id] ?? ''}
-                                onChange={e => setNewPrice(n => ({ ...n, [report.id]: e.target.value }))}
-                                className="w-full h-10 bg-bg-surface border border-border-soft rounded-xl px-4 text-sm font-bold outline-none focus:border-primary/40"
-                              />
-                            </div>
-                          )}
-                          <textarea
-                            value={reviewNote[report.id] ?? ''}
-                            onChange={e => setReviewNote(n => ({ ...n, [report.id]: e.target.value }))}
-                            placeholder="Review note (optional)..."
-                            className="w-full h-16 bg-bg-surface border border-border-soft rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/40 resize-none"
-                          />
-                          <div className="flex gap-3">
-                            <button
-                              onClick={() => handleApprove(report.id)}
-                              className="flex-1 h-10 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>check_circle</span>
-                              Approve {newPrice[report.id] ? '& Update Catalog' : ''}
-                            </button>
-                            <button
-                              onClick={() => handleReject(report.id)}
-                              className="flex-1 h-10 border border-red-400/30 text-red-500 hover:bg-red-500/10 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2"
-                            >
-                              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>cancel</span>
-                              Reject
-                            </button>
-                          </div>
+                      <div className="mt-4 pt-4 border-t border-border-soft flex flex-col gap-3">
+                        <textarea
+                          value={reviewNote[report.id] ?? ''}
+                          onChange={e => setReviewNote(n => ({ ...n, [report.id]: e.target.value }))}
+                          placeholder="Optional note (e.g. 'Verified against photo evidence')"
+                          rows={2}
+                          className="w-full bg-bg-surface border border-border-soft rounded-xl px-4 py-3 text-sm outline-none focus:border-primary/40 resize-none"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleApprove(report.id)}
+                            className="flex-1 h-9 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>check_circle</span>
+                            Verified — Notify Retailer
+                          </button>
+                          <button
+                            onClick={() => handleReject(report.id)}
+                            className="flex-1 h-9 border border-red-300 text-red-500 hover:bg-red-50 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5"
+                          >
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>cancel</span>
+                            Not Valid
+                          </button>
                         </div>
                       </div>
                     </motion.div>

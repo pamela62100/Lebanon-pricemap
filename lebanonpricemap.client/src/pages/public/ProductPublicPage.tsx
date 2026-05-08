@@ -5,6 +5,7 @@ import { productsApi } from '@/api/products.api';
 import { pricesApi } from '@/api/prices.api';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
+import { Seo } from '@/components/Seo';
 import type { Product, PriceEntry } from '@/types';
 
 export function ProductPublicPage() {
@@ -69,8 +70,31 @@ export function ProductPublicPage() {
     );
   }
 
+  const productJsonLd = entries.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: `Compare ${product.name} prices across ${entries.length} stores in Lebanon. Lowest: ${lowestPrice.toLocaleString()} LBP.`,
+    offers: {
+      "@type": "AggregateOffer",
+      priceCurrency: "LBP",
+      lowPrice: lowestPrice,
+      highPrice: highestPrice,
+      offerCount: entries.length,
+    },
+  } : undefined;
+
   return (
     <div className="min-h-dvh bg-bg-base">
+      <Seo
+        path={`/product/${slug}`}
+        type="product"
+        title={`${product.name} — Best Price in Lebanon`}
+        description={entries.length > 0
+          ? `Compare ${product.name} prices across ${entries.length} stores. Lowest: ${lowestPrice.toLocaleString()} LBP. Live, verified retailer prices.`
+          : `${product.name} — find the best price across Lebanese stores on WeinArkhass.`}
+        jsonLd={productJsonLd}
+      />
       <header className="h-14 bg-bg-surface border-b border-border-soft flex items-center px-6 gap-3 sticky top-0 z-30">
         <button onClick={() => navigate('/map')} className="flex items-center gap-1.5 text-text-sub hover:text-primary transition-colors text-sm">
           <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>arrow_back</span>

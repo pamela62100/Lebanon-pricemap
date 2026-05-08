@@ -4,8 +4,8 @@ public class AdminStatsResponse
 {
     public int TotalUsers { get; set; }
     public int TotalUploads { get; set; }
-    public int FlaggedEntries { get; set; }
     public int ActiveStores { get; set; }
+    public int PendingReports { get; set; }
 }
 
 public class AdminUserResponse
@@ -36,41 +36,3 @@ public class AdminAuditLogResponse
     public DateTime CreatedAt { get; set; }
 }
 
-public class AnomalyResponse
-{
-    public string Id { get; set; } = string.Empty;
-    public string StoreId { get; set; } = string.Empty;
-    public string StoreName { get; set; } = string.Empty;
-    public string ProductId { get; set; } = string.Empty;
-    public string ProductName { get; set; } = string.Empty;
-    public decimal OldPriceLbp { get; set; }
-    public decimal NewPriceLbp { get; set; }
-    public decimal ChangePercent { get; set; }
-    public string Severity { get; set; } = string.Empty;
-    public string Status { get; set; } = string.Empty;
-    public DateTime DetectedAt { get; set; }
-}
-
-public class OnboardingApplicationResponse
-{
-    public string Id { get; set; } = string.Empty;
-    public string ContactName { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string? Phone { get; set; }
-    public string ProposedStoreName { get; set; } = string.Empty;
-    public string? City { get; set; }
-    public string? District { get; set; }
-    public short CurrentStep { get; set; }
-    public short TotalSteps { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public string? AdminNotes { get; set; }
-    public DateTime AppliedAt { get; set; }
-    public DateTime? ReviewedAt { get; set; }
-}
-
-public class UpdateOnboardingStepRequest
-{
-    public short Step { get; set; }
-    public string? AdminNotes { get; set; }
-    public string? Status { get; set; }
-}

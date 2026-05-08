@@ -9,7 +9,7 @@ namespace LebanonPriceMap.Server.Controllers;
 /// It receives HTTP requests from the frontend and routes them to the PriceService.
 /// </summary>
 [ApiController]
-[Route("api/prices")] // This makes the URL: http://localhost:5223/api/prices
+[Route("api/prices")] // This makes the URL: http://localhost:5000/api/prices
 public class PricesController : ControllerBase
 {
     private readonly PriceService _priceService;
@@ -74,39 +74,6 @@ public class PricesController : ControllerBase
     }
 
     /// <summary>
-    /// GET /api/prices/user/{userId}
-    /// Returns all price submissions by a specific user.
-    /// </summary>
-    [HttpGet("user/{userId}")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public async Task<IActionResult> GetByUser(string userId)
-    {
-        if (!Guid.TryParse(userId, out var userGuid))
-            return BadRequest(new { success = false, message = "Invalid user ID" });
-
-        var results = await _priceService.GetByUserAsync(userGuid);
-        return Ok(new { success = true, data = results });
-    }
-
-    /// <summary>
-    /// POST /api/prices
-    /// Allows a logged-in shopper to submit a new price.
-    /// </summary>
-    [HttpPost]
-    [Microsoft.AspNetCore.Authorization.Authorize] // Only logged-in users!
-    public async Task<IActionResult> Submit([FromBody] PriceSubmissionRequest request)
-    {
-        // Extract the User ID from the JWT Token
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
-        
-        var userId = Guid.Parse(userIdClaim.Value);
-        var result = await _priceService.SubmitPriceAsync(request, userId);
-        
-        return Ok(new { success = true, data = result });
-    }
-
-    /// <summary>
     /// POST /api/prices/bulk
     /// Upload multiple price rows in one request and record a sync run.
     /// </summary>
@@ -137,15 +104,23 @@ public class PricesController : ControllerBase
 
     /// <summary>
     /// POST /api/prices/{id}/vote
-    /// Upvote or downvote a user's price submission.
+    /// Verify a price entry. Each user may verify a given price only once.
     /// </summary>
     [HttpPost("{id}/vote")]
     [Microsoft.AspNetCore.Authorization.Authorize]
     public async Task<IActionResult> Vote(string id, [FromBody] VoteRequest request)
     {
-        var success = await _priceService.VoteAsync(id, request.Value);
-        if (!success) return BadRequest(new { success = false, message = "Could not record vote" });
-        
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        var result = await _priceService.VoteAsync(id, request.Value, userId);
+
+        if (result == "not_found")
+            return NotFound(new { success = false, message = "Price entry not found" });
+        if (result == "already_verified")
+            return Conflict(new { success = false, message = "You already verified this price" });
+
         return Ok(new { success = true });
     }
 }

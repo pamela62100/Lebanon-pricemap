@@ -135,68 +135,6 @@ public class PriceService
     }
 
     /// <summary>
-    /// Handles a user submitting a new price they found at a store.
-    /// </summary>
-    public async Task<PriceEntryResponse> SubmitPriceAsync(PriceSubmissionRequest request, Guid userId)
-    {
-        var submission = new PriceSubmission
-        {
-            Id = Guid.NewGuid(),
-            ProductId = Guid.Parse(request.ProductId),
-            StoreId = Guid.Parse(request.StoreId),
-            PriceLbp = request.PriceLbp,
-            SubmittedBy = userId,
-            IsPromotion = request.IsPromotion,
-            PromoEndsAt = request.PromoEndsAt,
-            CreatedAt = DateTime.UtcNow,
-            SubmissionStatus = SubmissionStatus.pending,
-            Source = SubmissionSource.community
-        };
-
-        _db.PriceSubmissions.Add(submission);
-        await _db.SaveChangesAsync();
-
-        // Upsert into CurrentStoreProductPrices so searches immediately reflect new prices
-        var existing = await _db.CurrentStoreProductPrices
-            .FirstOrDefaultAsync(c => c.StoreId == submission.StoreId && c.ProductId == submission.ProductId);
-
-        if (existing != null)
-        {
-            existing.CurrentPriceLbp = submission.PriceLbp;
-            existing.Source = SubmissionSource.community;
-            existing.IsVerified = false;
-            existing.UpdatedAt = DateTime.UtcNow;
-        }
-        else
-        {
-            _db.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
-            {
-                Id = Guid.NewGuid(),
-                StoreId = submission.StoreId,
-                ProductId = submission.ProductId,
-                CurrentPriceLbp = submission.PriceLbp,
-                Source = SubmissionSource.community,
-                IsVerified = false,
-                IsInStock = true,
-                UpdatedAt = DateTime.UtcNow
-            });
-        }
-
-        await _db.SaveChangesAsync();
-
-        return new PriceEntryResponse
-        {
-            Id = submission.Id.ToString(),
-            ProductId = submission.ProductId.ToString(),
-            StoreId = submission.StoreId.ToString(),
-            PriceLbp = submission.PriceLbp,
-            Status = "pending",
-            Source = "community",
-            CreatedAt = submission.CreatedAt
-        };
-    }
-
-    /// <summary>
     /// Processes a bulk CSV import for the logged-in store owner.
     /// Each row is validated, saved as a submission, and recorded as a sync run.
     /// </summary>
@@ -551,57 +489,35 @@ public class PriceService
     }
 
     /// <summary>
-    /// Gets all price submissions made by a specific user.
+    /// Records a per-user verification on a price entry.
+    /// Returns "ok", "already_verified", or "not_found".
     /// </summary>
-    public async Task<List<PriceEntryResponse>> GetByUserAsync(Guid userId)
+    public async Task<string> VoteAsync(string id, int value, Guid userId)
     {
-        return await _db.PriceSubmissions
-            .Include(p => p.Product)
-            .Include(p => p.Store)
-            .Where(p => p.SubmittedBy == userId)
-            .OrderByDescending(p => p.CreatedAt)
-            .Select(p => new PriceEntryResponse
-            {
-                Id = p.Id.ToString(),
-                ProductId = p.ProductId.ToString(),
-                StoreId = p.StoreId.ToString(),
-                PriceLbp = p.PriceLbp,
-                Status = p.SubmissionStatus.ToString(),
-                Source = p.Source.ToString(),
-                CreatedAt = p.CreatedAt,
-                Product = p.Product == null ? null : new ProductDto {
-                    Name = p.Product.Name,
-                    Category = p.Product.Category != null ? p.Product.Category.Name : "General",
-                    Unit = p.Product.Unit
-                },
-                Store = p.Store == null ? null : new StoreDto {
-                    Name = p.Store.Name,
-                    City = p.Store.City,
-                    Latitude = p.Store.Latitude,
-                    Longitude = p.Store.Longitude
-                }
-            })
-            .ToListAsync();
-    }
-
-    /// <summary>
-    /// Upvotes or Downvotes a price entry to help the community build trust.
-    /// </summary>
-    public async Task<bool> VoteAsync(string id, int value)
-    {
-        if (!Guid.TryParse(id, out var guid)) return false;
+        if (!Guid.TryParse(id, out var guid)) return "not_found";
 
         var entry = await _db.CurrentStoreProductPrices.FindAsync(guid);
-        if (entry == null) return false;
+        if (entry == null) return "not_found";
 
         if (value > 0)
         {
+            var alreadyVerified = await _db.PriceConfirmations
+                .AnyAsync(c => c.PriceSubmissionId == guid && c.UserId == userId);
+            if (alreadyVerified) return "already_verified";
+
+            _db.PriceConfirmations.Add(new PriceConfirmation
+            {
+                Id = Guid.NewGuid(),
+                PriceSubmissionId = guid,
+                UserId = userId,
+                CreatedAt = DateTime.UtcNow
+            });
             entry.ConfirmationCount++;
         }
         entry.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
-        return true;
+        return "ok";
     }
 
     /// <summary>
