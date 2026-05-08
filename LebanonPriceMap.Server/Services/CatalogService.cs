@@ -186,6 +186,12 @@ namespace LebanonPriceMap.Server.Services
 
             await _context.SaveChangesAsync();
 
+            // Fire price alerts
+            var effectivePrice = item.IsPromotion && item.PromoPriceLbp.HasValue
+                ? item.PromoPriceLbp.Value
+                : item.OfficialPriceLbp;
+            await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, effectivePrice, item.StoreId);
+
             // Sync with StorePromotion table
             if (item.IsPromotion && item.PromoPriceLbp.HasValue)
             {
@@ -193,11 +199,9 @@ namespace LebanonPriceMap.Server.Services
             }
             else
             {
-                // If promotion ended manually, mark historical records as inactive
                 var activePromos = await _context.StorePromotions
                     .Where(p => p.StoreId == item.StoreId && p.ProductId == item.ProductId && p.Status == "active")
                     .ToListAsync();
-                
                 foreach (var p in activePromos)
                 {
                     p.Status = "ended";
@@ -408,13 +412,6 @@ namespace LebanonPriceMap.Server.Services
             }
 
             _context.StorePromotions.Add(promo);
-            if (item.PromoPriceLbp.HasValue)
-            {
-                await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, item.PromoPriceLbp.Value, item.StoreId);
-            }
-
-            // Notify users who have alerts for this product
-            await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, item.PromoPriceLbp.Value, item.StoreId);
         }
 
         /// <summary>

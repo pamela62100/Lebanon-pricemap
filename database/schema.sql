@@ -391,7 +391,7 @@ CREATE TABLE IF NOT EXISTS catalog_audit_entries (
   product_id         UUID                  NOT NULL REFERENCES products(id) ON DELETE CASCADE,
 
   changed_by         UUID                  REFERENCES users(id) ON DELETE SET NULL,
-  reason             catalog_change_reason NOT NULL,
+  reason             VARCHAR(50)           NOT NULL,
   related_report_id  UUID                  REFERENCES catalog_discrepancy_reports(id) ON DELETE SET NULL,
 
   previous_price_lbp NUMERIC(12,2),

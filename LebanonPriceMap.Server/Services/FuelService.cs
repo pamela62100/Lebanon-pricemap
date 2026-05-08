@@ -26,20 +26,29 @@ public class FuelService
     {
         var now = DateTime.UtcNow;
 
-        return await _db.FuelPrices
+        // Try active prices first; fall back to the most recent per fuel type
+        var active = await _db.FuelPrices
             .Where(fp => fp.EffectiveTo == null || fp.EffectiveTo > now)
             .OrderBy(fp => fp.FuelType)
-            .Select(fp => new FuelPriceResponse
-            {
-                Id = fp.Id.ToString(),
-                FuelType = fp.FuelType,
-                OfficialPriceLbp = fp.OfficialPriceLbp,
-                ReportedPriceLbp = fp.ReportedPriceLbp,
-                EffectiveFrom = fp.EffectiveFrom,
-                EffectiveTo = fp.EffectiveTo,
-                Source = fp.Source
-            })
             .ToListAsync();
+
+        var source = active.Count > 0
+            ? active
+            : await _db.FuelPrices
+                .GroupBy(fp => fp.FuelType)
+                .Select(g => g.OrderByDescending(fp => fp.EffectiveFrom).First())
+                .ToListAsync();
+
+        return source.Select(fp => new FuelPriceResponse
+        {
+            Id = fp.Id.ToString(),
+            FuelType = fp.FuelType,
+            OfficialPriceLbp = fp.OfficialPriceLbp,
+            ReportedPriceLbp = fp.ReportedPriceLbp,
+            EffectiveFrom = fp.EffectiveFrom,
+            EffectiveTo = fp.EffectiveTo,
+            Source = fp.Source
+        }).ToList();
     }
 
     /// <summary>

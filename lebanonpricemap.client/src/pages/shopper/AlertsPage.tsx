@@ -77,11 +77,19 @@ export function AlertsPage() {
         targetPriceLbp: Number(newThreshold),
         verifiedOnly,
       });
-      const created: Alert = res.data?.data ?? res.data;
+      const created = res.data?.data ?? res.data;
       setAlerts((prev) => [created, ...prev]);
       close();
       setNewProduct(''); setNewThreshold(''); setNewRegions(['Beirut']); setVerifiedOnly(true);
-      addToast('Price alert created');
+
+      if (created.alreadyBelowThreshold && created.currentBestPriceLbp) {
+        addToast(
+          `Alert saved. FYI: ${created.productName ?? 'This product'} is already at ${Math.round(created.currentBestPriceLbp).toLocaleString()} LBP — below your target. You'll be notified if it drops further.`,
+          'info'
+        );
+      } else {
+        addToast('Price alert created — you\'ll be notified when the price drops.');
+      }
     } catch {
       addToast('Failed to create alert');
     }
