@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { discrepancyApi } from '@/api/discrepancy.api';
 import { cn, timeAgo } from '@/lib/utils';
+import { useLiveUpdate } from '@/hooks/useLiveUpdates';
 
 const DISC_STATUS_STYLES = {
   pending:    { bg: 'bg-amber-400/10 border-amber-400/30',  text: 'text-amber-500',  label: 'Pending' },
@@ -31,6 +32,18 @@ export function AdminCatalogReviewPanel() {
       setDiscrepancies(Array.isArray(data) ? data : []);
     }).catch(() => {});
   }, []);
+
+  // New reports pushed live by the backend → prepend
+  useLiveUpdate<any>('DiscrepancyReportCreated', (report) => {
+    setDiscrepancies(prev =>
+      prev.some(r => r.id === report.id) ? prev : [report, ...prev]
+    );
+  });
+
+  // Reports resolved on another tab/admin session → remove from queue
+  useLiveUpdate<{ id: string; status: string }>('DiscrepancyReportResolved', ({ id }) => {
+    setDiscrepancies(prev => prev.filter(r => r.id !== id));
+  });
 
   const remove = (id: string) => setDiscrepancies(prev => prev.filter(d => d.id !== id));
 

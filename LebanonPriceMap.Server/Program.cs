@@ -1,9 +1,11 @@
 using LebanonPriceMap.Server.Data;
+using LebanonPriceMap.Server.Hubs;
 using LebanonPriceMap.Server.Services;
 using LebanonPriceMap.Server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -35,9 +37,10 @@ builder.Services.AddScoped<CartService>();
 builder.Services.AddScoped<AdminService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<DataSeederService>();
+builder.Services.AddSingleton<LiveBroadcaster>();
 
 
-// Add CORS
+// Add CORS — must allow credentials for SignalR
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -46,9 +49,13 @@ builder.Services.AddCors(options =>
             ?? new[] { "http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:3000" };
         policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
+
+// SignalR
+builder.Services.AddSignalR();
 
 // Add JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -63,11 +70,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["Jwt:Issuer"],
             ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+            NameClaimType = ClaimTypes.NameIdentifier
+        };
+
+        // SignalR can't set custom headers on the WebSocket handshake — pull the
+        // bearer token out of the query string when the request targets the hub.
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = ctx =>
+            {
+                var token = ctx.Request.Query["access_token"];
+                var path = ctx.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(token) && path.StartsWithSegments("/hubs"))
+                {
+                    ctx.Token = token;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(opts =>
+    {
+        // Prevent infinite recursion when an entity has navigation properties
+        // that loop back (e.g. CatalogItem ↔ DiscrepancyReports).
+        opts.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -90,4 +120,5 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<LiveHub>("/hubs/live");
 app.Run();

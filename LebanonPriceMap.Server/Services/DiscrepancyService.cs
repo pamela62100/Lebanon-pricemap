@@ -9,18 +9,20 @@ public class DiscrepancyService
 {
     private readonly AppDbContext _context;
     private readonly EmailService _email;
+    private readonly LiveBroadcaster _live;
 
-    public DiscrepancyService(AppDbContext context, EmailService email)
+    public DiscrepancyService(AppDbContext context, EmailService email, LiveBroadcaster live)
     {
         _context = context;
         _email = email;
+        _live = live;
     }
 
     private async Task NotifyReporterAsync(CatalogDiscrepancyReport report, string title, string message, string emailSubject, string emailBody)
     {
         if (!report.ReportedBy.HasValue) return;
 
-        _context.Notifications.Add(new Notification
+        var notification = new Notification
         {
             Id = Guid.NewGuid(),
             UserId = report.ReportedBy.Value,
@@ -31,13 +33,20 @@ public class DiscrepancyService
             RelatedStoreId = report.StoreId,
             IsRead = false,
             CreatedAt = DateTime.UtcNow
-        });
+        };
+        _context.Notifications.Add(notification);
 
         var user = await _context.Users.FindAsync(report.ReportedBy.Value);
         if (user != null && !string.IsNullOrEmpty(user.Email))
         {
             await _email.SendAsync(user.Email, emailSubject, emailBody);
         }
+
+        await _live.NotifyUser(report.ReportedBy.Value, new {
+            id = notification.Id, type = notification.Type,
+            title = notification.Title, message = notification.Message,
+            createdAt = notification.CreatedAt, isRead = false
+        });
     }
 
     public async Task<CatalogDiscrepancyReport?> SubmitReportAsync(DiscrepancySubmissionRequest request, Guid userId)
@@ -71,6 +80,32 @@ public class DiscrepancyService
 
         _context.CatalogDiscrepancyReports.Add(report);
         await _context.SaveChangesAsync();
+
+        // Re-load with reporter info for the live payload
+        var withReporter = await _context.CatalogDiscrepancyReports
+            .Include(r => r.Product)
+            .Include(r => r.ReportedByUser)
+            .FirstAsync(r => r.Id == report.Id);
+
+        await _live.ReportSubmitted(new {
+            id = withReporter.Id,
+            productId = withReporter.ProductId,
+            storeId = withReporter.StoreId,
+            reportType = withReporter.ReportType,
+            observedPriceLbp = withReporter.ObservedPriceLbp,
+            note = withReporter.Note,
+            reporterTrustScore = withReporter.ReporterTrustScore,
+            reportedByUser = withReporter.ReportedByUser == null ? null : new {
+                id = withReporter.ReportedByUser.Id,
+                name = withReporter.ReportedByUser.Name
+            },
+            product = withReporter.Product == null ? null : new {
+                id = withReporter.Product.Id,
+                name = withReporter.Product.Name
+            },
+            status = withReporter.Status,
+            createdAt = withReporter.CreatedAt
+        });
 
         return report;
     }
@@ -146,7 +181,7 @@ public class DiscrepancyService
                 ? $"Admin suggested correction: {approvedPrice.Value:N0} LBP. "
                 : "";
 
-            _context.Notifications.Add(new Notification
+            var ownerNotif = new Notification
             {
                 Id = Guid.NewGuid(),
                 UserId = ownerId,
@@ -157,6 +192,13 @@ public class DiscrepancyService
                 RelatedStoreId = report.StoreId,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
+            };
+            _context.Notifications.Add(ownerNotif);
+
+            await _live.NotifyUser(ownerId, new {
+                id = ownerNotif.Id, type = ownerNotif.Type,
+                title = ownerNotif.Title, message = ownerNotif.Message,
+                createdAt = ownerNotif.CreatedAt, isRead = false
             });
 
             var owner = await _context.Users.FindAsync(ownerId);
@@ -176,6 +218,13 @@ public class DiscrepancyService
         }
 
         await _context.SaveChangesAsync();
+
+        await _live.ReportResolved(report.StoreId, new {
+            id = report.Id,
+            status = "approved",
+            storeId = report.StoreId,
+            productId = report.ProductId
+        });
         return true;
     }
 
@@ -215,6 +264,13 @@ public class DiscrepancyService
                 "<p>— WeinArkhass</p>");
 
         await _context.SaveChangesAsync();
+
+        await _live.ReportResolved(report.StoreId, new {
+            id = report.Id,
+            status = "rejected",
+            storeId = report.StoreId,
+            productId = report.ProductId
+        });
         return true;
     }
 }

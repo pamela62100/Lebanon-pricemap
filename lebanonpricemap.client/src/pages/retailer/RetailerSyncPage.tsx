@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ApiKeyManager } from '@/components/retailer/ApiKeyManager';
 import { SyncStatusCard } from '@/components/retailer/SyncStatusCard';
+import { storesApi } from '@/api/stores.api';
 
 const POS_SYSTEMS = [
   { name: 'Odoo', icon: 'store', desc: 'Connect your Odoo POS' },
@@ -37,6 +38,14 @@ const METHODS = [
 export function RetailerSyncPage() {
   const navigate = useNavigate();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [storeId, setStoreId] = useState<string | null>(null);
+
+  useEffect(() => {
+    storesApi.getMine().then(res => {
+      const store = (res as any).data?.data ?? (res as any).data;
+      if (store?.id) setStoreId(store.id);
+    }).catch(() => {});
+  }, []);
 
   return (
     <div className="flex flex-col gap-8 max-w-3xl">
@@ -88,7 +97,7 @@ export function RetailerSyncPage() {
             <p className="text-xs text-text-muted mt-0.5">Last sync activity from your connected system</p>
           </div>
         </div>
-        <SyncStatusCard />
+        <SyncStatusCard storeId={storeId} />
       </div>
 
       {/* Compatible POS systems */}

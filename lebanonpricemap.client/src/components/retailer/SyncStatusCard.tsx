@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { storesApi } from '@/api/stores.api';
 import { cn } from '@/lib/utils';
+import { useLiveUpdate, useLiveStoreGroup } from '@/hooks/useLiveUpdates';
 
 interface SyncRun {
   id: string;
@@ -16,6 +17,8 @@ interface SyncRun {
 
 interface SyncStatusCardProps {
   className?: string;
+  /** Pass the store id to receive live updates for that store. Optional — without it the card still works but won't update in real time. */
+  storeId?: string | null;
 }
 
 const STATUS_STYLES: Record<string, string> = {
@@ -25,7 +28,7 @@ const STATUS_STYLES: Record<string, string> = {
   partial: 'bg-yellow-100 text-yellow-700',
 };
 
-export function SyncStatusCard({ className }: SyncStatusCardProps) {
+export function SyncStatusCard({ className, storeId }: SyncStatusCardProps) {
   const [runs, setRuns] = useState<SyncRun[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -42,11 +45,17 @@ export function SyncStatusCard({ className }: SyncStatusCardProps) {
     }
   };
 
-  useEffect(() => {
-    fetchRuns();
-    const interval = setInterval(fetchRuns, 10000); // Poll every 10s
-    return () => clearInterval(interval);
-  }, []);
+  // One-shot fetch for the initial render — no polling
+  useEffect(() => { fetchRuns(); }, []);
+
+  // Live updates: join the store group and prepend new runs as they arrive
+  useLiveStoreGroup(storeId);
+  useLiveUpdate<SyncRun>('SyncRunUpdated', (run) => {
+    setRuns(prev => {
+      const without = prev.filter(r => r.id !== run.id);
+      return [run, ...without].slice(0, 20);
+    });
+  });
 
   const latest = runs[0];
 

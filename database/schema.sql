@@ -345,11 +345,11 @@ CREATE TABLE IF NOT EXISTS catalog_discrepancy_reports (
   reported_by            UUID                    REFERENCES users(id) ON DELETE SET NULL,
   reporter_trust_score   SMALLINT,
 
-  report_type            discrepancy_report_type NOT NULL,
+  report_type            VARCHAR(50)             NOT NULL,
   observed_price_lbp     NUMERIC(12,2),
   note                   TEXT,
 
-  status                 discrepancy_status      NOT NULL DEFAULT 'pending',
+  status                 VARCHAR(20)             NOT NULL DEFAULT 'pending',
   approved_new_price_lbp NUMERIC(12,2),
   review_note            TEXT,
   reviewed_by            UUID                    REFERENCES users(id) ON DELETE SET NULL,
@@ -588,7 +588,7 @@ CREATE TABLE IF NOT EXISTS admin_audit_logs (
 CREATE TABLE IF NOT EXISTS notifications (
   id                     UUID               PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id                UUID               NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type                   notification_type  NOT NULL DEFAULT 'system',
+  type                   VARCHAR(50)        NOT NULL DEFAULT 'system',
 
   title                  VARCHAR(255)       NOT NULL,
   message                TEXT               NOT NULL,
@@ -761,6 +761,16 @@ CREATE TABLE IF NOT EXISTS system_broadcasts (
   ends_at    TIMESTAMPTZ,
   priority   INTEGER            NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ        NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS system_settings (
+  id          UUID         PRIMARY KEY DEFAULT gen_random_uuid(),
+  key         VARCHAR(255) NOT NULL UNIQUE,
+  value       TEXT         NOT NULL,
+  description TEXT,
+  updated_by  UUID         REFERENCES users(id) ON DELETE SET NULL,
+  updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
 -- =========================================================

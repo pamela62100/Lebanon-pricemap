@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, UserRole } from '@/types';
 import client from '@/api/axiosClient';
+import { liveConnection } from '@/lib/liveConnection';
 
 interface AuthState {
   user: User | null;
@@ -51,17 +52,20 @@ export const useAuthStore = create<AuthState>()(
             },
           });
 
+          liveConnection.start(() => localStorage.getItem('rakis_token'));
+
           return { success: true };
         } catch (err: any) {
-          const message = 
-            err.response?.data?.errors 
-              ? Object.values(err.response.data.errors).flat().join(' ') 
+          const message =
+            err.response?.data?.errors
+              ? Object.values(err.response.data.errors).flat().join(' ')
               : err.response?.data?.message || 'Invalid email or password.';
           return { success: false, error: message };
         }
       },
 
       logout: () => {
+        liveConnection.stop();
         localStorage.removeItem('rakis_token');
         set({ user: null, token: null });
       },
@@ -106,11 +110,13 @@ export const useAuthStore = create<AuthState>()(
             },
           });
 
+          liveConnection.start(() => localStorage.getItem('rakis_token'));
+
           return { success: true };
         } catch (err: any) {
-          const message = 
-            err.response?.data?.errors 
-              ? Object.values(err.response.data.errors).flat().join(' ') 
+          const message =
+            err.response?.data?.errors
+              ? Object.values(err.response.data.errors).flat().join(' ')
               : err.response?.data?.message || 'Registration failed. Please try again.';
           return { success: false, error: message };
         }

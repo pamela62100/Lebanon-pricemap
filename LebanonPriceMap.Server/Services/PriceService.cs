@@ -12,10 +12,12 @@ namespace LebanonPriceMap.Server.Services;
 public class PriceService
 {
     private readonly AppDbContext _db;
+    private readonly LiveBroadcaster _live;
 
-    public PriceService(AppDbContext db)
+    public PriceService(AppDbContext db, LiveBroadcaster live)
     {
         _db = db;
+        _live = live;
     }
 
     /// <summary>
@@ -293,6 +295,19 @@ public class PriceService
 
         await _db.SaveChangesAsync();
 
+        await _live.SyncRunUpdated(store.Id, new {
+            id = run.Id,
+            storeId = store.Id,
+            method = run.Method.ToString(),
+            status = run.Status.ToString(),
+            recordsReceived = run.RecordsReceived,
+            recordsProcessed = run.RecordsProcessed,
+            recordsFailed = run.RecordsFailed,
+            message = run.Message,
+            startedAt = run.StartedAt,
+            finishedAt = run.FinishedAt
+        });
+
         return new BulkPriceSubmissionResult
         {
             RecordsReceived = request.Rows.Count,
@@ -471,12 +486,25 @@ public class PriceService
         run.RecordsProcessed = processed;
         run.RecordsFailed = failed;
          run.Status = failed == 0 ? SyncStatus.ok : processed == 0 ? SyncStatus.fail : SyncStatus.partial;
-         run.Message = processed > 0 && failed == 0 
-             ? $"All {processed} rows imported successfully." 
+         run.Message = processed > 0 && failed == 0
+             ? $"All {processed} rows imported successfully."
              : $"Imported {processed} rows, {failed} failed.";
          run.FinishedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+
+        await _live.SyncRunUpdated(storeId, new {
+            id = run.Id,
+            storeId = storeId,
+            method = run.Method.ToString(),
+            status = run.Status.ToString(),
+            recordsReceived = run.RecordsReceived,
+            recordsProcessed = run.RecordsProcessed,
+            recordsFailed = run.RecordsFailed,
+            message = run.Message,
+            startedAt = run.StartedAt,
+            finishedAt = run.FinishedAt
+        });
 
         return new BulkPriceSubmissionResult
         {
@@ -517,6 +545,13 @@ public class PriceService
         entry.UpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
+
+        await _live.PriceVoted(entry.ProductId, new {
+            priceEntryId = entry.Id,
+            productId = entry.ProductId,
+            storeId = entry.StoreId,
+            confirmationCount = entry.ConfirmationCount
+        });
         return "ok";
     }
 
