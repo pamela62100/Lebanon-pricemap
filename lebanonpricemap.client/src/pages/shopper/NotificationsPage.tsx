@@ -3,6 +3,7 @@ import { NotificationCard } from '@/components/cards/NotificationCard';
 import { usersApi } from '@/api/users.api';
 import { useAuthStore } from '@/store/useAuthStore';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useLiveUpdate } from '@/hooks/useLiveUpdates';
 import type { Notification as NotifType } from '@/types';
 
 export function NotificationsPage() {
@@ -26,6 +27,13 @@ export function NotificationsPage() {
     };
     load();
   }, [user?.id]);
+
+  // Live: prepend new notifications as the server pushes them
+  useLiveUpdate<NotifType>('NotificationCreated', (notif) => {
+    setNotifications((prev) =>
+      prev.some((n) => n.id === notif.id) ? prev : [notif, ...prev]
+    );
+  });
 
   const markAllRead = () =>
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));

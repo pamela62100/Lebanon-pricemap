@@ -175,7 +175,7 @@ export function RetailerProductsPage() {
         </div>
       </motion.div>
 
-      <SyncStatusCard />
+      <SyncStatusCard storeId={storeId} />
 
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex gap-1 bg-bg-surface border border-border-soft rounded-xl p-1">

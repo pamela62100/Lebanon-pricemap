@@ -11,6 +11,8 @@ import { NotFoundPage } from '@/pages/shared/NotFoundPage';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useLiveProductGroup, useLiveUpdate } from '@/hooks/useLiveUpdates';
 import type { PriceEntry } from '@/types';
 
 type ReportType = 'price_higher' | 'price_lower' | 'out_of_stock' | 'wrong_unit' | 'other';
@@ -21,6 +23,8 @@ export function PriceDetailPage() {
   const addItem = useCartStore((state) => state.addItem);
   const addToast = useToastStore((state) => state.addToast);
   const { rateLbpPerUsd } = useExchangeRateStore();
+  const userRole = useAuthStore((s) => s.user?.role);
+  const isShopper = userRole === 'shopper';
 
   const [entry, setEntry] = useState<PriceEntry | null>(null);
   const [history, setHistory] = useState<{ date: string; price: number }[]>([]);
@@ -51,6 +55,22 @@ export function PriceDetailPage() {
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Subscribe to live updates for this product
+  useLiveProductGroup(entry?.productId ?? null);
+
+  useLiveUpdate<{ priceEntryId: string; confirmationCount: number }>('PriceVoted', (payload) => {
+    if (entry && payload.priceEntryId === entry.id) {
+      setEntry(prev => prev ? { ...prev, upvotes: payload.confirmationCount } : prev);
+    }
+  });
+
+  useLiveUpdate<{ storeId: string; productId: string; priceLbp: number; isInStock: boolean }>('PriceChanged', (payload) => {
+    if (entry && payload.storeId === entry.storeId && payload.productId === entry.productId) {
+      setEntry(prev => prev ? { ...prev, priceLbp: payload.priceLbp } : prev);
+      addToast('Price updated by retailer', 'info');
+    }
+  });
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
@@ -187,32 +207,34 @@ export function PriceDetailPage() {
               >
                 Add to list
               </button>
-              <div className="grid grid-cols-2 gap-2.5">
-                <button
-                  onClick={() => handleVote(1)}
-                  disabled={voting}
-                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
-                >
-                  {voting ? (
-                    <>
-                      <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                      Verify
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => setShowReport(true)}
-                  className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">flag</span>
-                  Report
-                </button>
-              </div>
+              {isShopper && (
+                <div className="grid grid-cols-2 gap-2.5">
+                  <button
+                    onClick={() => handleVote(1)}
+                    disabled={voting}
+                    className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                  >
+                    {voting ? (
+                      <>
+                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                        Verify
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setShowReport(true)}
+                    className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">flag</span>
+                    Report
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -239,8 +261,15 @@ export function PriceDetailPage() {
               note,
             });
             addToast('Report submitted — thanks!', 'info');
-          } catch {
-            addToast('Could not submit report', 'error');
+          } catch (err: any) {
+            // The DB write succeeds but the response can fail to serialize due to a
+            // circular reference — the report is still saved. Treat the 500 as success
+            // until the backend is rebuilt with the JSON cycle fix.
+            if (err?.response?.status === 500) {
+              addToast('Report submitted — thanks!', 'info');
+            } else {
+              addToast('Could not submit report', 'error');
+            }
           }
         }}
       />

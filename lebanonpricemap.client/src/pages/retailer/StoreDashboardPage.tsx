@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { storesApi } from '@/api/stores.api';
 import { catalogApi } from '@/api/catalog.api';
 import { discrepancyApi } from '@/api/discrepancy.api';
+import { useLiveStoreGroup, useLiveUpdate } from '@/hooks/useLiveUpdates';
 import { KpiCard } from '@/components/cards/KpiCard';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/ui/StatusBadge';
@@ -50,6 +51,31 @@ export function StoreDashboardPage() {
       }
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, []);
+
+  // Live: subscribe to events for this store
+  useLiveStoreGroup(store?.id ?? null);
+
+  // Catalog edits from another tab/device → refresh the catalog preview
+  useLiveUpdate<{ action: string; item?: CatalogItem; id?: string }>('CatalogItemChanged', (payload) => {
+    if (payload.action === 'deleted' && payload.id) {
+      setCatalog(prev => prev.filter(c => c.id !== payload.id));
+    } else if (payload.item) {
+      setCatalog(prev => {
+        const idx = prev.findIndex(c => c.id === payload.item!.id);
+        if (idx >= 0) {
+          const next = [...prev];
+          next[idx] = payload.item!;
+          return next;
+        }
+        return [payload.item!, ...prev];
+      });
+    }
+  });
+
+  // A resolved/approved report should drop off the dashboard
+  useLiveUpdate<{ id: string }>('DiscrepancyReportResolved', ({ id }) => {
+    setPendingReports(prev => prev.filter(r => r.id !== id));
+  });
 
   if (isLoading) {
     return (
@@ -158,7 +184,7 @@ export function StoreDashboardPage() {
         </div>
 
         <div className="flex flex-col gap-6">
-          <SyncStatusCard />
+          <SyncStatusCard storeId={store.id} />
 
           <div className="bg-bg-surface border border-border-soft rounded-2xl p-5 shadow-card">
             <div className="flex items-center justify-between mb-4">

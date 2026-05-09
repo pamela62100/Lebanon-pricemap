@@ -10,11 +10,13 @@ namespace LebanonPriceMap.Server.Services
     {
         private readonly AppDbContext _context;
         private readonly AlertService _alertService;
+        private readonly LiveBroadcaster _live;
 
-        public CatalogService(AppDbContext context, AlertService alertService)
+        public CatalogService(AppDbContext context, AlertService alertService, LiveBroadcaster live)
         {
             _context = context;
             _alertService = alertService;
+            _live = live;
         }
 
         public async Task<IEnumerable<CatalogItemDto>> GetByStoreIdAsync(Guid storeId)
@@ -144,7 +146,9 @@ namespace LebanonPriceMap.Server.Services
                 await CreateHistoricalPromotion(item, userId);
             }
 
-            return MapToDto(item);
+            var dtoOut = MapToDto(item);
+            await _live.CatalogChanged(item.StoreId, item.ProductId, new { action = "created", item = dtoOut });
+            return dtoOut;
         }
 
         public async Task<CatalogItemDto?> UpdateAsync(Guid id, UpdateCatalogItemDto dto, Guid? userId)
@@ -186,11 +190,14 @@ namespace LebanonPriceMap.Server.Services
 
             await _context.SaveChangesAsync();
 
-            // Fire price alerts
+            // Fire price alerts (skip if there's no concrete price set)
             var effectivePrice = item.IsPromotion && item.PromoPriceLbp.HasValue
-                ? item.PromoPriceLbp.Value
+                ? item.PromoPriceLbp
                 : item.OfficialPriceLbp;
-            await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, effectivePrice, item.StoreId);
+            if (effectivePrice.HasValue)
+            {
+                await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, effectivePrice.Value, item.StoreId);
+            }
 
             // Sync with StorePromotion table
             if (item.IsPromotion && item.PromoPriceLbp.HasValue)
@@ -210,7 +217,16 @@ namespace LebanonPriceMap.Server.Services
                 await _context.SaveChangesAsync();
             }
 
-            return MapToDto(item);
+            var dtoOut = MapToDto(item);
+            await _live.CatalogChanged(item.StoreId, item.ProductId, new { action = "updated", item = dtoOut });
+            await _live.PriceChanged(item.ProductId, new {
+                storeId = item.StoreId,
+                productId = item.ProductId,
+                priceLbp = effectivePrice,
+                isPromotion = item.IsPromotion,
+                isInStock = item.IsInStock
+            });
+            return dtoOut;
         }
 
         public async Task<bool> DeleteAsync(Guid id, Guid? userId = null)
@@ -219,8 +235,13 @@ namespace LebanonPriceMap.Server.Services
             if (item == null) return false;
             await EnsureUserOwnsStoreAsync(item.StoreId, userId);
 
+            var storeId = item.StoreId;
+            var productId = item.ProductId;
+
             _context.StoreCatalogItems.Remove(item);
             await _context.SaveChangesAsync();
+
+            await _live.CatalogChanged(storeId, productId, new { action = "deleted", id });
             return true;
         }
 

@@ -8,10 +8,12 @@ namespace LebanonPriceMap.Server.Services;
 public class AlertService
 {
     private readonly AppDbContext _db;
+    private readonly LiveBroadcaster _live;
 
-    public AlertService(AppDbContext db)
+    public AlertService(AppDbContext db, LiveBroadcaster live)
     {
         _db = db;
+        _live = live;
     }
 
     public async Task<AlertResponse> CreateAlertAsync(CreateAlertRequest request, Guid userId)
@@ -76,12 +78,13 @@ public class AlertService
 
         var store = await _db.Stores.FindAsync(storeId);
 
+        var pushPayloads = new List<(Guid userId, object payload)>();
         foreach (var alert in triggeredAlerts)
         {
             var productName = alert.Product?.Name ?? "a product";
             var storeName = store?.Name ?? "a store";
 
-            _db.Notifications.Add(new Notification
+            var notif = new Notification
             {
                 Id = Guid.NewGuid(),
                 UserId = alert.UserId,
@@ -92,13 +95,25 @@ public class AlertService
                 RelatedStoreId = storeId,
                 IsRead = false,
                 CreatedAt = DateTime.UtcNow
-            });
+            };
+            _db.Notifications.Add(notif);
+
+            pushPayloads.Add((alert.UserId, new {
+                id = notif.Id, type = notif.Type,
+                title = notif.Title, message = notif.Message,
+                createdAt = notif.CreatedAt, isRead = false
+            }));
 
             alert.Status = AlertStatus.triggered;
             alert.UpdatedAt = DateTime.UtcNow;
         }
 
         await _db.SaveChangesAsync();
+
+        // Broadcast after the DB commit so the client sees a consistent state
+        foreach (var (userId, payload) in pushPayloads)
+            await _live.NotifyUser(userId, payload);
+
         return triggeredAlerts.Count;
     }
 
