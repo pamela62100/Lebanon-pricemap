@@ -86,28 +86,38 @@ namespace LebanonPriceMap.Server.Services
             {
                 _logger.LogInformation("Starting database seeding...");
 
-                // Only seed if database is empty
-                if (_context.Users.Any())
+                bool hasProducts = _context.Products.Any();
+                bool hasStores = _context.Stores.Any();
+
+                if (hasProducts && hasStores)
                 {
                     _logger.LogInformation("Database already has data. Skipping seeding.");
                     return;
                 }
 
-                // Seed in order — SaveChanges between steps that depend on prior data
-                await SeedRegionsAndDistrictsAsync();
-                await SeedCategoriesAsync();
-                await SeedUsersAsync();
-                await _context.SaveChangesAsync();  // flush before steps that query categories/users
+                if (!_context.Users.Any())
+                {
+                    await SeedRegionsAndDistrictsAsync();
+                    await SeedCategoriesAsync();
+                    await SeedUsersAsync();
+                    await _context.SaveChangesAsync();
+                }
 
-                await SeedProductsAsync();
-                await SeedStoresAsync();
-                await _context.SaveChangesAsync();  // flush before steps that query products/stores
+                if (!hasProducts)
+                    await SeedProductsAsync();
+                if (!hasStores)
+                    await SeedStoresAsync();
+
+                await _context.SaveChangesAsync();
 
                 await SeedPriceSubmissionsAsync();
                 await SeedFuelDataAsync();
                 await SeedStoreCatalogAsync();
-
                 await _context.SaveChangesAsync();
+
+                await SeedCurrentPricesAsync();
+                await _context.SaveChangesAsync();
+
                 _logger.LogInformation("Database seeding completed successfully!");
             }
             catch (Exception ex)
@@ -553,6 +563,43 @@ namespace LebanonPriceMap.Server.Services
 
             await _context.StoreCatalogItems.AddRangeAsync(catalogItems);
             _logger.LogInformation($"Added {catalogItems.Count} catalog items");
+        }
+
+        private async Task SeedCurrentPricesAsync()
+        {
+            _logger.LogInformation("Seeding current store product prices...");
+
+            var submissions = await _context.PriceSubmissions.ToListAsync();
+
+            // Build one row per (store, product) — last submission wins
+            var latest = submissions
+                .GroupBy(s => (s.StoreId, s.ProductId))
+                .Select(g => g.OrderByDescending(s => s.CreatedAt).First());
+
+            var currentPrices = new List<CurrentStoreProductPrice>();
+            var priceGuid = Guid.Parse("1c000000-0000-0000-0000-000000000000");
+
+            foreach (var s in latest)
+            {
+                currentPrices.Add(new CurrentStoreProductPrice
+                {
+                    Id = priceGuid,
+                    StoreId = s.StoreId,
+                    ProductId = s.ProductId,
+                    LatestSubmissionId = s.Id,
+                    CurrentPriceLbp = s.PriceLbp,
+                    Source = s.Source,
+                    ConfidenceScore = (short)(s.SubmitterTrustScore > 80 ? 80 : s.SubmitterTrustScore),
+                    ConfirmationCount = s.Upvotes,
+                    IsVerified = s.SubmissionStatus == SubmissionStatus.verified,
+                    IsInStock = true,
+                    UpdatedAt = s.CreatedAt
+                });
+                priceGuid = new Guid(priceGuid.ToByteArray().Select((b, i) => i == 15 ? (byte)(b + 1) : b).ToArray());
+            }
+
+            await _context.CurrentStoreProductPrices.AddRangeAsync(currentPrices);
+            _logger.LogInformation($"Added {currentPrices.Count} current price rows");
         }
 
         private User CreateUser(ref Guid guid, string email, string name, string role, int trustScore, string trustLevel, int uploadCount, int verifiedCount)

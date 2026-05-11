@@ -30,7 +30,7 @@ export const productsApi = {
     return client.put(`/products/${id}`, data);
   },
 
-  archive: async (id: string) => {
-    return client.patch(`/products/${id}/archive`, {});
+  delete: async (id: string) => {
+    return client.delete(`/products/${id}`);
   },
 };

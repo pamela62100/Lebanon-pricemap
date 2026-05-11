@@ -89,6 +89,8 @@ class LiveConnection {
     this.startPromise = this.connection.start().catch(err => {
       // Surface but don't throw — the rest of the app must keep working over REST
       console.warn('SignalR initial connection failed:', err);
+      this.startPromise = null;
+      this.connection = null;
     });
     return this.startPromise;
   }
