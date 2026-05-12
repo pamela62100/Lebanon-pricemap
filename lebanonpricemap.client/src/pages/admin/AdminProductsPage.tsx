@@ -126,11 +126,11 @@ export function AdminProductsPage() {
                             <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>edit</span>
                           </button>
                           <button
-                            onClick={() => open('archive-product', { id: product.id })}
-                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--status-flagged-bg)] text-[var(--status-flagged-text)] hover:opacity-80"
-                            title="Archive"
+                            onClick={() => open('delete-product', { id: product.id })}
+                            className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100"
+                            title="Delete"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>archive</span>
+                            <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>delete</span>
                           </button>
                         </div>
                       </td>
@@ -181,14 +181,14 @@ export function AdminProductsPage() {
       </RouteDialog>
 
       <ConfirmDialog
-        dialogId="archive-product"
-        title="Archive Product"
-        description={`Are you sure you want to archive ${activeProduct?.name}? This will hide it from the public catalog.`}
-        confirmLabel="Archive Product"
-        variant="warning"
+        dialogId="delete-product"
+        title="Delete Product"
+        description={`Are you sure you want to permanently delete ${activeProduct?.name}? This will also remove it from every store catalog and erase its price history. This cannot be undone.`}
+        confirmLabel="Delete Product"
+        variant="danger"
         onConfirm={async () => {
           if (!activeProductId) return;
-          await productsApi.archive(activeProductId);
+          await productsApi.delete(activeProductId);
           setProducts(prev => prev.filter(p => p.id !== activeProductId));
         }}
       />

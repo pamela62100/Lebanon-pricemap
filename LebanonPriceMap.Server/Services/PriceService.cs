@@ -541,6 +541,8 @@ public class PriceService
                 CreatedAt = DateTime.UtcNow
             });
             entry.ConfirmationCount++;
+            var voter = await _db.Users.FindAsync(userId);
+            if (voter != null) { voter.VerifiedCount++; voter.UploadCount++; }
         }
         entry.UpdatedAt = DateTime.UtcNow;
 

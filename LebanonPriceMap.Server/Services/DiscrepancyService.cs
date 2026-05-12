@@ -79,6 +79,7 @@ public class DiscrepancyService
         };
 
         _context.CatalogDiscrepancyReports.Add(report);
+        if (user != null) user.UploadCount++;
         await _context.SaveChangesAsync();
 
         // Re-load with reporter info for the live payload

@@ -2,11 +2,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { pricesApi } from '@/api/prices.api';
-import { discrepancyApi } from '@/api/discrepancy.api';
 import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
-import { ReportPriceDialog } from '@/components/dialogs/ReportPriceDialog';
+import { CatalogDiscrepancyDialog } from '@/components/dialogs/CatalogDiscrepancyDialog';
 import { NotFoundPage } from '@/pages/shared/NotFoundPage';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
@@ -15,16 +14,14 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useLiveProductGroup, useLiveUpdate } from '@/hooks/useLiveUpdates';
 import type { PriceEntry } from '@/types';
 
-type ReportType = 'price_higher' | 'price_lower' | 'out_of_stock' | 'wrong_unit' | 'other';
-
 export function PriceDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const addItem = useCartStore((state) => state.addItem);
   const addToast = useToastStore((state) => state.addToast);
   const { rateLbpPerUsd } = useExchangeRateStore();
-  const userRole = useAuthStore((s) => s.user?.role);
-  const isShopper = userRole === 'shopper';
+  const { user, updateUser } = useAuthStore((s) => ({ user: s.user, updateUser: s.updateUser }));
+  const isShopper = user?.role === 'shopper';
 
   const [entry, setEntry] = useState<PriceEntry | null>(null);
   const [history, setHistory] = useState<{ date: string; price: number }[]>([]);
@@ -94,6 +91,7 @@ export function PriceDetailPage() {
       await pricesApi.vote(entry.id, value);
       addToast(value === 1 ? 'Price confirmed — thanks!' : 'Report submitted', value === 1 ? 'success' : 'info');
       setEntry(prev => prev ? { ...prev, upvotes: (prev.upvotes ?? 0) + (value === 1 ? 1 : 0) } : prev);
+      if (value === 1) updateUser({ verifiedCount: (user?.verifiedCount ?? 0) + 1, uploadCount: (user?.uploadCount ?? 0) + 1 });
     } catch (err: any) {
       if (err?.response?.status === 409) {
         addToast('You already verified this price', 'info');
@@ -248,29 +246,27 @@ export function PriceDetailPage() {
         </aside>
       </div>
 
-      <ReportPriceDialog
+      <CatalogDiscrepancyDialog
         isOpen={showReport}
         onClose={() => setShowReport(false)}
-        currentPrice={entry.priceLbp}
-        onSubmit={async (type: ReportType, note: string) => {
-          try {
-            await discrepancyApi.submit({
-              storeId: entry.storeId,
-              productId: entry.productId,
-              reportType: type,
-              note,
-            });
-            addToast('Report submitted — thanks!', 'info');
-          } catch (err: any) {
-            // The DB write succeeds but the response can fail to serialize due to a
-            // circular reference — the report is still saved. Treat the 500 as success
-            // until the backend is rebuilt with the JSON cycle fix.
-            if (err?.response?.status === 500) {
-              addToast('Report submitted — thanks!', 'info');
-            } else {
-              addToast('Could not submit report', 'error');
-            }
-          }
+        storeId={entry.storeId}
+        product={{
+          id: entry.id,
+          storeId: entry.storeId,
+          productId: entry.productId,
+          productName: entry.product?.name ?? '',
+          productCategory: entry.product?.category ?? '',
+          productUnit: entry.product?.unit ?? '',
+          officialPriceLbp: entry.priceLbp,
+          isInStock: true,
+          isPromotion: false,
+          lastUpdatedAt: entry.updatedAt ?? '',
+          lastUpdatedBy: '',
+          createdAt: entry.updatedAt ?? '',
+        }}
+        onSubmitted={() => {
+          addToast('Report submitted — thanks!', 'info');
+          updateUser({ uploadCount: (user?.uploadCount ?? 0) + 1 });
         }}
       />
     </div>

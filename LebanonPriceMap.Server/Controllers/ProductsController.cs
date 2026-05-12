@@ -70,14 +70,15 @@ public class ProductsController : ControllerBase
     }
 
     /// <summary>
-    /// PATCH /api/products/{id}/archive
-    /// Archive (soft-delete) a product. Admin only.
+    /// DELETE /api/products/{id}
+    /// Permanently delete a product and everything that references it
+    /// (catalog items, current prices, price submissions, aliases).
     /// </summary>
-    [HttpPatch("{id}/archive")]
+    [HttpDelete("{id}")]
     [Authorize(Roles = "retailer")]
-    public async Task<IActionResult> Archive(string id)
+    public async Task<IActionResult> Delete(string id)
     {
-        var success = await _productService.ArchiveAsync(id);
+        var success = await _productService.DeleteAsync(id);
         if (!success) return NotFound(new { success = false, message = "Product not found" });
         return Ok(new { success = true });
     }

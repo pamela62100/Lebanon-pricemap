@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
@@ -20,8 +19,8 @@ public interface ILiveClient
 }
 
 /// <summary>
-/// SignalR hub — single endpoint for all real-time events.
-/// Auth via JWT (passed in query string `access_token` for WebSocket handshake).
+/// SignalR hub — single endpoint for all real-time events. Allows anonymous connections;
+/// authenticated users are added to personal groups on connect.
 ///
 /// Groups:
 ///   user-{userId}     → personal events (notifications, alerts)
@@ -29,7 +28,6 @@ public interface ILiveClient
 ///   product-{prodId}  → product-specific events (price/vote changes)
 ///   admins            → global admin events (new discrepancy reports)
 /// </summary>
-[Authorize]
 public class LiveHub : Hub<ILiveClient>
 {
     public override async Task OnConnectedAsync()

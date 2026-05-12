@@ -20,6 +20,7 @@ interface Alert {
   targetPriceLbp: number;
   verifiedOnly: boolean;
   active: boolean;
+  status: 'active' | 'triggered' | 'deleted';
   createdAt: string;
 }
 
@@ -164,10 +165,17 @@ export function AlertsPage() {
 
                 <div className="flex items-center gap-2 shrink-0">
                   <span className={cn(
-                    'px-4 h-9 rounded-full text-sm font-semibold flex items-center',
-                    alert.active ? 'bg-primary text-white' : 'bg-bg-muted text-text-muted'
+                    'px-4 h-9 rounded-full text-sm font-semibold flex items-center gap-1.5',
+                    alert.status === 'triggered'
+                      ? 'bg-green-500 text-white'
+                      : alert.active
+                        ? 'bg-primary text-white'
+                        : 'bg-bg-muted text-text-muted'
                   )}>
-                    {alert.active ? 'Active' : 'Paused'}
+                    {alert.status === 'triggered' && (
+                      <span className="material-symbols-outlined text-[16px]">notifications_active</span>
+                    )}
+                    {alert.status === 'triggered' ? 'Triggered' : alert.active ? 'Active' : 'Paused'}
                   </span>
                   <button
                     onClick={() => open('delete-alert', { id: alert.id })}

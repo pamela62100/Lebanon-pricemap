@@ -14,6 +14,7 @@ public class AlertResponse
     public string? ProductName { get; set; }
     public decimal TargetPriceLbp { get; set; }
     public bool Active { get; set; }
+    public string Status { get; set; } = "active";  // "active" / "triggered" / "deleted"
     public bool VerifiedOnly { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool AlreadyBelowThreshold { get; set; }

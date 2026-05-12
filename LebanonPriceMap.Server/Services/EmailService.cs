@@ -33,7 +33,7 @@ public class EmailService
         try
         {
             var msg = new MimeMessage();
-            msg.From.Add(MailboxAddress.Parse(from));
+            msg.From.Add(MailboxAddress.Parse(from!));
             msg.To.Add(MailboxAddress.Parse(toEmail));
             msg.Subject = subject;
             msg.Body = new TextPart("html") { Text = htmlBody };

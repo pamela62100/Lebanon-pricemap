@@ -125,16 +125,29 @@ public class ProductService
     }
 
     /// <summary>
-    /// Archives (soft-deletes) a product so it no longer appears in the public catalog.
+    /// Permanently deletes a product. Also removes any catalog items, current prices,
+    /// price submissions, and aliases that reference it (so foreign keys don't block the delete).
     /// </summary>
-    public async Task<bool> ArchiveAsync(string id)
+    public async Task<bool> DeleteAsync(string id)
     {
         if (!Guid.TryParse(id, out var guid)) return false;
         var product = await _db.Products.FindAsync(guid);
         if (product == null) return false;
 
-        product.IsArchived = true;
-        product.UpdatedAt = DateTime.UtcNow;
+        // Remove anything that references this product so the FK constraints allow the delete.
+        var catalogItems = _db.StoreCatalogItems.Where(c => c.ProductId == guid);
+        _db.StoreCatalogItems.RemoveRange(catalogItems);
+
+        var currentPrices = _db.CurrentStoreProductPrices.Where(p => p.ProductId == guid);
+        _db.CurrentStoreProductPrices.RemoveRange(currentPrices);
+
+        var submissions = _db.PriceSubmissions.Where(p => p.ProductId == guid);
+        _db.PriceSubmissions.RemoveRange(submissions);
+
+        var aliases = _db.ProductAliases.Where(a => a.ProductId == guid);
+        _db.ProductAliases.RemoveRange(aliases);
+
+        _db.Products.Remove(product);
         await _db.SaveChangesAsync();
         return true;
     }

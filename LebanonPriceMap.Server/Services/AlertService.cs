@@ -48,8 +48,11 @@ public class AlertService
 
     public async Task<List<AlertResponse>> GetUserAlertsAsync(Guid userId)
     {
+        // Include both active (still monitoring) and triggered (fired at least once)
+        // so the user can see history. Deleted alerts stay hidden.
         return await _db.Alerts
-            .Where(a => a.UserId == userId && a.Status == AlertStatus.active)
+            .Where(a => a.UserId == userId && a.Status != AlertStatus.deleted)
+            .OrderByDescending(a => a.UpdatedAt)
             .Include(a => a.Product)
             .Select(a => MapToResponse(a, a.Product != null ? a.Product.Name : null))
             .ToListAsync();
@@ -124,6 +127,7 @@ public class AlertService
         ProductName = productName,
         TargetPriceLbp = alert.TargetPriceLbp,
         Active = alert.Status == AlertStatus.active,
+        Status = alert.Status.ToString(),  // "active" / "triggered" / "deleted"
         VerifiedOnly = alert.VerifiedOnly,
         CreatedAt = alert.CreatedAt
     };
