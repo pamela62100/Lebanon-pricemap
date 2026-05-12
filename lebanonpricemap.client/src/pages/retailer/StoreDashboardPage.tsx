@@ -26,6 +26,102 @@ interface DiscrepancyReport {
   status: string;
 }
 
+const CITIES = ['Beirut', 'Tripoli', 'Sidon', 'Zahle', 'Jounieh', 'Dbayeh', 'Metn', 'Keserwan', 'Tyre', 'Baalbek'];
+
+function StoreSetupScreen({ onCreated }: { onCreated: (store: Store) => void }) {
+  const [name, setName] = useState('');
+  const [city, setCity] = useState('Beirut');
+  const [district, setDistrict] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setSaving(true);
+    setError('');
+    try {
+      const res = await storesApi.createMine({ name: name.trim(), city, district: district.trim() || undefined });
+      const created = (res as any).data?.data ?? (res as any).data;
+      onCreated(created);
+    } catch (err: any) {
+      setError(err?.response?.data?.message ?? 'Could not create store. Try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="min-h-[60vh] flex items-center justify-center p-8">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <span className="material-symbols-outlined text-primary text-[32px]">store</span>
+          </div>
+          <h1 className="text-2xl font-bold text-text-main">Set up your store</h1>
+          <p className="text-sm text-text-muted mt-1">Add your store details so shoppers can find you.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="card p-6 space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Store name *</label>
+            <input
+              type="text"
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="e.g. Spinneys Achrafieh"
+              className="w-full h-11 px-4 rounded-xl bg-bg-muted border border-border-soft text-sm font-medium text-text-main outline-none focus:border-primary/40 focus:bg-white transition-all placeholder:text-text-muted/40"
+              required
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">City</label>
+            <div className="relative">
+              <select
+                value={city}
+                onChange={e => setCity(e.target.value)}
+                className="w-full h-11 pl-4 pr-10 rounded-xl bg-bg-muted border border-border-soft text-sm font-medium text-text-main outline-none focus:border-primary/40 appearance-none cursor-pointer"
+              >
+                {CITIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[18px]">unfold_more</span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">District <span className="normal-case font-normal text-text-muted">(optional)</span></label>
+            <input
+              type="text"
+              value={district}
+              onChange={e => setDistrict(e.target.value)}
+              placeholder="e.g. Hamra"
+              className="w-full h-11 px-4 rounded-xl bg-bg-muted border border-border-soft text-sm font-medium text-text-main outline-none focus:border-primary/40 focus:bg-white transition-all placeholder:text-text-muted/40"
+            />
+          </div>
+
+          {error && <p className="text-xs text-red-500 font-medium">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={!name.trim() || saving}
+            className="w-full h-11 rounded-xl bg-primary text-white font-semibold text-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all flex items-center justify-center gap-2"
+          >
+            {saving && <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>}
+            {saving ? 'Creating...' : 'Create my store'}
+          </button>
+        </form>
+
+        <p className="text-center text-xs text-text-muted mt-4">Your store will be reviewed by our team before going live.</p>
+      </motion.div>
+    </div>
+  );
+}
+
 export function StoreDashboardPage() {
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
@@ -89,11 +185,7 @@ export function StoreDashboardPage() {
   }
 
   if (!store) {
-    return (
-      <div className="p-12 text-center">
-        <p className="text-text-muted">No store found for your account. Contact an admin.</p>
-      </div>
-    );
+    return <StoreSetupScreen onCreated={setStore} />;
   }
 
   const stats = [

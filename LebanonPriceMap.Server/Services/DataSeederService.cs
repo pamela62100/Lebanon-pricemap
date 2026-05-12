@@ -88,8 +88,9 @@ namespace LebanonPriceMap.Server.Services
 
                 bool hasProducts = _context.Products.Any();
                 bool hasStores = _context.Stores.Any();
+                bool hasPrices = _context.CurrentStoreProductPrices.Any();
 
-                if (hasProducts && hasStores)
+                if (hasProducts && hasStores && hasPrices)
                 {
                     _logger.LogInformation("Database already has data. Skipping seeding.");
                     return;
@@ -108,15 +109,19 @@ namespace LebanonPriceMap.Server.Services
                 if (!hasStores)
                     await SeedStoresAsync();
 
-                await _context.SaveChangesAsync();
+                if (!hasProducts || !hasStores)
+                    await _context.SaveChangesAsync();
 
-                await SeedPriceSubmissionsAsync();
-                await SeedFuelDataAsync();
-                await SeedStoreCatalogAsync();
-                await _context.SaveChangesAsync();
+                if (!hasPrices)
+                {
+                    await SeedPriceSubmissionsAsync();
+                    await SeedFuelDataAsync();
+                    await SeedStoreCatalogAsync();
+                    await _context.SaveChangesAsync();
 
-                await SeedCurrentPricesAsync();
-                await _context.SaveChangesAsync();
+                    await SeedCurrentPricesAsync();
+                    await _context.SaveChangesAsync();
+                }
 
                 _logger.LogInformation("Database seeding completed successfully!");
             }

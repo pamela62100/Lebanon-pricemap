@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { CatalogProduct } from '@/types/catalog.types';
-import { catalogApi } from '@/api/catalog.api';
+import { discrepancyApi } from '@/api/discrepancy.api';
 import { cn } from '@/lib/utils';
 
 interface CatalogDiscrepancyDialogProps {
@@ -101,13 +101,27 @@ export function CatalogDiscrepancyDialog({
     onClose();
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedType) return;
-    setSubmitted(true);
-    setTimeout(() => {
-      handleClose();
-      onSubmitted?.();
-    }, 2000);
+    try {
+      const apiType = (selectedType === 'product_removed' || selectedType === 'duplicate_listing')
+        ? 'other' : selectedType;
+      await discrepancyApi.submit({
+        storeId,
+        productId: product.productId,
+        catalogItemId: product.id,
+        reportType: apiType as any,
+        observedPriceLbp: observedPrice ? Number(observedPrice) : undefined,
+        note: note || undefined,
+      });
+      setSubmitted(true);
+      setTimeout(() => {
+        handleClose();
+        onSubmitted?.();
+      }, 2000);
+    } catch {
+      setSubmitted(false);
+    }
   };
 
   return createPortal(

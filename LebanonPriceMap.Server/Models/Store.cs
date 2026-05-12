@@ -48,7 +48,7 @@ namespace LebanonPriceMap.Server.Models
 
         public decimal? InternalRateLbp { get; set; }
 
-        public string SyncMethod { get; set; } = "manual";
+        public SyncMethod SyncMethod { get; set; } = SyncMethod.manual;
 
         public bool ApiEnabled { get; set; } = false;
 
