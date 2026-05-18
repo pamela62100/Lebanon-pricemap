@@ -21,7 +21,7 @@ namespace LebanonPriceMap.Server.Models
         public Guid? ChangedBy { get; set; }
 
         [Required]
-        public string Reason { get; set; }
+        public CatalogChangeReason Reason { get; set; }
 
         public Guid? RelatedReportId { get; set; }
 

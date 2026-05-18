@@ -14,6 +14,7 @@ interface PromoEntry {
   officialPriceLbp: number;
   promoPriceLbp?: number;
   promoEndsAt?: string | null;
+  isPromotion: boolean;
   discountPercent?: number;
   product?: { name: string; category?: string; unit?: string };
 }
@@ -32,7 +33,7 @@ export function PromotionsPage() {
         const catRes = await catalogApi.getByStore(store.id);
         const data = catRes.data?.data ?? catRes.data;
         const all = Array.isArray(data) ? data : [];
-        setPromos(all.filter((e: PromoEntry) => e.promoPriceLbp && e.promoPriceLbp > 0));
+        setPromos(all.filter((e: PromoEntry) => e.isPromotion));
       }
     }).catch(() => {}).finally(() => setIsLoading(false));
   }, []);

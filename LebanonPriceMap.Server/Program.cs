@@ -20,6 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
             o.MapEnum<SyncStatus>("sync_status");
             o.MapEnum<SubmissionSource>("submission_source");
             o.MapEnum<SubmissionStatus>("submission_status");
+            o.MapEnum<CatalogChangeReason>("catalog_change_reason");
         }
     ));
 
@@ -53,6 +54,11 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+
+// Set the default backend URL for Docker (listen on all interfaces)
+var defaultPort = 80;
+var urls = $"http://{System.Net.IPAddress.Any}:{defaultPort}";
+builder.WebHost.UseUrls(urls);
 
 // SignalR
 builder.Services.AddSignalR();
@@ -121,4 +127,4 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<LiveHub>("/hubs/live");
-app.Run();
+await app.RunAsync();

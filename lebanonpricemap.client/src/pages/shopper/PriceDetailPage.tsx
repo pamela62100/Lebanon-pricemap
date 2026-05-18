@@ -6,6 +6,7 @@ import { timeAgo } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { PriceHistoryChart } from '@/components/charts/PriceHistoryChart';
 import { CatalogDiscrepancyDialog } from '@/components/dialogs/CatalogDiscrepancyDialog';
+import { PriceAlertDialog } from '@/components/dialogs/PriceAlertDialog';
 import { NotFoundPage } from '@/pages/shared/NotFoundPage';
 import { useCartStore } from '@/store/useCartStore';
 import { useToastStore } from '@/store/useToastStore';
@@ -29,6 +30,7 @@ export function PriceDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [voting, setVoting] = useState(false);
   const [showReport, setShowReport] = useState(false);
+  const [showAlertSetup, setShowAlertSetup] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -206,32 +208,41 @@ export function PriceDetailPage() {
                 Add to list
               </button>
               {isShopper && (
-                <div className="grid grid-cols-2 gap-2.5">
+                <>
                   <button
-                    onClick={() => handleVote(1)}
-                    disabled={voting}
-                    className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    onClick={() => setShowAlertSetup(true)}
+                    className="w-full h-12 rounded-xl border border-border-soft bg-bg-surface text-text-main font-semibold hover:bg-bg-muted hover:border-text-muted/30 transition-all flex items-center justify-center gap-2 mb-2.5"
                   >
-                    {voting ? (
-                      <>
-                        <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                        Verify
-                      </>
-                    )}
+                    <span className="material-symbols-outlined text-[18px]">notifications</span>
+                    Track better price
                   </button>
-                  <button
-                    onClick={() => setShowReport(true)}
-                    className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">flag</span>
-                    Report
-                  </button>
-                </div>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <button
+                      onClick={() => handleVote(1)}
+                      disabled={voting}
+                      className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all disabled:opacity-50 flex items-center justify-center gap-1.5"
+                    >
+                      {voting ? (
+                        <>
+                          <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                          Verify
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setShowReport(true)}
+                      className="w-full h-11 rounded-xl border border-border-soft text-text-main text-sm font-semibold hover:bg-red-50 hover:border-red-300 hover:text-red-600 transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-[16px]">flag</span>
+                      Report
+                    </button>
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -260,13 +271,23 @@ export function PriceDetailPage() {
           officialPriceLbp: entry.priceLbp,
           isInStock: true,
           isPromotion: false,
-          lastUpdatedAt: entry.updatedAt ?? '',
+          lastUpdatedAt: entry.createdAt ?? '',
           lastUpdatedBy: '',
-          createdAt: entry.updatedAt ?? '',
+          createdAt: entry.createdAt ?? '',
         }}
         onSubmitted={() => {
           addToast('Report submitted — thanks!', 'info');
           updateUser({ uploadCount: (user?.uploadCount ?? 0) + 1 });
+        }}
+      />
+
+      <PriceAlertDialog
+        isOpen={showAlertSetup}
+        onClose={() => setShowAlertSetup(false)}
+        productName={entry.product?.name ?? 'Product'}
+        currentAvgPrice={entry.priceLbp}
+        onSubmit={() => {
+          addToast('Price alert saved successfully!', 'success');
         }}
       />
     </div>

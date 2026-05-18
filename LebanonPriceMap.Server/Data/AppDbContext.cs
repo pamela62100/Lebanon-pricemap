@@ -52,6 +52,7 @@ public class AppDbContext : DbContext
         modelBuilder.HasPostgresEnum<SyncStatus>();
         modelBuilder.HasPostgresEnum<SubmissionSource>();
         modelBuilder.HasPostgresEnum<SubmissionStatus>();
+        modelBuilder.HasPostgresEnum<CatalogChangeReason>();
 
 
         modelBuilder.Entity<PasswordResetToken>(entity =>

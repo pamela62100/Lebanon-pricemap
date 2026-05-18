@@ -21,6 +21,7 @@ import { StorePublicPage }    from '@/pages/public/StorePublicPage';
 
 // Shopper pages
 import { SearchPage }         from '@/pages/shopper/SearchPage';
+import { MapPage }            from '@/pages/shopper/MapPage';
 import { CartPage }           from '@/pages/shopper/CartPage';
 import { CartOptimizePage }   from '@/pages/shopper/CartOptimizePage';
 import { BarcodeScannerPage } from '@/pages/shopper/BarcodeScannerPage';
@@ -49,7 +50,7 @@ import { AdminStoresPage }         from '@/pages/admin/AdminStoresPage';
 import { AdminActivityLogsPage }   from '@/pages/admin/AdminActivityLogsPage';
 import { AdminReportsPage }        from '@/pages/admin/AdminReportsPage';
 
-function ProtectedRoute({ allowedRoles }: { allowedRoles: UserRole[] }) {
+function ProtectedRoute({ allowedRoles }: Readonly<{ allowedRoles: readonly UserRole[] }>) {
   const user = useAuthStore(s => s.user);
   if (!user) return <Navigate to="/login" replace />;
   if (!allowedRoles.includes(user.role)) return <Navigate to="/app" replace />;
@@ -78,6 +79,7 @@ export function AppRouter() {
       <Route element={<RequireAuth />}>
         <Route path="/app" element={<DesktopLayout />}>
           <Route index                element={<SearchPage />} />
+          <Route path="map"           element={<MapPage />} />
           <Route path="list"          element={<CartPage />} />
           <Route path="list/optimize" element={<CartOptimizePage />} />
           <Route path="scan"          element={<BarcodeScannerPage />} />

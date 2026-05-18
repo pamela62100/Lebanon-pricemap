@@ -31,7 +31,7 @@ export function AdminStoresPage() {
   }, []);
 
   const getEffectiveStatus = (store: Store): StoreStatus => {
-    if (store.status === 'suspended') return 'suspended';
+    if (store.status === 'flagged') return 'suspended';
     if (store.status === 'verified' || store.isVerifiedRetailer) return 'active';
     return 'pending';
   };
@@ -56,7 +56,8 @@ export function AdminStoresPage() {
   const changeStatus = async (id: string, status: StoreStatus) => {
     try {
       await storesApi.updateStatus(id, status);
-      setStores(prev => prev.map(s => s.id === id ? { ...s, status } : s));
+      const storeStatus: 'verified' | 'pending' | 'flagged' = status === 'active' ? 'verified' : status === 'suspended' ? 'flagged' : 'pending';
+      setStores(prev => prev.map(s => s.id === id ? { ...s, status: storeStatus } : s));
       const label = { active: 'approved', pending: 'set to pending', suspended: 'suspended' }[status];
       addToast(`Store ${label}`, status === 'active' ? 'success' : status === 'suspended' ? 'error' : 'info');
     } catch {

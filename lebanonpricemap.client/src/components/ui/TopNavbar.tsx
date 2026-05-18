@@ -9,6 +9,7 @@ import { useState, useRef, useEffect } from 'react';
 const NAV_ITEMS = [
   { icon: 'search',               path: '/app',         title: 'Search', end: true,  mobileOnly: false },
   { icon: 'storefront',           path: '/app/catalog', title: 'Stores', end: false, mobileOnly: false },
+  { icon: 'map',                  path: '/app/map',     title: 'Map',    end: false, mobileOnly: false },
   { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false, mobileOnly: false },
   { icon: 'notifications_active', path: '/app/alerts',  title: 'Alerts', end: false, mobileOnly: false },
 ];
@@ -88,7 +89,7 @@ export function TopNavbar() {
                   onClick={() => navigate('/admin')}
                   className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all"
                 >
-                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>{' '}
                   Admin dashboard
                 </button>
               )}
@@ -98,7 +99,7 @@ export function TopNavbar() {
                   onClick={() => navigate('/retailer')}
                   className="hidden md:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/15 transition-all"
                 >
-                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+                  <span className="material-symbols-outlined text-[16px]">arrow_back</span>{' '}
                   Retailer dashboard
                 </button>
               )}
@@ -180,7 +181,7 @@ export function TopNavbar() {
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-text-main hover:bg-bg-muted transition-all"
                       >
-                        <span className="material-symbols-outlined text-[17px] text-text-muted">account_circle</span>
+                        <span className="material-symbols-outlined text-[17px] text-text-muted">account_circle</span>{' '}
                         Account
                       </NavLink>
                       <button
@@ -188,7 +189,7 @@ export function TopNavbar() {
                         onClick={() => { logout(); setProfileOpen(false); navigate('/login'); }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-red-600 hover:bg-red-50 transition-all"
                       >
-                        <span className="material-symbols-outlined text-[17px]">logout</span>
+                        <span className="material-symbols-outlined text-[17px]">logout</span>{' '}
                         Sign out
                       </button>
                     </motion.div>

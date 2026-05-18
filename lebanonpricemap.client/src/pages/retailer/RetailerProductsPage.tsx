@@ -21,6 +21,8 @@ interface CatalogEntry {
   id: string;
   productId: string;
   officialPriceLbp: number;
+  promoPriceLbp?: number;
+  promoEndsAt?: string | null;
   isInStock: boolean;
   isPromotion: boolean;
   updatedAt?: string;
@@ -37,7 +39,7 @@ export function RetailerProductsPage() {
   const [storeId, setStoreId] = useState<string | null>(null);
 
   // Add-product dialog state
-  const [allProducts, setAllProducts] = useState<{ id: string; name: string; category?: string; unit?: string }[]>([]);
+  const [allProducts, setAllProducts] = useState<{ id: string; name: string; category?: string; unit?: string; barcode?: string }[]>([]);
   const [addSearch, setAddSearch] = useState('');
   const [addProductId, setAddProductId] = useState<string>('');
   const [addPrice, setAddPrice] = useState<number | ''>('');
@@ -48,9 +50,19 @@ export function RetailerProductsPage() {
   const activeEntryId = getParam('id');
   const activeEntry = allEntries.find(e => e.id === activeEntryId);
   const [editPrice, setEditPrice] = useState<number | ''>(activeEntry?.officialPriceLbp ?? '');
+  
+  // Promotion states
+  const [editIsPromotion, setEditIsPromotion] = useState(false);
+  const [editPromoPrice, setEditPromoPrice] = useState<number | ''>('');
+  const [editPromoEndsAt, setEditPromoEndsAt] = useState<string>('');
 
   useEffect(() => {
-    setEditPrice(activeEntry?.officialPriceLbp ?? '');
+    if (activeEntry) {
+      setEditPrice(activeEntry.officialPriceLbp);
+      setEditIsPromotion(activeEntry.isPromotion);
+      setEditPromoPrice(activeEntry.promoPriceLbp ?? '');
+      setEditPromoEndsAt(activeEntry.promoEndsAt ? new Date(activeEntry.promoEndsAt).toISOString().split('T')[0] : '');
+    }
   }, [activeEntry]);
 
   useEffect(() => {
@@ -94,11 +106,21 @@ export function RetailerProductsPage() {
     }
   };
 
-  const availableProducts = allProducts.filter(p => {
-    if (allEntries.some(e => e.productId === p.id)) return false;
-    if (!addSearch) return true;
-    return p.name.toLowerCase().includes(addSearch.toLowerCase());
-  });
+  const availableProducts = useMemo(() => {
+    return allProducts
+      .map(p => ({
+        ...p,
+        isAlreadyInCatalog: allEntries.some(e => e.productId === p.id)
+      }))
+      .filter(p => {
+        if (!addSearch) return true;
+        const search = addSearch.toLowerCase().trim();
+        return (
+          p.name?.toLowerCase().includes(search) || 
+          p.barcode?.toLowerCase().includes(search)
+        );
+      });
+  }, [allProducts, allEntries, addSearch]);
 
   const filtered = useMemo(() => {
     let res = allEntries;
@@ -128,14 +150,38 @@ export function RetailerProductsPage() {
 
   const savePrice = async () => {
     if (!activeEntryId || !editPrice) return;
+    
+    // Validation
+    if (editIsPromotion && (!editPromoPrice || editPromoPrice >= Number(editPrice))) {
+      addToast('Promo price must be less than official price', 'error');
+      return;
+    }
+
     try {
-      await catalogApi.update(activeEntryId, { officialPriceLbp: Number(editPrice) });
+      const updateData = {
+        officialPriceLbp: Number(editPrice),
+        isPromotion: editIsPromotion,
+        promoPriceLbp: editIsPromotion ? Number(editPromoPrice) : undefined,
+        promoEndsAt: editIsPromotion && editPromoEndsAt ? new Date(editPromoEndsAt).toISOString() : null
+      };
+
+      await catalogApi.update(activeEntryId, updateData);
+      
       setAllEntries(prev => prev.map(e =>
-        e.id === activeEntryId ? { ...e, officialPriceLbp: Number(editPrice) } : e
+        e.id === activeEntryId ? { 
+          ...e, 
+          officialPriceLbp: Number(editPrice),
+          isPromotion: editIsPromotion,
+          promoPriceLbp: editIsPromotion ? Number(editPromoPrice) : undefined,
+          promoEndsAt: editIsPromotion && editPromoEndsAt ? new Date(editPromoEndsAt).toISOString() : null,
+          updatedAt: new Date().toISOString()
+        } : e
       ));
-      addToast('Price updated successfully', 'success');
+      
+      addToast('Price and promotion updated', 'success');
+      close();
     } catch {
-      addToast('Failed to update price', 'error');
+      addToast('Failed to update product', 'error');
     }
   };
 
@@ -238,7 +284,16 @@ export function RetailerProductsPage() {
                     </td>
                     <td className="px-5 py-3 text-sm text-text-muted">{entry.product?.category ?? '—'}</td>
                     <td className="px-5 py-3 text-xs font-mono text-text-muted">{entry.product?.barcode ?? '—'}</td>
-                    <td className="px-5 py-3 text-sm font-bold text-text-main">{entry.officialPriceLbp.toLocaleString()}</td>
+                    <td className="px-5 py-3 text-sm font-bold text-text-main">
+                      {entry.isPromotion && entry.promoPriceLbp ? (
+                        <div className="flex flex-col">
+                          <span className="text-[var(--status-pending-text)]">{entry.promoPriceLbp.toLocaleString()}</span>
+                          <span className="text-[10px] text-text-muted line-through font-normal">{entry.officialPriceLbp.toLocaleString()}</span>
+                        </div>
+                      ) : (
+                        entry.officialPriceLbp.toLocaleString()
+                      )}
+                    </td>
                     <td className="px-5 py-3"><StatusBadge status={entry.isInStock ? 'verified' : 'flagged'} /></td>
                     <td className="px-5 py-3 text-xs text-text-muted">
                       {entry.updatedAt ? new Date(entry.updatedAt).toLocaleDateString() : '—'}
@@ -251,6 +306,17 @@ export function RetailerProductsPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setEditPrice(entry.officialPriceLbp);
+                            setEditIsPromotion(true);
+                            open('edit-price', { id: entry.id });
+                          }}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-primary hover:bg-primary-soft/30 transition-all"
+                          title="Promote product"
+                        >
+                          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>local_offer</span>
+                        </button>
                         <button
                           onClick={() => {
                             setEditPrice(entry.officialPriceLbp);
@@ -298,15 +364,25 @@ export function RetailerProductsPage() {
             ) : availableProducts.slice(0, 20).map(p => (
               <button
                 key={p.id}
-                onClick={() => setAddProductId(p.id)}
-                className={cn(
-                  'w-full text-left px-4 py-2.5 text-sm transition-colors',
-                  addProductId === p.id ? 'bg-primary/10 text-primary font-semibold' : 'hover:bg-bg-base'
-                )}
+                onClick={() => !p.isAlreadyInCatalog && setAddProductId(p.id)}
+                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-0 text-left ${
+                  addProductId === p.id ? 'bg-indigo-50 hover:bg-indigo-50' : ''
+                } ${p.isAlreadyInCatalog ? 'opacity-60 cursor-not-allowed grayscale-[0.5]' : ''}`}
               >
-                <div className="flex items-center justify-between">
-                  <span>{p.name}</span>
-                  {p.category && <span className="text-[10px] text-text-muted">{p.category}</span>}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-medium text-slate-900 truncate">
+                      {p.name}
+                    </div>
+                    {p.isAlreadyInCatalog && (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium bg-slate-100 text-slate-500 rounded uppercase tracking-wider">
+                        In Catalog
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-slate-500 truncate">
+                    {p.barcode || 'No barcode'} • {p.unit}
+                  </div>
                 </div>
               </button>
             ))}
@@ -327,8 +403,8 @@ export function RetailerProductsPage() {
         </div>
       </RouteDialog>
 
-      <RouteDialog dialogId="edit-price" title="Update Retail Price" description={activeEntry?.product?.name} size="sm">
-        <div className="flex flex-col gap-6 py-2">
+      <RouteDialog dialogId="edit-price" title="Edit Catalog Item" description={activeEntry?.product?.name} size="sm">
+        <div className="flex flex-col gap-5 py-2">
           <div className="bg-bg-muted/50 p-4 rounded-xl border border-border-soft flex items-center gap-4">
             <div className="w-12 h-12 rounded-lg bg-bg-surface border border-border-soft flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-text-muted">shopping_basket</span>
@@ -338,18 +414,63 @@ export function RetailerProductsPage() {
               <p className="text-sm font-bold text-text-main truncate">{activeEntry?.product?.name}</p>
             </div>
           </div>
-          <div>
-            <label className="block text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2 text-center">
-              Current Price: {activeEntry?.officialPriceLbp.toLocaleString()} LBP
-            </label>
-            <LBPInput value={editPrice} onChange={val => setEditPrice(val)} autoFocus />
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-[11px] font-bold text-text-muted uppercase tracking-widest mb-2">
+                Official Retail Price (LBP)
+              </label>
+              <LBPInput value={editPrice} onChange={val => setEditPrice(val)} autoFocus />
+            </div>
+
+            <div className="pt-2 border-t border-border-soft">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className="relative flex items-center">
+                  <input 
+                    type="checkbox" 
+                    checked={editIsPromotion} 
+                    onChange={e => setEditIsPromotion(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-5 bg-bg-muted border border-border-soft rounded-full peer peer-checked:bg-primary transition-all"></div>
+                  <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full peer-checked:translate-x-5 transition-transform"></div>
+                </div>
+                <span className="text-sm font-bold text-text-main group-hover:text-primary transition-colors">Active Promotion</span>
+              </label>
+            </div>
+
+            {editIsPromotion && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="space-y-4 pt-2 overflow-hidden">
+                <div>
+                  <label className="block text-[11px] font-bold text-text-muted uppercase tracking-widest mb-2">
+                    Promo Price (LBP)
+                  </label>
+                  <LBPInput value={editPromoPrice} onChange={val => setEditPromoPrice(val)} />
+                  {editPromoPrice && editPrice && Number(editPromoPrice) >= Number(editPrice) && (
+                    <p className="text-[10px] text-red-500 font-bold mt-1.5 uppercase tracking-tighter">Must be less than official price</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-text-muted uppercase tracking-widest mb-2">
+                    Promotion Ends (Optional)
+                  </label>
+                  <input 
+                    type="date" 
+                    value={editPromoEndsAt}
+                    onChange={e => setEditPromoEndsAt(e.target.value)}
+                    className="w-full h-11 bg-bg-muted border border-border-soft rounded-xl px-4 text-sm font-semibold text-text-main focus:border-primary focus:outline-none"
+                  />
+                </div>
+              </motion.div>
+            )}
           </div>
+
           <button
             onClick={savePrice}
-            disabled={!editPrice || editPrice === activeEntry?.officialPriceLbp}
-            className="h-11 rounded-xl bg-primary text-white font-bold text-sm shadow-card hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            disabled={!editPrice || (editIsPromotion && !editPromoPrice)}
+            className="h-11 mt-2 rounded-xl bg-primary text-white font-bold text-sm shadow-card hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            Save New Price
+            Update Catalog Entry
           </button>
         </div>
       </RouteDialog>

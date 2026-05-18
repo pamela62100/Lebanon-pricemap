@@ -144,7 +144,36 @@ public class DiscrepancyService
         report.ResolvedAt = DateTime.UtcNow;
         report.ReviewedBy = adminId;
         report.ReviewNote = reviewNote;
-        report.ApprovedNewPriceLbp = approvedPrice;  // suggested price the admin recorded — retailer sees it as guidance
+        report.ApprovedNewPriceLbp = approvedPrice;
+
+        // Update the catalog item price if a new price is approved
+        if (approvedPrice.HasValue)
+        {
+            var catalogItem = await _context.StoreCatalogItems.FindAsync(report.CatalogItemId);
+            if (catalogItem != null)
+            {
+                var previousPrice = catalogItem.OfficialPriceLbp;
+
+                catalogItem.OfficialPriceLbp = approvedPrice.Value;
+                catalogItem.LastUpdatedAt = DateTime.UtcNow;
+                catalogItem.LastUpdatedBy = adminId;
+
+                _context.CatalogAuditEntries.Add(new CatalogAuditEntry
+                {
+                    Id = Guid.NewGuid(),
+                    CatalogItemId = catalogItem.Id,
+                    StoreId = catalogItem.StoreId,
+                    ProductId = catalogItem.ProductId,
+                    ChangedBy = adminId,
+                    Reason = CatalogChangeReason.report_correction,
+                    RelatedReportId = report.Id,
+                    PreviousPriceLbp = previousPrice,
+                    NewPriceLbp = approvedPrice.Value,
+                    Note = reviewNote,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+        }
 
         // Reward the reporter
         if (report.ReportedBy.HasValue)

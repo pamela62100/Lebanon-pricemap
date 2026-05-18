@@ -13,6 +13,13 @@ public class FuelService
 {
     private readonly AppDbContext _db;
 
+    private const string StationWord = "Station";
+    private const string StationWordLower = "station";
+    private const string FuelWord = "Fuel";
+    private const string FuelWordLower = "fuel";
+    private const string GasWord = "Gas";
+    private const string GasWordLower = "gas";
+
     public FuelService(AppDbContext db)
     {
         _db = db;
@@ -57,10 +64,25 @@ public class FuelService
     /// </summary>
     public async Task<List<StationResponse>> GetStationsAsync(string? city)
     {
-        // We treat any store as a potential fuel station.
-        // Only include stores that have at least one station report.
+        // Only include stores that are actually gas/fuel stations.
+        // We filter by checking if the Chain or Name is associated with fuel stations.
         var query = _db.StationReports
             .Include(sr => sr.Store)
+            .Where(sr => 
+                (sr.Store.Chain != null && (
+                    sr.Store.Chain.Contains(FuelWord) || sr.Store.Chain.Contains(FuelWordLower) ||
+                    sr.Store.Chain.Contains(GasWord) || sr.Store.Chain.Contains(GasWordLower) ||
+                    sr.Store.Chain.Contains(StationWord) || sr.Store.Chain.Contains(StationWordLower) ||
+                    sr.Store.Chain.Contains("Medco") || sr.Store.Chain.Contains("medco") ||
+                    sr.Store.Chain.Contains("IPT") || sr.Store.Chain.Contains("ipt") ||
+                    sr.Store.Chain.Contains("Coral") || sr.Store.Chain.Contains("coral") ||
+                    sr.Store.Chain.Contains("Total") || sr.Store.Chain.Contains("total") ||
+                    sr.Store.Chain.Contains("Hypco") || sr.Store.Chain.Contains("hypco")
+                )) ||
+                sr.Store.Name.Contains(FuelWord) || sr.Store.Name.Contains(FuelWordLower) ||
+                sr.Store.Name.Contains(StationWord) || sr.Store.Name.Contains(StationWordLower) ||
+                sr.Store.Name.Contains(GasWord) || sr.Store.Name.Contains(GasWordLower)
+            )
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(city))
@@ -98,6 +120,30 @@ public class FuelService
     public async Task<StationResponse> ReportStationAsync(Guid storeId, StationReportRequest request, Guid userId)
     {
         var store = await _db.Stores.FindAsync(storeId);
+        if (store == null)
+        {
+            throw new KeyNotFoundException("Store not found");
+        }
+
+        // Enforce that the store is actually a fuel station to avoid rogue reports on grocery stores
+        bool isFuelStation = (store.Chain != null && (
+            store.Chain.Contains(FuelWord) || store.Chain.Contains(FuelWordLower) ||
+            store.Chain.Contains(GasWord) || store.Chain.Contains(GasWordLower) ||
+            store.Chain.Contains(StationWord) || store.Chain.Contains(StationWordLower) ||
+            store.Chain.Contains("Medco") || store.Chain.Contains("medco") ||
+            store.Chain.Contains("IPT") || store.Chain.Contains("ipt") ||
+            store.Chain.Contains("Coral") || store.Chain.Contains("coral") ||
+            store.Chain.Contains("Total") || store.Chain.Contains("total") ||
+            store.Chain.Contains("Hypco") || store.Chain.Contains("hypco")
+        )) || 
+        store.Name.Contains(FuelWord) || store.Name.Contains(FuelWordLower) ||
+        store.Name.Contains(StationWord) || store.Name.Contains(StationWordLower) ||
+        store.Name.Contains(GasWord) || store.Name.Contains(GasWordLower);
+
+        if (!isFuelStation)
+        {
+            throw new InvalidOperationException("Cannot submit fuel station reports for a regular retail or grocery store.");
+        }
 
         var report = new StationReport
         {

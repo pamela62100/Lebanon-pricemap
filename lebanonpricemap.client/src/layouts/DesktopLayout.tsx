@@ -2,12 +2,13 @@ import { Outlet, NavLink } from 'react-router-dom';
 import { TopNavbar } from '@/components/ui/TopNavbar';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { GlobalEssentialsTicker } from '@/components/ui/GlobalEssentialsTicker';
+import { ReportRealityDialog } from '@/components/dialogs/ReportRealityDialog';
 import { useCartStore } from '@/store/useCartStore';
 import { cn } from '@/lib/utils';
 
 const MOBILE_NAV = [
   { icon: 'search',               path: '/app',         title: 'Search', end: true  },
-  { icon: 'storefront',           path: '/app/catalog', title: 'Stores', end: false },
+  { icon: 'map',                  path: '/app/map',     title: 'Map',    end: false },
   { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false },
   { icon: 'checklist',            path: '/app/list',    title: 'My List',end: false },
 ];
@@ -51,6 +52,9 @@ export function DesktopLayout() {
           </NavLink>
         ))}
       </nav>
+
+      {/* Global Shopper Dialogs */}
+      <ReportRealityDialog />
     </div>
   );
 }

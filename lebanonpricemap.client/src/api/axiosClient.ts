@@ -1,12 +1,12 @@
-import axios, { InternalAxiosRequestConfig } from 'axios';
+import axios from "axios";
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5223/api",
+  headers: { "Content-Type": "application/json" },
 });
 
 client.interceptors.request.use((config: any) => {
-  const token = localStorage.getItem('rakis_token');
+  const token = localStorage.getItem("rakis_token");
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -17,11 +17,11 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('rakis_token');
-      window.location.href = '/login';
+      localStorage.removeItem("rakis_token");
+      globalThis.location.href = "/login";
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default client;

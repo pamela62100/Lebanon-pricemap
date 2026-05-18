@@ -21,13 +21,14 @@ namespace LebanonPriceMap.Server.Services
 
         public async Task<IEnumerable<CatalogItemDto>> GetByStoreIdAsync(Guid storeId)
         {
-            return await _context.StoreCatalogItems
+            var items = await _context.StoreCatalogItems
                 .Where(c => c.StoreId == storeId)
                 .Include(c => c.Product)
                     .ThenInclude(p => p.Category)
                 .Include(c => c.Store)
-                .Select(c => MapToDto(c))
                 .ToListAsync();
+
+            return items.Select(c => MapToDto(c));
         }
 
         public async Task<object> GetMasterProductsAsync()
@@ -146,7 +147,14 @@ namespace LebanonPriceMap.Server.Services
                 await CreateHistoricalPromotion(item, userId);
             }
 
-            var dtoOut = MapToDto(item);
+            // Reload item with related data for DTO mapping
+            var savedItem = await _context.StoreCatalogItems
+                .Include(c => c.Product)
+                    .ThenInclude(p => p.Category)
+                .Include(c => c.Store)
+                .FirstOrDefaultAsync(c => c.Id == item.Id);
+
+            var dtoOut = MapToDto(savedItem!);
             await _live.CatalogChanged(item.StoreId, item.ProductId, new { action = "created", item = dtoOut });
             return dtoOut;
         }
@@ -313,7 +321,7 @@ namespace LebanonPriceMap.Server.Services
                             StoreId = storeId,
                             ProductId = productId,
                             ChangedBy = userId,
-                            Reason = "owner_update",
+                            Reason = CatalogChangeReason.owner_update,
                             PreviousPriceLbp = prevPrice,
                             NewPriceLbp = price,
                             Note = "Bulk CSV update",
@@ -341,7 +349,7 @@ namespace LebanonPriceMap.Server.Services
                             StoreId = storeId,
                             ProductId = productId,
                             ChangedBy = userId,
-                            Reason = "owner_update",
+                            Reason = CatalogChangeReason.owner_update,
                             NewPriceLbp = price,
                             Note = "Bulk CSV addition",
                             CreatedAt = DateTime.UtcNow
@@ -396,9 +404,16 @@ namespace LebanonPriceMap.Server.Services
 
         private async Task CreateHistoricalPromotion(StoreCatalogItem item, Guid? userId)
         {
+            // Reload item to ensure Product is available
+            var fullItem = await _context.StoreCatalogItems
+                .Include(c => c.Product)
+                .FirstOrDefaultAsync(c => c.Id == item.Id);
+
+            if (fullItem == null) return;
+
             // Close any existing active promos for this product in this store
             var existing = await _context.StorePromotions
-                .Where(p => p.StoreId == item.StoreId && p.ProductId == item.ProductId && p.Status == "active")
+                .Where(p => p.StoreId == fullItem.StoreId && p.ProductId == fullItem.ProductId && p.Status == "active")
                 .ToListAsync();
 
             foreach (var e in existing)
@@ -410,13 +425,13 @@ namespace LebanonPriceMap.Server.Services
             var promo = new StorePromotion
             {
                 Id = Guid.NewGuid(),
-                StoreId = item.StoreId,
-                ProductId = item.ProductId,
-                Title = $"Promo: {item.Product?.Name ?? "Product"}",
-                OriginalPriceLbp = item.OfficialPriceLbp,
-                PromoPriceLbp = item.PromoPriceLbp ?? 0,
+                StoreId = fullItem.StoreId,
+                ProductId = fullItem.ProductId,
+                Title = $"Promo: {fullItem.Product?.Name ?? "Product"}",
+                OriginalPriceLbp = fullItem.OfficialPriceLbp,
+                PromoPriceLbp = fullItem.PromoPriceLbp ?? 0,
                 StartsAt = DateTime.UtcNow,
-                EndsAt = item.PromoEndsAt,
+                EndsAt = fullItem.PromoEndsAt,
                 Status = "active",
                 CreatedBy = userId,
                 CreatedAt = DateTime.UtcNow,
@@ -424,15 +439,21 @@ namespace LebanonPriceMap.Server.Services
             };
 
             // Calculate discount percent if possible
-            if (item.OfficialPriceLbp.HasValue && item.OfficialPriceLbp.Value > 0)
+            if (fullItem.OfficialPriceLbp.HasValue && fullItem.OfficialPriceLbp.Value > 0)
             {
-                if (item.OfficialPriceLbp.HasValue && item.OfficialPriceLbp.Value > 0 && item.PromoPriceLbp.HasValue)
+                if (fullItem.PromoPriceLbp.HasValue)
                 {
-                    promo.DiscountPercent = Math.Round((1 - (item.PromoPriceLbp.Value / item.OfficialPriceLbp.Value)) * 100, 2);
+                    promo.DiscountPercent = Math.Round((1 - (fullItem.PromoPriceLbp.Value / fullItem.OfficialPriceLbp.Value)) * 100, 2);
                 }
             }
 
             _context.StorePromotions.Add(promo);
+            await _context.SaveChangesAsync();
+
+            if (fullItem.PromoPriceLbp.HasValue)
+            {
+                await _alertService.CheckAlertsForPriceDropAsync(fullItem.ProductId, fullItem.PromoPriceLbp.Value, fullItem.StoreId);
+            }
         }
 
         /// <summary>
@@ -470,7 +491,7 @@ namespace LebanonPriceMap.Server.Services
                     CatalogItemId = item.Id,
                     StoreId = item.StoreId,
                     ProductId = item.ProductId,
-                    Reason = "promo_ended",
+                    Reason = CatalogChangeReason.promo_ended,
                     PreviousPriceLbp = item.PromoPriceLbp,
                     NewPriceLbp = item.OfficialPriceLbp,
                     Note = "Promotion automatically expired by system",

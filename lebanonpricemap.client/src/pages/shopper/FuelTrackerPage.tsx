@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useFuelStore } from '@/store/useFuelStore';
 import { useExchangeRateStore } from '@/store/useExchangeRateStore';
+import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { FuelType } from '@/types';
@@ -14,6 +15,7 @@ const FUEL_TABS: { type: FuelType; label: string }[] = [
 
 export function FuelTrackerPage() {
   const [activeTab, setActiveTab] = useState<FuelType>('gasoline_95');
+  const { open } = useRouteDialog();
 
   const { stations, isLoading, fetchPrices, fetchStations, getPriceByType } = useFuelStore();
   const { rateLbpPerUsd } = useExchangeRateStore();
@@ -24,6 +26,50 @@ export function FuelTrackerPage() {
   }, []);
 
   const price = getPriceByType(activeTab);
+
+  let content;
+  if (isLoading) {
+    content = (
+      <div className="flex flex-col gap-2">
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-16 rounded-xl bg-bg-muted animate-pulse" />)}
+      </div>
+    );
+  } else if (stations.length === 0) {
+    content = <EmptyState icon="local_gas_station" title="No stations listed yet" subtitle="" />;
+  } else {
+    content = (
+      <div className="bg-bg-surface border border-border-soft rounded-2xl overflow-hidden shadow-card divide-y divide-border-soft">
+        {stations.map((station, i) => (
+          <motion.div
+            key={station.storeId}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: i * 0.03 }}
+            className="px-5 py-3.5 flex items-center justify-between gap-3"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-primary text-[16px]">local_gas_station</span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-semibold text-text-main text-sm truncate">{station.storeName}</p>
+                <p className="text-[11px] text-text-muted">{station.district ?? station.city}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 shrink-0">
+              <span className="text-xs text-text-muted hidden sm:inline">{station.city}</span>
+              <button
+                onClick={() => open('report-reality', { storeId: station.storeId, type: 'fuel' })}
+                className="px-3 py-1 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-all cursor-pointer"
+              >
+                Report
+              </button>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 flex flex-col gap-8">
@@ -87,36 +133,7 @@ export function FuelTrackerPage() {
           )}
         </h2>
 
-        {isLoading ? (
-          <div className="flex flex-col gap-2">
-            {[1, 2, 3, 4].map(i => <div key={i} className="h-16 rounded-xl bg-bg-muted animate-pulse" />)}
-          </div>
-        ) : stations.length === 0 ? (
-          <EmptyState icon="local_gas_station" title="No stations listed yet" subtitle="" />
-        ) : (
-          <div className="bg-bg-surface border border-border-soft rounded-2xl overflow-hidden shadow-card divide-y divide-border-soft">
-            {stations.map((station, i) => (
-              <motion.div
-                key={station.storeId}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: i * 0.03 }}
-                className="px-5 py-3.5 flex items-center justify-between gap-3"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-primary text-[16px]">local_gas_station</span>
-                  </div>
-                  <div className="min-w-0">
-                    <p className="font-semibold text-text-main text-sm truncate">{station.storeName}</p>
-                    <p className="text-[11px] text-text-muted">{station.district ?? station.city}</p>
-                  </div>
-                </div>
-                <span className="text-xs text-text-muted shrink-0">{station.city}</span>
-              </motion.div>
-            ))}
-          </div>
-        )}
+        {content}
       </section>
     </div>
   );

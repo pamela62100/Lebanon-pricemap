@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
+using LebanonPriceMap.Server.Models;
+
 namespace LebanonPriceMap.Server.DTOs
 {
     public class CatalogItemDto
@@ -47,7 +49,7 @@ namespace LebanonPriceMap.Server.DTOs
         public bool IsPromotion { get; set; } = false;
         
         // Audit information
-        public string Reason { get; set; } = "owner_update";
+        public CatalogChangeReason Reason { get; set; } = CatalogChangeReason.owner_update;
         public string Note { get; set; } = string.Empty;
     }
 
@@ -61,7 +63,7 @@ namespace LebanonPriceMap.Server.DTOs
         
         // Audit information
         [Required]
-        public string Reason { get; set; } = "owner_update";
+        public CatalogChangeReason Reason { get; set; } = CatalogChangeReason.owner_update;
         public string Note { get; set; } = string.Empty;
     }
 
@@ -71,7 +73,7 @@ namespace LebanonPriceMap.Server.DTOs
         public Guid CatalogItemId { get; set; }
         public Guid? ChangedBy { get; set; }
         public string ChangedByName { get; set; } = string.Empty;
-        public string Reason { get; set; } = string.Empty;
+        public CatalogChangeReason Reason { get; set; }
         public decimal? PreviousPriceLbp { get; set; }
         public decimal? NewPriceLbp { get; set; }
         public string Note { get; set; } = string.Empty;

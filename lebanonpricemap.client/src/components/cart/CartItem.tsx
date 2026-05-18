@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { CartItem } from './StoreOptimizer';
-import { getAllProducts } from './StoreOptimizer';
+import { productsApi } from '@/api/products.api';
+import type { Product } from '@/types';
 
 interface CartItemRowProps {
   item: CartItem;
@@ -67,9 +68,17 @@ interface AddProductInputProps {
 export function AddProductInput({ onAdd, existing }: AddProductInputProps) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
+  const [productsList, setProductsList] = useState<Product[]>([]);
 
-  const products = getAllProducts().filter(
-    (product) =>
+  useEffect(() => {
+    productsApi.getAll().then((res) => {
+      const data = res.data?.data ?? res.data;
+      setProductsList(Array.isArray(data) ? data : []);
+    }).catch(() => {});
+  }, []);
+
+  const products = productsList.filter(
+    (product: Product) =>
       !existing.includes(product.id) &&
       product.name.toLowerCase().includes(query.toLowerCase())
   );
@@ -95,7 +104,7 @@ export function AddProductInput({ onAdd, existing }: AddProductInputProps) {
 
       {open && products.length > 0 ? (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-[24px] border border-border-soft shadow-[0_18px_50px_rgba(0,0,0,0.08)] z-20 max-h-64 overflow-y-auto">
-          {products.map((product) => (
+          {products.map((product: Product) => (
             <button
               key={product.id}
               type="button"
