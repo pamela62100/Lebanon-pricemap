@@ -21,7 +21,8 @@ export function PriceDetailPage() {
   const addItem = useCartStore((state) => state.addItem);
   const addToast = useToastStore((state) => state.addToast);
   const { rateLbpPerUsd } = useExchangeRateStore();
-  const { user, updateUser } = useAuthStore((s) => ({ user: s.user, updateUser: s.updateUser }));
+  const user = useAuthStore((s) => s.user);
+  const updateUser = useAuthStore((s) => s.updateUser);
   const isShopper = user?.role === 'shopper';
 
   const [entry, setEntry] = useState<PriceEntry | null>(null);

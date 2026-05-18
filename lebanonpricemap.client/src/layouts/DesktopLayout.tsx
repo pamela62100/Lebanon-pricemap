@@ -7,14 +7,14 @@ import { useCartStore } from '@/store/useCartStore';
 import { cn } from '@/lib/utils';
 
 const MOBILE_NAV = [
-  { icon: 'search',               path: '/app',         title: 'Search', end: true  },
-  { icon: 'map',                  path: '/app/map',     title: 'Map',    end: false },
-  { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false },
-  { icon: 'checklist',            path: '/app/list',    title: 'My List',end: false },
+  { icon: 'search',    path: '/app',      title: 'Search',  end: true  },
+  { icon: 'map',       path: '/app/map',  title: 'Map',     end: false },
+  { icon: 'checklist', path: '/app/list', title: 'My List', end: false },
+  { icon: 'notifications', path: '/app/notifications', title: 'Alerts', end: false },
 ];
 
 export function DesktopLayout() {
-  const totalItems = useCartStore((s) => s.totalItemCount());
+  const totalItems = useCartStore((s) => s.items.reduce((sum, i) => sum + i.quantity, 0));
 
   return (
     <div className="min-h-dvh bg-bg-base flex flex-col">

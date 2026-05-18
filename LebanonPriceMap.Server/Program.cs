@@ -3,10 +3,12 @@ using LebanonPriceMap.Server.Hubs;
 using LebanonPriceMap.Server.Services;
 using LebanonPriceMap.Server.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.RateLimiting;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +42,19 @@ builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<DataSeederService>();
 builder.Services.AddSingleton<LiveBroadcaster>();
 
+
+// Rate limiting — 10 requests per minute per IP on auth endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("auth", limiter =>
+    {
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.PermitLimit = 10;
+        limiter.QueueLimit = 0;
+        limiter.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+    });
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 // Add CORS — must allow credentials for SignalR
 builder.Services.AddCors(options =>
@@ -123,6 +138,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

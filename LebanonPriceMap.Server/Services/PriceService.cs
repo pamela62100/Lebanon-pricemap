@@ -58,6 +58,12 @@ public class PriceService
             query = query.Where(p => p.IsVerified);
         }
 
+        // 5b. Filter In Stock Only (if requested)
+        if (request.InStockOnly == true)
+        {
+            query = query.Where(p => p.IsInStock);
+        }
+
         // 6. Apply Sorting
         if (request.Sort == "price")
         {
@@ -69,11 +75,15 @@ public class PriceService
             query = query.OrderByDescending(p => p.UpdatedAt);
         }
 
-        // 7. Execute the query and map to the response DTO
-        // We use .Include to "JOIN" the tables, otherwise Product and Store would be NULL.
+        // 7. Execute the query with pagination and map to the response DTO
+        var limit = Math.Clamp(request.Limit, 1, 200);
+        var offset = Math.Max(0, request.Offset);
+
         var results = await query
             .Include(p => p.Product)
             .Include(p => p.Store)
+            .Skip(offset)
+            .Take(limit)
             .Select(p => new PriceEntryResponse
             {
                 Id = p.Id.ToString(),
@@ -92,12 +102,17 @@ public class PriceService
                     Unit = p.Product.Unit
                 },
                 
+                IsInStock = p.IsInStock,
+
                 // MAP NESTED STORE
                 Store = p.Store == null ? null : new StoreDto {
                     Name = p.Store.Name,
                     City = p.Store.City,
+                    District = p.Store.District,
                     Latitude = p.Store.Latitude,
-                    Longitude = p.Store.Longitude
+                    Longitude = p.Store.Longitude,
+                    PowerStatus = p.Store.PowerStatus,
+                    IsVerifiedRetailer = p.Store.IsVerifiedRetailer
                 }
             })
             .ToListAsync();

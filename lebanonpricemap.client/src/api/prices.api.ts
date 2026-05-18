@@ -2,7 +2,7 @@ import client from './axiosClient';
 import type { ApiResponse, PriceEntry } from '@/types';
 
 export const pricesApi = {
-  search: async (params: { query?: string; city?: string; sort?: string; verifiedOnly?: boolean }) => {
+  search: async (params: { query?: string; city?: string; sort?: string; verifiedOnly?: boolean; inStockOnly?: boolean }) => {
     return client.get<ApiResponse<PriceEntry[]>>('/prices/search', { params });
   },
 

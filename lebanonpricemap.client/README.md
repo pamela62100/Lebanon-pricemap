@@ -22,3 +22,6 @@ docker-compose up
 start backend:
 cd LebanonPriceMap.Server                                       
 dotnet run
+
+build on docker
+docker-compose up --build

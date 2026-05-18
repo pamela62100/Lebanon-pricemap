@@ -86,7 +86,7 @@ public class DiscrepancyService
         var withReporter = await _context.CatalogDiscrepancyReports
             .Include(r => r.Product)
             .Include(r => r.ReportedByUser)
-            .FirstAsync(r => r.Id == report.Id);
+            .FirstOrDefaultAsync(r => r.Id == report.Id) ?? report;
 
         await _live.ReportSubmitted(new {
             id = withReporter.Id,

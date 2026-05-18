@@ -47,7 +47,7 @@ public class UsersController : ControllerBase
         var callerRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
 
         // If the caller is not an admin and is not requesting their own profile → deny
-        if (callerRole != "Admin" && callerId != id)
+        if (callerRole != "admin" && callerId != id)
             return Forbid();
 
         var profile = await _userService.GetProfileAsync(id);

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import type { CatalogProduct } from '@/types/catalog.types';
 import { discrepancyApi } from '@/api/discrepancy.api';
 import { cn } from '@/lib/utils';
+import { useToastStore } from '@/store/useToastStore';
 
 interface CatalogDiscrepancyDialogProps {
   product: CatalogProduct;
@@ -84,6 +85,7 @@ export function CatalogDiscrepancyDialog({
   const [observedPrice, setObservedPrice] = useState('');
   const [note, setNote] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const addToast = useToastStore(s => s.addToast);
 
   const needsPrice =
     selectedType === 'price_higher' || selectedType === 'price_lower';
@@ -115,11 +117,13 @@ export function CatalogDiscrepancyDialog({
         note: note || undefined,
       });
       setSubmitted(true);
+      addToast('Report submitted — you earned +5 trust score once verified!', 'success');
       setTimeout(() => {
         handleClose();
         onSubmitted?.();
       }, 2000);
     } catch {
+      addToast('Failed to submit report. Please try again.', 'error');
       setSubmitted(false);
     }
   };

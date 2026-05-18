@@ -37,6 +37,7 @@ export function RetailerProductsPage() {
   const [allEntries, setAllEntries] = useState<CatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [storeId, setStoreId] = useState<string | null>(null);
+  const [storeName, setStoreName] = useState<string>('');
 
   // Add-product dialog state
   const [allProducts, setAllProducts] = useState<{ id: string; name: string; category?: string; unit?: string; barcode?: string }[]>([]);
@@ -70,6 +71,7 @@ export function RetailerProductsPage() {
       const store = res.data?.data ?? res.data;
       if (store?.id) {
         setStoreId(store.id);
+        setStoreName(store.name ?? '');
         const catRes = await catalogApi.getByStore(store.id);
         const data = catRes.data?.data ?? catRes.data;
         setAllEntries(Array.isArray(data) ? data : []);
@@ -201,7 +203,10 @@ export function RetailerProductsPage() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-text-main">Product Catalog</h1>
-          <p className="text-text-muted mt-1 text-sm">{allEntries.length} price entries across your store</p>
+          <p className="text-text-muted mt-1 text-sm">
+            {storeName && <span className="font-semibold text-text-main">{storeName} · </span>}
+            {allEntries.length} price entries
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <button

@@ -179,7 +179,7 @@ public class ProductService
         var loaded = await _db.Products
             .Include(p => p.Category)
             .Include(p => p.Aliases)
-            .FirstAsync(p => p.Id == product.Id);
+            .FirstOrDefaultAsync(p => p.Id == product.Id) ?? product;
 
         return new ProductResponse
         {

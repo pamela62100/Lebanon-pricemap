@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { icon: 'search',               path: '/app',         title: 'Search', end: true,  mobileOnly: false },
   { icon: 'storefront',           path: '/app/catalog', title: 'Stores', end: false, mobileOnly: false },
   { icon: 'map',                  path: '/app/map',     title: 'Map',    end: false, mobileOnly: false },
-  { icon: 'local_gas_station',    path: '/app/fuel',    title: 'Fuel',   end: false, mobileOnly: false },
   { icon: 'notifications_active', path: '/app/alerts',  title: 'Alerts', end: false, mobileOnly: false },
 ];
 
@@ -18,7 +17,7 @@ export function TopNavbar() {
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const totalItems = useCartStore((state) => state.totalItemCount());
+  const totalItems = useCartStore((state) => state.items.reduce((sum, i) => sum + i.quantity, 0));
   const { rateLbpPerUsd, isLoading: rateLoading, fetchRate } = useExchangeRateStore();
 
   const [profileOpen, setProfileOpen] = useState(false);

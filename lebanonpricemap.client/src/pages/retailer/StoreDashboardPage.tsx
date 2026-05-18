@@ -8,6 +8,8 @@ import { KpiCard } from '@/components/cards/KpiCard';
 import { useNavigate } from 'react-router-dom';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { SyncStatusCard } from '@/components/retailer/SyncStatusCard';
+import { useToastStore } from '@/store/useToastStore';
+import { cn } from '@/lib/utils';
 import type { Store } from '@/types';
 
 interface CatalogItem {
@@ -42,7 +44,7 @@ function StoreSetupScreen({ onCreated }: { onCreated: (store: Store) => void }) 
     setError('');
     try {
       const res = await storesApi.createMine({ name: name.trim(), city, district: district.trim() || undefined });
-      const created = (res as any).data?.data ?? (res as any).data;
+      const created = res.data?.data ?? res.data;
       onCreated(created);
     } catch (err: any) {
       setError(err?.response?.data?.message ?? 'Could not create store. Try again.');
@@ -122,12 +124,34 @@ function StoreSetupScreen({ onCreated }: { onCreated: (store: Store) => void }) 
   );
 }
 
+const POWER_OPTIONS: { value: string; label: string; icon: string; className: string }[] = [
+  { value: 'stable',        label: 'Power stable',  icon: 'bolt',              className: 'text-green-600 bg-green-500/10 border-green-300' },
+  { value: 'unstable',      label: 'Power cuts',    icon: 'bolt',              className: 'text-amber-600 bg-amber-400/10 border-amber-300' },
+  { value: 'reported_warm', label: 'Warm stock',    icon: 'device_thermostat', className: 'text-red-500 bg-red-500/10 border-red-300' },
+];
+
 export function StoreDashboardPage() {
   const navigate = useNavigate();
   const [store, setStore] = useState<Store | null>(null);
   const [catalog, setCatalog] = useState<CatalogItem[]>([]);
   const [pendingReports, setPendingReports] = useState<DiscrepancyReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [updatingPower, setUpdatingPower] = useState(false);
+  const addToast = useToastStore(s => s.addToast);
+
+  const handlePowerUpdate = async (powerStatus: string) => {
+    if (!store || updatingPower) return;
+    setUpdatingPower(true);
+    try {
+      await storesApi.updatePower(store.id, powerStatus);
+      setStore(prev => prev ? { ...prev, powerStatus: powerStatus as Store['powerStatus'] } : prev);
+      addToast('Power status updated — shoppers will see this immediately.', 'success');
+    } catch {
+      addToast('Failed to update power status.', 'error');
+    } finally {
+      setUpdatingPower(false);
+    }
+  };
 
   useEffect(() => {
     storesApi.getMine().then(async (res) => {
@@ -216,18 +240,37 @@ export function StoreDashboardPage() {
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6 md:mt-0 relative z-10">
-          <button onClick={() => navigate('/retailer/upload')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm flex items-center gap-2">
-            <span className="material-symbols-outlined text-[18px]">upload_file</span>
-            Upload CSV
-          </button>
-          <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm">
-            Manage Promos
-          </button>
-          <button onClick={() => navigate('/retailer/insights')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:opacity-90 text-sm transition-all">
-            <span className="material-symbols-outlined text-[18px]">insights</span>
-            Insights
-          </button>
+        <div className="flex flex-col gap-3 mt-6 md:mt-0 relative z-10 items-end">
+          <div className="flex gap-3">
+            <button onClick={() => navigate('/retailer/upload')} className="h-10 px-5 rounded-xl border border-border-soft bg-bg-surface font-semibold hover:border-primary hover:text-primary transition-colors text-sm flex items-center gap-2">
+              <span className="material-symbols-outlined text-[18px]">upload_file</span>
+              Upload CSV
+            </button>
+            <button onClick={() => navigate('/retailer/promotions')} className="h-10 px-5 rounded-xl bg-primary text-white font-semibold flex items-center gap-2 hover:opacity-90 text-sm transition-all">
+              <span className="material-symbols-outlined text-[18px]">local_offer</span>
+              Manage Promos
+            </button>
+          </div>
+          {/* Power status — visible to shoppers in real time */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-semibold text-text-muted">Power status:</span>
+            {POWER_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handlePowerUpdate(opt.value)}
+                disabled={updatingPower}
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-semibold transition-all disabled:opacity-60',
+                  store?.powerStatus === opt.value
+                    ? opt.className + ' ring-2 ring-offset-1 ring-current'
+                    : 'bg-white text-text-muted border-border-soft hover:border-text-muted'
+                )}
+              >
+                <span className="material-symbols-outlined text-[13px]">{opt.icon}</span>
+                {opt.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -298,10 +341,12 @@ export function StoreDashboardPage() {
               </div>
             ) : (
               <div className="flex flex-col gap-3">
-                {pendingReports.slice(0, 3).map(r => (
+                {pendingReports.slice(0, 3).map(r => {
+                  const productName = catalog.find(c => c.productId === r.productId)?.product?.name ?? r.productId.slice(0, 8) + '…';
+                  return (
                   <div key={r.id} className="p-4 rounded-xl border border-amber-400/20 bg-amber-400/5">
                     <div className="flex justify-between items-start mb-1">
-                      <p className="text-xs font-bold text-text-main">{r.productId}</p>
+                      <p className="text-xs font-bold text-text-main">{productName}</p>
                       <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
                         {r.reportType.replace('_', ' ')}
                       </span>
@@ -312,7 +357,8 @@ export function StoreDashboardPage() {
                       </p>
                     )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
             )}
             <div className="mt-4 pt-4 border-t border-border-soft flex items-center justify-between">

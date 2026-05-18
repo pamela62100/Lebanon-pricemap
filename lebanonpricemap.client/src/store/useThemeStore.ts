@@ -8,7 +8,6 @@ interface ThemeState {
 export const useThemeStore = create<ThemeState>((set) => ({
   isDark: false,
   toggle: () => {
-    // Light only mode — no operation
-    console.log('System is locked to Light Editorial.');
+    // Light-only mode — dark theme not yet implemented
   },
 }));

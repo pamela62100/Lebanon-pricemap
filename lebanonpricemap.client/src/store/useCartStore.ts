@@ -46,7 +46,6 @@ interface CartState {
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
   optimizeCart: () => Promise<void>;
-  totalItemCount: () => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -102,6 +101,4 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  totalItemCount: () =>
-    get().items.reduce((sum, i) => sum + i.quantity, 0),
 }));

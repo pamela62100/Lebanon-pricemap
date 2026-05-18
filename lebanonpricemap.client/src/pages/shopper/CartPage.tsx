@@ -135,9 +135,15 @@ export function CartPage() {
               </p>
               <button
                 onClick={optimizeCart}
-                className="btn-primary h-10 px-5 rounded-xl text-sm"
+                disabled={isLoading}
+                className="btn-primary h-10 px-5 rounded-xl text-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Compare stores
+                {isLoading ? (
+                  <>
+                    <span className="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                    Comparing...
+                  </>
+                ) : 'Compare stores'}
               </button>
             </div>
           ) : (() => {

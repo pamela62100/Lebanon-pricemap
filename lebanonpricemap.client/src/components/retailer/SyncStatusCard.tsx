@@ -36,10 +36,10 @@ export function SyncStatusCard({ className, storeId }: SyncStatusCardProps) {
     setIsRefreshing(true);
     try {
       const res = await storesApi.getSyncRuns();
-      const data = (res as any).data?.data ?? [];
+      const data = res.data?.data ?? res.data ?? [];
       setRuns(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Failed to fetch sync runs:', err);
+    } catch {
+      // silently keep stale list — user can retry via the refresh button
     } finally {
       setIsRefreshing(false);
     }

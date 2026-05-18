@@ -45,7 +45,7 @@ public class MissingProductService
         var saved = await _db.MissingProductRequests
             .Include(m => m.Store)
             .Include(m => m.Product)
-            .FirstAsync(m => m.Id == entity.Id);
+            .FirstOrDefaultAsync(m => m.Id == entity.Id) ?? entity;
 
         return MapToResponse(saved);
     }
