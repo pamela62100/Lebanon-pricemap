@@ -11,8 +11,6 @@ import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/ui/EmptyState';
 import type { Product } from '@/types';
 
-const REGIONS = ['Beirut', 'Metn', 'Keserwan', 'Tripoli', 'Sidon', 'Zahle'];
-
 interface Alert {
   id: string;
   productId: string;
@@ -31,7 +29,6 @@ export function AlertsPage() {
   const { open, close, getParam } = useRouteDialog();
   const [newProduct, setNewProduct] = useState('');
   const [newThreshold, setNewThreshold] = useState<number | ''>('');
-  const [newRegions, setNewRegions] = useState<string[]>(['Beirut']);
   const [verifiedOnly, setVerifiedOnly] = useState(true);
   const addToast = useToastStore((s) => s.addToast);
 
@@ -51,7 +48,7 @@ export function AlertsPage() {
         const productData = productsRes.data?.data ?? productsRes.data;
         setProducts(Array.isArray(productData) ? productData : []);
       } catch {
-        // errors handled by axios interceptor
+        addToast('Failed to load alerts. Please try again.', 'error');
       } finally {
         setIsLoading(false);
       }
@@ -81,7 +78,7 @@ export function AlertsPage() {
       const created = res.data?.data ?? res.data;
       setAlerts((prev) => [created, ...prev]);
       close();
-      setNewProduct(''); setNewThreshold(''); setNewRegions(['Beirut']); setVerifiedOnly(true);
+      setNewProduct(''); setNewThreshold(''); setVerifiedOnly(true);
 
       if (created.alreadyBelowThreshold && created.currentBestPriceLbp) {
         addToast(
@@ -226,31 +223,6 @@ export function AlertsPage() {
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Target price</label>
               <LBPInput value={newThreshold} onChange={setNewThreshold} className="max-w-none" />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-muted uppercase tracking-wide">Regions</label>
-              <div className="flex flex-wrap gap-1.5">
-                {REGIONS.map((region) => (
-                  <button
-                    key={region}
-                    type="button"
-                    onClick={() =>
-                      setNewRegions((prev) =>
-                        prev.includes(region) ? prev.filter((r) => r !== region) : [...prev, region]
-                      )
-                    }
-                    className={cn(
-                      'px-3 py-1.5 rounded-full border text-xs font-semibold transition-all',
-                      newRegions.includes(region)
-                        ? 'bg-primary text-white border-primary'
-                        : 'bg-white text-text-muted border-border-soft hover:border-primary/20 hover:text-text-main'
-                    )}
-                  >
-                    {region}
-                  </button>
-                ))}
-              </div>
             </div>
 
             <label className="flex items-center justify-between gap-3 p-3 rounded-xl bg-bg-muted cursor-pointer">

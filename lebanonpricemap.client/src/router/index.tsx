@@ -25,7 +25,6 @@ import { MapPage }            from '@/pages/shopper/MapPage';
 import { CartPage }           from '@/pages/shopper/CartPage';
 import { CartOptimizePage }   from '@/pages/shopper/CartOptimizePage';
 import { BarcodeScannerPage } from '@/pages/shopper/BarcodeScannerPage';
-import { FuelTrackerPage }    from '@/pages/shopper/FuelTrackerPage';
 import { ProfilePage }        from '@/pages/shopper/ProfilePage';
 import { PriceDetailPage }    from '@/pages/shopper/PriceDetailPage';
 import { AlertsPage }         from '@/pages/shopper/AlertsPage';
@@ -37,8 +36,6 @@ import { RetailerCatalogDetailPage } from '@/pages/shopper/RetailerCatalogDetail
 import { StoreDashboardPage }     from '@/pages/retailer/StoreDashboardPage';
 import { RetailerProductsPage }   from '@/pages/retailer/RetailerProductsPage';
 import { PromotionsPage }         from '@/pages/retailer/PromotionsPage';
-import { CompetitorInsightsPage } from '@/pages/retailer/CompetitorInsightsPage';
-import { RetailerSyncPage }       from '@/pages/retailer/RetailerSyncPage';
 import { BulkUploadPage }         from '@/pages/retailer/BulkUploadPage';
 import { UpdatePricePage }        from '@/pages/retailer/UpdatePricePage';
 
@@ -83,7 +80,7 @@ export function AppRouter() {
           <Route path="list"          element={<CartPage />} />
           <Route path="list/optimize" element={<CartOptimizePage />} />
           <Route path="scan"          element={<BarcodeScannerPage />} />
-          <Route path="fuel"          element={<FuelTrackerPage />} />
+          <Route path="fuel"          element={<Navigate to="/app" replace />} />
           <Route path="profile"       element={<ProfilePage />} />
           <Route path="price/:id"     element={<PriceDetailPage />} />
           <Route path="alerts"        element={<AlertsPage />} />
@@ -99,8 +96,8 @@ export function AppRouter() {
           <Route index               element={<StoreDashboardPage />} />
           <Route path="products"     element={<RetailerProductsPage />} />
           <Route path="promotions"   element={<PromotionsPage />} />
-          <Route path="insights"     element={<CompetitorInsightsPage />} />
-          <Route path="sync"         element={<RetailerSyncPage />} />
+          <Route path="insights"     element={<Navigate to="/retailer" replace />} />
+          <Route path="sync"         element={<Navigate to="/retailer" replace />} />
           <Route path="upload"       element={<BulkUploadPage />} />
           <Route path="price/:id/edit" element={<UpdatePricePage />} />
           <Route path="profile"      element={<ProfilePage />} />

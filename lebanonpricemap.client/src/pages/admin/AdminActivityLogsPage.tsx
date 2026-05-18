@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { adminApi } from '@/api/admin.api';
 import { timeAgo, cn } from '@/lib/utils';
+import { useToastStore } from '@/store/useToastStore';
 
 const actionColors: Record<string, string> = {
   approved:  'border-l-[var(--status-verified-text)]',
@@ -35,12 +36,15 @@ interface AuditLog {
 export function AdminActivityLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const addToast = useToastStore(s => s.addToast);
 
   useEffect(() => {
     adminApi.getAuditLogs().then((res) => {
       const data = res.data?.data ?? res.data;
       setLogs(Array.isArray(data) ? data : []);
-    }).catch(() => {}).finally(() => setIsLoading(false));
+    }).catch(() => {
+      addToast('Failed to load activity logs.', 'error');
+    }).finally(() => setIsLoading(false));
   }, []);
 
   if (isLoading) {

@@ -6,11 +6,14 @@ namespace LebanonPriceMap.Server.DTOs;
 /// </summary>
 public class PriceSearchRequest
 {
-    public string? Query { get; set; }      // e.g., "Milk"
-    public string? Category { get; set; }   // e.g., "Dairy"
-    public string? City { get; set; }       // e.g., "Beirut"
-    public string? Sort { get; set; }       // e.g., "price" or "date"
-    public bool? VerifiedOnly { get; set; } // To filter only confirmed prices
+    public string? Query { get; set; }
+    public string? Category { get; set; }
+    public string? City { get; set; }
+    public string? Sort { get; set; }
+    public bool? VerifiedOnly { get; set; }
+    public bool? InStockOnly { get; set; }
+    public int Limit { get; set; } = 50;
+    public int Offset { get; set; } = 0;
 }
 
 /// <summary>
@@ -28,8 +31,11 @@ public class ProductDto {
 public class StoreDto {
     public string Name { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
+    public string? District { get; set; }
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
+    public string PowerStatus { get; set; } = "stable";
+    public bool IsVerifiedRetailer { get; set; }
 }
 
 /// <summary>
@@ -47,6 +53,7 @@ public class PriceEntryResponse {
     public DateTime? PromoEndsAt { get; set; }
     public DateTime CreatedAt { get; set; }
     public int Upvotes { get; set; }
+    public bool IsInStock { get; set; } = true;
 
     // Nested objects that the UI needs to display names and locations
     public ProductDto? Product { get; set; }

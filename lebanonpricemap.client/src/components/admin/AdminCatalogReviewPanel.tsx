@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { discrepancyApi } from '@/api/discrepancy.api';
 import { cn, timeAgo } from '@/lib/utils';
 import { useLiveUpdate } from '@/hooks/useLiveUpdates';
+import { useToastStore } from '@/store/useToastStore';
 
 const DISC_STATUS_STYLES = {
   pending:    { bg: 'bg-amber-400/10 border-amber-400/30',  text: 'text-amber-500',  label: 'Pending' },
@@ -25,12 +26,17 @@ export function AdminCatalogReviewPanel() {
   const [discrepancies, setDiscrepancies] = useState<any[]>([]);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [actioningId, setActioningId] = useState<string | null>(null);
+  const addToast = useToastStore(s => s.addToast);
 
   useEffect(() => {
     discrepancyApi.getPending().then((res) => {
       const data = res.data?.data ?? res.data;
       setDiscrepancies(Array.isArray(data) ? data : []);
-    }).catch(() => {});
+    }).catch(() => {
+      addToast('Failed to load discrepancy reports.', 'error');
+    }).finally(() => setIsLoading(false));
   }, []);
 
   // New reports pushed live by the backend → prepend
@@ -48,16 +54,40 @@ export function AdminCatalogReviewPanel() {
   const remove = (id: string) => setDiscrepancies(prev => prev.filter(d => d.id !== id));
 
   const handleApprove = async (id: string) => {
-    await discrepancyApi.approve(id, { note: reviewNote[id] });
-    remove(id);
-    setExpandedId(null);
+    setActioningId(id);
+    try {
+      await discrepancyApi.approve(id, { note: reviewNote[id] });
+      remove(id);
+      setExpandedId(null);
+    } catch {
+      addToast('Failed to approve report. Try again.', 'error');
+    } finally {
+      setActioningId(null);
+    }
   };
 
   const handleReject = async (id: string) => {
-    await discrepancyApi.reject(id, { note: reviewNote[id] ?? 'Rejected.' });
-    remove(id);
-    setExpandedId(null);
+    setActioningId(id);
+    try {
+      await discrepancyApi.reject(id, { note: reviewNote[id] ?? 'Rejected.' });
+      remove(id);
+      setExpandedId(null);
+    } catch {
+      addToast('Failed to reject report. Try again.', 'error');
+    } finally {
+      setActioningId(null);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="mt-12 pt-8 border-t border-border-soft space-y-3">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="h-20 rounded-2xl bg-bg-muted animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="mt-12 pt-8 border-t border-border-soft">
@@ -156,14 +186,18 @@ export function AdminCatalogReviewPanel() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleApprove(report.id)}
-                            className="flex-1 h-9 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5"
+                            disabled={actioningId === report.id}
+                            className="flex-1 h-9 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
-                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>check_circle</span>
-                            Verified — Notify Retailer
+                            <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>
+                              {actioningId === report.id ? 'progress_activity' : 'check_circle'}
+                            </span>
+                            {actioningId === report.id ? 'Saving...' : 'Verified — Notify Retailer'}
                           </button>
                           <button
                             onClick={() => handleReject(report.id)}
-                            className="flex-1 h-9 border border-red-300 text-red-500 hover:bg-red-50 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5"
+                            disabled={actioningId === report.id}
+                            className="flex-1 h-9 border border-red-300 text-red-500 hover:bg-red-50 rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
                           >
                             <span className="material-symbols-outlined" style={{ fontSize: '15px' }}>cancel</span>
                             Not Valid

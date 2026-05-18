@@ -1,8 +1,8 @@
 <Solution>
   <Folder Name="/Solution Items/">
-    <File Path="../LebanonPriceMap/lebanonpricemap.client/lebanonpricemap.client.esproj" />
+    <File Path="lebanonpricemap.client/lebanonpricemap.client.esproj" />
   </Folder>
-  <Project Path="../LebanonPriceMap/Lebanon-pricemap/lebanonpricemap.client/lebanonpricemap.client.esproj">
+  <Project Path="lebanonpricemap.client/lebanonpricemap.client.esproj">
     <Build />
     <Deploy />
   </Project>

@@ -167,7 +167,6 @@ export function CsvUploadZone() {
       setStep(3);
       addToast("Prices imported and sync run recorded.", "success");
     } catch (error: any) {
-      console.error(error);
       const msg = error.response?.data?.message || error.response?.data?.detail || error.response?.data?.title || error.message || "Unable to submit CSV. Please try again.";
       setSubmitError(msg);
       addToast(msg, "error");

@@ -31,11 +31,11 @@ export const useLocationStore = create<LocationState>((set) => ({
         isLoading: false,
       }),
       () => set({
-        // Fallback to Beirut center if denied
         lat: 33.8938, lng: 35.5018,
         permissionStatus: 'denied',
         isLoading: false,
-      })
+      }),
+      { timeout: 8000, maximumAge: 60000 }
     );
   },
 

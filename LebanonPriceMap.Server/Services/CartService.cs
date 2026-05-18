@@ -99,9 +99,9 @@ public class CartService
         var reloaded = await _db.Carts
             .Include(c => c.Items).ThenInclude(ci => ci.Product)
             .Include(c => c.Items).ThenInclude(ci => ci.Store)
-            .FirstAsync(c => c.Id == cart.Id);
+            .FirstOrDefaultAsync(c => c.Id == cart.Id);
 
-        return MapCartToResponse(reloaded);
+        return MapCartToResponse(reloaded ?? cart);
     }
 
     /// <summary>
@@ -153,8 +153,9 @@ public class CartService
         var reloaded = await _db.Carts
             .Include(c => c.Items).ThenInclude(ci => ci.Product)
             .Include(c => c.Items).ThenInclude(ci => ci.Store)
-            .FirstAsync(c => c.Id == item.CartId);
+            .FirstOrDefaultAsync(c => c.Id == item.CartId);
 
+        if (reloaded == null) return null;
         return MapCartToResponse(reloaded);
     }
 
@@ -212,13 +213,14 @@ public class CartService
                     var catalogEntry = g.FirstOrDefault(cp => cp.ProductId == cartItem.ProductId);
                     var productName = cartItem.Product?.Name ?? "Unknown product";
 
-                    if (catalogEntry != null)
+                    if (catalogEntry != null && (catalogEntry.OfficialPriceLbp > 0 || (catalogEntry.IsPromotion && catalogEntry.PromoPriceLbp > 0)))
                     {
                         var price = (catalogEntry.IsPromotion &&
                                      catalogEntry.PromoPriceLbp.HasValue &&
+                                     catalogEntry.PromoPriceLbp > 0 &&
                                      (catalogEntry.PromoEndsAt == null || catalogEntry.PromoEndsAt > DateTime.UtcNow))
                             ? (long)catalogEntry.PromoPriceLbp.Value
-                            : (long)(catalogEntry.OfficialPriceLbp ?? 0);
+                            : (long)catalogEntry.OfficialPriceLbp!.Value;
 
                         total += price * cartItem.Quantity;
                         found.Add(new BasketItem

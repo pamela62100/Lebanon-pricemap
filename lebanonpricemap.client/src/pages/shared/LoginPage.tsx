@@ -230,14 +230,6 @@ export function LoginPage() {
                   </p>
                 </div>
 
-                {/* Demo accounts notice */}
-                <div className="mb-6 p-3.5 rounded-xl bg-bg-muted border border-border-primary text-sm text-text-muted leading-relaxed">
-                  <span className="font-semibold text-text-main">Demo accounts: </span>
-                  Use <code className="text-text-main font-mono text-xs">habib@test.com</code> or{' '}
-                  <code className="text-text-main font-mono text-xs">admin@wein.app</code> with password{' '}
-                  <code className="text-text-main font-mono text-xs">Test1234!</code>
-                </div>
-
                 {error && (
                   <motion.div
                     initial={{ opacity: 0, y: -8 }}

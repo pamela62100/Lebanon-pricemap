@@ -1,5 +1,4 @@
 import client from './axiosClient';
-import type { MissingProductRequest } from '@/types/catalog.types';
 
 // ─── Catalog API ──────────────────────────────────────────────────────────────
 export const catalogApi = {
@@ -54,25 +53,35 @@ export const catalogApi = {
   },
 };
 
-// ─── Missing Product Request API (placeholder — no backend endpoint yet) ─────
+// ─── Missing Product Request API ──────────────────────────────────────────────
 export const missingProductApi = {
-  getAll(): MissingProductRequest[] {
-    return [];
+  // POST /api/missing-products — shopper submits a missing product request
+  submit: async (data: {
+    storeId: string;
+    productId?: string;
+    productNameFreetext?: string;
+    note?: string;
+  }) => {
+    return client.post('/missing-products', data);
   },
 
-  getPending(): MissingProductRequest[] {
-    return [];
+  // GET /api/missing-products/my — shopper views their own requests
+  getMy: async () => {
+    return client.get('/missing-products/my');
   },
 
-  submit(_req: Omit<MissingProductRequest, 'id' | 'status' | 'createdAt'>): MissingProductRequest {
-    throw new Error('Missing product request submission not yet implemented.');
+  // GET /api/missing-products/pending — admin views pending requests
+  getPending: async () => {
+    return client.get('/missing-products/pending');
   },
 
-  forward(_id: string, _note?: string): boolean {
-    return false;
+  // PATCH /api/missing-products/{id}/approve — admin approves
+  approve: async (id: string, reviewNote?: string) => {
+    return client.patch(`/missing-products/${id}/approve`, { reviewNote });
   },
 
-  decline(_id: string, _note?: string): boolean {
-    return false;
+  // PATCH /api/missing-products/{id}/reject — admin rejects
+  reject: async (id: string, reviewNote?: string) => {
+    return client.patch(`/missing-products/${id}/reject`, { reviewNote });
   },
 };

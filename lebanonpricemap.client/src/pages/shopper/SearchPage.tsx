@@ -7,6 +7,7 @@ import { PriceResultCard } from '@/components/cards/PriceResultCard';
 import { useLocationStore } from '@/store/useLocationStore';
 import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { distanceKm } from '@/lib/distanceUtils';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const CATEGORIES = [
   { id: 'All',     label: 'All',     icon: 'apps' },
@@ -22,28 +23,31 @@ export function SearchPage() {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'near' | 'price' | 'date'>('date');
+  const [inStockOnly, setInStockOnly] = useState(false);
   const [allEntries, setAllEntries] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const { lat, lng } = useLocationStore();
+  const { lat, lng, city } = useLocationStore();
   const { getParam } = useRouteDialog();
   const addToast = useToastStore(s => s.addToast);
+  const debouncedQuery = useDebounce(query, 300);
 
   useEffect(() => {
     setLoading(true);
     pricesApi.search({
-      query: query || undefined,
-      city: undefined,
+      query: debouncedQuery || undefined,
+      city: city || undefined,
       sort: sortBy === 'date' ? undefined : sortBy,
       verifiedOnly: false,
+      inStockOnly: inStockOnly || undefined,
     })
-      .then(res => setAllEntries((res as any).data?.data ?? []))
+      .then(res => setAllEntries(res.data?.data ?? []))
       .catch(() => {
         addToast('Could not load prices. Check your connection.', 'error');
         setAllEntries([]);
       })
       .finally(() => setLoading(false));
-  }, [query, activeCategory, sortBy]);
+  }, [debouncedQuery, activeCategory, sortBy, city, inStockOnly]);
 
   const activeEntryId = getParam('id');
   const activeEntry = allEntries.find((e: any) => e.id === activeEntryId);
@@ -120,14 +124,28 @@ export function SearchPage() {
 
         {/* Results */}
         <div className="px-5 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-text-muted">
-              {loading ? (
-                <span className="text-text-muted">Loading...</span>
-              ) : (
-                <><span className="font-bold text-text-main">{filteredEntries.length}</span> results</>
-              )}
-            </p>
+          <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <p className="text-xs text-text-muted">
+                {loading ? (
+                  <span className="text-text-muted">Loading...</span>
+                ) : (
+                  <><span className="font-bold text-text-main">{filteredEntries.length}</span> results</>
+                )}
+              </p>
+              <button
+                onClick={() => setInStockOnly(v => !v)}
+                className={cn(
+                  'flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-all',
+                  inStockOnly
+                    ? 'bg-green-500 text-white border-green-500'
+                    : 'bg-white text-text-muted border-border-soft hover:border-green-400 hover:text-green-600'
+                )}
+              >
+                <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                In stock
+              </button>
+            </div>
             <div className="flex p-0.5 bg-bg-muted rounded-lg border border-border-soft">
               {(['date', 'price', 'near'] as const).map((s) => (
                 <button
