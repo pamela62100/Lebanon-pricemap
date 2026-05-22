@@ -141,6 +141,33 @@ namespace LebanonPriceMap.Server.Services
 
             await _context.SaveChangesAsync();
 
+            // Mirror into current_store_product_prices so shoppers can find this item
+            var effectivePriceCreate = item.IsPromotion && item.PromoPriceLbp.HasValue ? item.PromoPriceLbp.Value : (item.OfficialPriceLbp ?? 0);
+            var existingCurrent = await _context.CurrentStoreProductPrices
+                .FirstOrDefaultAsync(c => c.StoreId == item.StoreId && c.ProductId == item.ProductId);
+            if (existingCurrent != null)
+            {
+                existingCurrent.CurrentPriceLbp = effectivePriceCreate;
+                existingCurrent.IsInStock = item.IsInStock;
+                existingCurrent.IsVerified = true;
+                existingCurrent.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _context.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = item.StoreId,
+                    ProductId = item.ProductId,
+                    CurrentPriceLbp = effectivePriceCreate,
+                    Source = SubmissionSource.api,
+                    IsVerified = true,
+                    IsInStock = item.IsInStock,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            await _context.SaveChangesAsync();
+
             // Sync with StorePromotion table for historical tracking
             if (item.IsPromotion && item.PromoPriceLbp.HasValue)
             {
@@ -198,10 +225,37 @@ namespace LebanonPriceMap.Server.Services
 
             await _context.SaveChangesAsync();
 
-            // Fire price alerts (skip if there's no concrete price set)
+            // Mirror into current_store_product_prices so shoppers see the updated price
             var effectivePrice = item.IsPromotion && item.PromoPriceLbp.HasValue
                 ? item.PromoPriceLbp
                 : item.OfficialPriceLbp;
+
+            var existingCurrentUpdate = await _context.CurrentStoreProductPrices
+                .FirstOrDefaultAsync(c => c.StoreId == item.StoreId && c.ProductId == item.ProductId);
+            if (existingCurrentUpdate != null)
+            {
+                existingCurrentUpdate.CurrentPriceLbp = effectivePrice ?? 0;
+                existingCurrentUpdate.IsInStock = item.IsInStock;
+                existingCurrentUpdate.IsVerified = true;
+                existingCurrentUpdate.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _context.CurrentStoreProductPrices.Add(new CurrentStoreProductPrice
+                {
+                    Id = Guid.NewGuid(),
+                    StoreId = item.StoreId,
+                    ProductId = item.ProductId,
+                    CurrentPriceLbp = effectivePrice ?? 0,
+                    Source = SubmissionSource.api,
+                    IsVerified = true,
+                    IsInStock = item.IsInStock,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            // Fire price alerts (skip if there's no concrete price set)
             if (effectivePrice.HasValue)
             {
                 await _alertService.CheckAlertsForPriceDropAsync(item.ProductId, effectivePrice.Value, item.StoreId);
@@ -247,6 +301,12 @@ namespace LebanonPriceMap.Server.Services
             var productId = item.ProductId;
 
             _context.StoreCatalogItems.Remove(item);
+
+            var currentEntry = await _context.CurrentStoreProductPrices
+                .FirstOrDefaultAsync(c => c.StoreId == storeId && c.ProductId == productId);
+            if (currentEntry != null)
+                _context.CurrentStoreProductPrices.Remove(currentEntry);
+
             await _context.SaveChangesAsync();
 
             await _live.CatalogChanged(storeId, productId, new { action = "deleted", id });
