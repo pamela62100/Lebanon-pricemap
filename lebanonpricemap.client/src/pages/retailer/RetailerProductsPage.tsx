@@ -162,6 +162,7 @@ export function RetailerProductsPage() {
     try {
       const updateData = {
         officialPriceLbp: Number(editPrice),
+        isInStock: activeEntry?.isInStock ?? true,
         isPromotion: editIsPromotion,
         promoPriceLbp: editIsPromotion ? Number(editPromoPrice) : undefined,
         promoEndsAt: editIsPromotion && editPromoEndsAt ? new Date(editPromoEndsAt).toISOString() : null

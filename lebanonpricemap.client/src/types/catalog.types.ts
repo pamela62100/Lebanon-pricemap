@@ -11,7 +11,6 @@ export type DiscrepancyType =
   | 'duplicate_listing';
 
 export type DiscrepancyStatus = 'pending' | 'approved' | 'rejected' | 'needs_info' | 'auto_closed';
-export type MissingProductStatus = 'pending' | 'forwarded' | 'added' | 'declined' | 'rejected';
 export type CatalogChangeReason = 'owner_update' | 'admin_correction' | 'promo_started' | 'promo_ended' | 'discrepancy_approved';
 
 /**
@@ -62,26 +61,6 @@ export interface PriceDiscrepancyReport {
   // Enriched
   reporter?: { id: string; name: string; avatarInitials: string; trustScore: number };
   catalogProduct?: CatalogProduct;
-}
-
-/**
- * Raised by a shopper when they see a product in the store that isn't in the catalog.
- * Admin can forward to the store owner, or decline/reject.
- */
-export interface MissingProductRequest {
-  id: string;
-  storeId: string;
-  /** May refer to an existing Product or be a free-text name if not in the DB */
-  productId?: string;
-  productNameFreeText?: string;
-  requestedBy: string; // userId
-  requesterTrustScore: number;
-  note?: string;
-  status: MissingProductStatus;
-  reviewNote?: string;
-  reviewedBy?: string;
-  createdAt: string;
-  resolvedAt?: string | null;
 }
 
 /**

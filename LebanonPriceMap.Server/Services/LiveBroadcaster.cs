@@ -24,23 +24,23 @@ public class LiveBroadcaster
         catch (Exception ex) { _logger.LogWarning(ex, "Live broadcast '{Label}' failed", label); }
     }
 
-    // ── Notifications ────────────────────────────────────────────────────────
+    // ── Notifications, new notif for user
     public Task NotifyUser(Guid userId, object notification) =>
         SafeAsync(() => _hub.Clients.Group($"user-{userId}").NotificationCreated(notification),
                   "NotifyUser");
 
-    // ── Discrepancy reports ─────────────────────────────────────────────────
+    // ── Discrepancy reports someone reported wrong price
     public Task ReportSubmitted(object report) =>
         SafeAsync(() => _hub.Clients.Group("admins").DiscrepancyReportCreated(report),
                   "ReportSubmitted");
 
-    public Task ReportResolved(Guid storeId, object payload) =>
+    public Task ReportResolved(Guid storeId, object payload) => //admin fixed the report
         SafeAsync(async () => {
             await _hub.Clients.Group("admins").DiscrepancyReportResolved(payload);
             await _hub.Clients.Group($"store-{storeId}").DiscrepancyReportResolved(payload);
         }, "ReportResolved");
 
-    // ── Catalog ─────────────────────────────────────────────────────────────
+    // ── Catalog product name changed
     public Task CatalogChanged(Guid storeId, Guid productId, object payload) =>
         SafeAsync(async () => {
             await _hub.Clients.Group($"store-{storeId}").CatalogItemChanged(payload);
@@ -52,11 +52,11 @@ public class LiveBroadcaster
         SafeAsync(() => _hub.Clients.Group($"store-{storeId}").SyncRunUpdated(run),
                   "SyncRunUpdated");
 
-    // ── Price vote / change (shopper detail page) ──────────────────────────
+    // ── Price vote someone voted on a price
     public Task PriceVoted(Guid productId, object payload) =>
         SafeAsync(() => _hub.Clients.Group($"product-{productId}").PriceVoted(payload),
                   "PriceVoted");
-
+//store updated price
     public Task PriceChanged(Guid productId, object payload) =>
         SafeAsync(() => _hub.Clients.Group($"product-{productId}").PriceChanged(payload),
                   "PriceChanged");

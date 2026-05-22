@@ -22,6 +22,7 @@ namespace LebanonPriceMap.Server.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "alert_status", new[] { "active", "deleted", "paused", "triggered" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "catalog_change_reason", new[] { "owner_update", "system_sync", "admin_override", "report_correction", "promo_ended" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "submission_source", new[] { "community", "official", "manual", "api", "csv" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "submission_status", new[] { "pending", "verified", "rejected", "flagged", "superseded" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "sync_method", new[] { "manual", "csv", "api" });
@@ -125,65 +126,6 @@ namespace LebanonPriceMap.Server.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("price_alerts", (string)null);
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.ApprovalRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("action");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Label")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("label");
-
-                    b.Property<string>("Payload")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("payload");
-
-                    b.Property<Guid>("RequestedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("requested_by");
-
-                    b.Property<DateTime?>("ResolvedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("resolved_at");
-
-                    b.Property<string>("ReviewNote")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("review_note");
-
-                    b.Property<Guid?>("ReviewedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("reviewed_by");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("approval_requests", (string)null);
                 });
 
             modelBuilder.Entity("LebanonPriceMap.Server.Models.Cart", b =>
@@ -291,8 +233,7 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("product_id");
 
-                    b.Property<string>("Reason")
-                        .IsRequired()
+                    b.Property<CatalogChangeReason>("Reason")
                         .HasColumnType("catalog_change_reason")
                         .HasColumnName("reason");
 
@@ -645,7 +586,6 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("assigned_to");
 
                     b.Property<string>("CaseNote")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("case_note");
 
@@ -864,7 +804,6 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("product_id");
 
                     b.Property<string>("ResolutionNote")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("resolution_note");
 
@@ -920,126 +859,9 @@ namespace LebanonPriceMap.Server.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PriceSubmissionId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("price_confirmations", (string)null);
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceFeedback", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<Guid>("PriceEntryId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("price_entry_id");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid?>("SubmittedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("submitted_by");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("type");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceEntryId");
-
-                    b.HasIndex("SubmittedBy");
-
-                    b.ToTable("price_feedback", (string)null);
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceNote", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<Guid>("PriceSubmissionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("price_submission_id");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceSubmissionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("price_notes", (string)null);
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<string>("Note")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("note");
-
-                    b.Property<Guid>("PriceSubmissionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("price_submission_id");
-
-                    b.Property<string>("ReportType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("report_type");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PriceSubmissionId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("price_reports", (string)null);
                 });
 
             modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceSubmission", b =>
@@ -1054,7 +876,6 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("created_at");
 
                     b.Property<string>("DisputeReason")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("dispute_reason");
 
@@ -1075,23 +896,19 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("mismatch_detected");
 
                     b.Property<string>("MismatchReason")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("mismatch_reason");
 
                     b.Property<string>("Note")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("note");
 
                     b.Property<string>("OcrBarcode")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("ocr_barcode");
 
                     b.Property<string>("OcrPayload")
-                        .IsRequired()
                         .HasColumnType("jsonb")
                         .HasColumnName("ocr_payload");
 
@@ -1100,13 +917,11 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("ocr_price_lbp");
 
                     b.Property<string>("OcrProductName")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("ocr_product_name");
 
                     b.Property<string>("OcrStoreName")
-                        .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)")
                         .HasColumnName("ocr_store_name");
@@ -1124,7 +939,6 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnName("promo_ends_at");
 
                     b.Property<string>("ReceiptImageUrl")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("receipt_image_url");
 
@@ -1328,151 +1142,6 @@ namespace LebanonPriceMap.Server.Migrations
                     b.ToTable("regions", (string)null);
                 });
 
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.RetailerOnboardingApplication", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<string>("AddressText")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("address_text");
-
-                    b.Property<string>("AdminNotes")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("admin_notes");
-
-                    b.Property<DateTime>("AppliedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("applied_at");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("city");
-
-                    b.Property<string>("ContactName")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)")
-                        .HasColumnName("contact_name");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<short>("CurrentStep")
-                        .HasColumnType("smallint")
-                        .HasColumnName("current_step");
-
-                    b.Property<string>("District")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("district");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("email");
-
-                    b.Property<decimal?>("Latitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("latitude");
-
-                    b.Property<decimal?>("Longitude")
-                        .HasColumnType("numeric")
-                        .HasColumnName("longitude");
-
-                    b.Property<string>("Phone")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("phone");
-
-                    b.Property<string>("ProposedStoreName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("character varying(255)")
-                        .HasColumnName("proposed_store_name");
-
-                    b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("reviewed_at");
-
-                    b.Property<Guid?>("ReviewedBy")
-                        .HasColumnType("uuid")
-                        .HasColumnName("reviewed_by");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("status");
-
-                    b.Property<Guid?>("StoreId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("store_id");
-
-                    b.Property<short>("TotalSteps")
-                        .HasColumnType("smallint")
-                        .HasColumnName("total_steps");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReviewedBy");
-
-                    b.HasIndex("StoreId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("retailer_onboarding_applications", (string)null);
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.RetailerOnboardingDocument", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<Guid>("ApplicationId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("application_id");
-
-                    b.Property<string>("DocumentType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("document_type");
-
-                    b.Property<string>("FileUrl")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("file_url");
-
-                    b.Property<DateTime>("UploadedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("uploaded_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ApplicationId");
-
-                    b.ToTable("retailer_onboarding_documents", (string)null);
-                });
-
             modelBuilder.Entity("LebanonPriceMap.Server.Models.StationReport", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1630,9 +1299,8 @@ namespace LebanonPriceMap.Server.Migrations
                         .HasColumnType("text")
                         .HasColumnName("status");
 
-                    b.Property<string>("SyncMethod")
-                        .IsRequired()
-                        .HasColumnType("text")
+                    b.Property<SyncMethod>("SyncMethod")
+                        .HasColumnType("sync_method")
                         .HasColumnName("sync_method");
 
                     b.Property<short>("TrustScore")
@@ -2435,74 +2103,11 @@ namespace LebanonPriceMap.Server.Migrations
 
             modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceConfirmation", b =>
                 {
-                    b.HasOne("LebanonPriceMap.Server.Models.PriceSubmission", "PriceSubmission")
-                        .WithMany()
-                        .HasForeignKey("PriceSubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("LebanonPriceMap.Server.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("PriceSubmission");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceFeedback", b =>
-                {
-                    b.HasOne("LebanonPriceMap.Server.Models.PriceSubmission", "PriceEntry")
-                        .WithMany()
-                        .HasForeignKey("PriceEntryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LebanonPriceMap.Server.Models.User", "SubmittedByUser")
-                        .WithMany()
-                        .HasForeignKey("SubmittedBy");
-
-                    b.Navigation("PriceEntry");
-
-                    b.Navigation("SubmittedByUser");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceNote", b =>
-                {
-                    b.HasOne("LebanonPriceMap.Server.Models.PriceSubmission", "PriceSubmission")
-                        .WithMany()
-                        .HasForeignKey("PriceSubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LebanonPriceMap.Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PriceSubmission");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.PriceReport", b =>
-                {
-                    b.HasOne("LebanonPriceMap.Server.Models.PriceSubmission", "PriceSubmission")
-                        .WithMany()
-                        .HasForeignKey("PriceSubmissionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LebanonPriceMap.Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PriceSubmission");
 
                     b.Navigation("User");
                 });
@@ -2580,38 +2185,6 @@ namespace LebanonPriceMap.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.RetailerOnboardingApplication", b =>
-                {
-                    b.HasOne("LebanonPriceMap.Server.Models.User", "ReviewedByUser")
-                        .WithMany()
-                        .HasForeignKey("ReviewedBy");
-
-                    b.HasOne("LebanonPriceMap.Server.Models.Store", "Store")
-                        .WithMany()
-                        .HasForeignKey("StoreId");
-
-                    b.HasOne("LebanonPriceMap.Server.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("ReviewedByUser");
-
-                    b.Navigation("Store");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.RetailerOnboardingDocument", b =>
-                {
-                    b.HasOne("LebanonPriceMap.Server.Models.RetailerOnboardingApplication", "Application")
-                        .WithMany("Documents")
-                        .HasForeignKey("ApplicationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Application");
                 });
 
             modelBuilder.Entity("LebanonPriceMap.Server.Models.StationReport", b =>
@@ -2789,11 +2362,6 @@ namespace LebanonPriceMap.Server.Migrations
             modelBuilder.Entity("LebanonPriceMap.Server.Models.Region", b =>
                 {
                     b.Navigation("Districts");
-                });
-
-            modelBuilder.Entity("LebanonPriceMap.Server.Models.RetailerOnboardingApplication", b =>
-                {
-                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("LebanonPriceMap.Server.Models.StationReport", b =>

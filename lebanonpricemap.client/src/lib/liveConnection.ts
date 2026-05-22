@@ -71,9 +71,16 @@ class LiveConnection {
       .configureLogging(LogLevel.Warning)
       .build();
 
-    // Re-attach all listeners that were registered before .start() resolved
-    this.listeners.forEach((handlers, event) => {
-      this.connection!.on(event, (payload: any) => handlers.forEach(h => h(payload)));
+    // Pre-register all known events so no broadcast is ever missed due to a race
+    const allEvents: LiveEvent[] = [
+      'NotificationCreated', 'DiscrepancyReportCreated', 'DiscrepancyReportResolved',
+      'CatalogItemChanged', 'SyncRunUpdated', 'PriceVoted', 'PriceChanged',
+    ];
+    allEvents.forEach(event => {
+      if (!this.listeners.has(event)) this.listeners.set(event, new Set());
+      this.connection!.on(event, (payload: any) => {
+        this.listeners.get(event)?.forEach(h => h(payload));
+      });
     });
 
     this.connection.onreconnected(async () => {
@@ -108,15 +115,7 @@ class LiveConnection {
 
   /** Subscribe to an event. Returns an unsubscribe function. */
   on(event: LiveEvent, handler: Handler): () => void {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
-      // First listener for this event — wire it on the connection if it's already open
-      if (this.connection) {
-        this.connection.on(event, (payload: any) => {
-          this.listeners.get(event)?.forEach(h => h(payload));
-        });
-      }
-    }
+    if (!this.listeners.has(event)) this.listeners.set(event, new Set());
     this.listeners.get(event)!.add(handler);
     return () => {
       this.listeners.get(event)?.delete(handler);

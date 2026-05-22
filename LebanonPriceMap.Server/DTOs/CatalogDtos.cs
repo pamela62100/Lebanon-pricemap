@@ -58,9 +58,9 @@ namespace LebanonPriceMap.Server.DTOs
         public decimal? OfficialPriceLbp { get; set; }
         public decimal? PromoPriceLbp { get; set; }
         public DateTime? PromoEndsAt { get; set; }
-        public bool IsInStock { get; set; }
+        public bool IsInStock { get; set; } = true;
         public bool IsPromotion { get; set; }
-        
+
         // Audit information
         [Required]
         public CatalogChangeReason Reason { get; set; } = CatalogChangeReason.owner_update;

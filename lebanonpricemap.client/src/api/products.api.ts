@@ -1,4 +1,3 @@
-import type { ApiResponse, Product } from '@/types';
 import client from './axiosClient';
 
 export const productsApi = {
@@ -14,11 +13,6 @@ export const productsApi = {
 
   getById: async (id: string) => {
     const response = await client.get(`/products/${id}`);
-    return response;
-  },
-
-  getByBarcode: async (barcode: string) => {
-    const response = await client.get(`/products/barcode/${barcode}`);
     return response;
   },
 

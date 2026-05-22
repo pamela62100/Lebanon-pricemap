@@ -1,16 +1,14 @@
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
 namespace LebanonPriceMap.Server.Migrations
 {
-    /// <inheritdoc />
-    public partial class SeedTestData : Migration
+    public partial class SeedBaseData : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Seed Regions
             migrationBuilder.InsertData(
                 table: "regions",
                 columns: new[] { "id", "name", "created_at" },
@@ -25,7 +23,6 @@ namespace LebanonPriceMap.Server.Migrations
                 }
             );
 
-            // Seed Categories
             migrationBuilder.InsertData(
                 table: "categories",
                 columns: new[] { "id", "name", "sort_order", "created_at", "updated_at" },
@@ -41,45 +38,31 @@ namespace LebanonPriceMap.Server.Migrations
                     { Guid.Parse("11000000-0000-0000-0000-000000000008"), "Produce", 8, DateTime.UtcNow, DateTime.UtcNow }
                 }
             );
-
-            // Note: Full user, store, and product seeding is best done via DataSeederService
-            // This migration provides schema-level seed data that must be present
-            // For comprehensive test data, use: dotnet run in Development mode
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Delete seeded data in reverse order
-            migrationBuilder.DeleteData(
-                table: "categories",
-                keyColumn: "id",
-                keyValues: new object[]
-                {
-                    Guid.Parse("11000000-0000-0000-0000-000000000001"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000002"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000003"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000004"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000005"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000006"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000007"),
-                    Guid.Parse("11000000-0000-0000-0000-000000000008")
-                }
-            );
+            migrationBuilder.DeleteData(table: "categories", keyColumn: "id", keyValues: new object[]
+            {
+                Guid.Parse("11000000-0000-0000-0000-000000000001"),
+                Guid.Parse("11000000-0000-0000-0000-000000000002"),
+                Guid.Parse("11000000-0000-0000-0000-000000000003"),
+                Guid.Parse("11000000-0000-0000-0000-000000000004"),
+                Guid.Parse("11000000-0000-0000-0000-000000000005"),
+                Guid.Parse("11000000-0000-0000-0000-000000000006"),
+                Guid.Parse("11000000-0000-0000-0000-000000000007"),
+                Guid.Parse("11000000-0000-0000-0000-000000000008")
+            });
 
-            migrationBuilder.DeleteData(
-                table: "regions",
-                keyColumn: "id",
-                keyValues: new object[]
-                {
-                    Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    Guid.Parse("00000000-0000-0000-0000-000000000002"),
-                    Guid.Parse("00000000-0000-0000-0000-000000000003"),
-                    Guid.Parse("00000000-0000-0000-0000-000000000004"),
-                    Guid.Parse("00000000-0000-0000-0000-000000000005"),
-                    Guid.Parse("00000000-0000-0000-0000-000000000006")
-                }
-            );
+            migrationBuilder.DeleteData(table: "regions", keyColumn: "id", keyValues: new object[]
+            {
+                Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                Guid.Parse("00000000-0000-0000-0000-000000000002"),
+                Guid.Parse("00000000-0000-0000-0000-000000000003"),
+                Guid.Parse("00000000-0000-0000-0000-000000000004"),
+                Guid.Parse("00000000-0000-0000-0000-000000000005"),
+                Guid.Parse("00000000-0000-0000-0000-000000000006")
+            });
         }
     }
 }

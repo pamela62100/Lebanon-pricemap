@@ -60,19 +60,6 @@ public class PriceEntryResponse {
     public StoreDto? Store { get; set; }
 }
 
-/// <summary>
-/// Data required when a shopper submits a new price.
-/// </summary>
-public class PriceSubmissionRequest
-{
-    public string ProductId { get; set; } = string.Empty;
-    public string StoreId { get; set; } = string.Empty;
-    public decimal PriceLbp { get; set; }
-    public bool IsPromotion { get; set; }
-    public DateTime? PromoEndsAt { get; set; }
-    public string? ReceiptImageUrl { get; set; }
-    public string? Note { get; set; }
-}
 
 public class BulkPriceSubmissionRow
 {
