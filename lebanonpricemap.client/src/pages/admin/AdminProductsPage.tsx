@@ -5,6 +5,7 @@ import { useRouteDialog } from '@/hooks/useRouteDialog';
 import { ConfirmDialog } from '@/components/dialogs/ConfirmDialog';
 import { RouteDialog } from '@/components/dialogs/RouteDialog';
 import { cn } from '@/lib/utils';
+import { useToastStore } from '@/store/useToastStore';
 import type { Product } from '@/types';
 
 const CATEGORIES = ['All', 'Dairy', 'Oil', 'Grains', 'Fuel', 'Produce'];
@@ -15,6 +16,7 @@ export function AdminProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [search, setSearch] = useState('');
   const { open, getParam } = useRouteDialog();
+  const addToast = useToastStore(s => s.addToast);
 
   const activeProductId = getParam('id');
   const activeProduct = products.find(p => p.id === activeProductId);
@@ -167,11 +169,17 @@ export function AdminProductsPage() {
                   const created = (res as any).data?.data;
                   if (created) setProducts(prev => [created, ...prev]);
                   setEditName('');
+                  addToast('Product created.', 'success');
                 } else if (activeProductId) {
                   await productsApi.update(activeProductId, { name: editName });
                   setProducts(prev => prev.map(p => p.id === activeProductId ? { ...p, name: editName } : p));
+                  addToast('Product updated.', 'success');
                 }
-              } catch { /* handled silently */ }
+              } catch (err: any) {
+                const status = err?.response?.status;
+                if (status === 403) addToast('Permission denied — admin role required.', 'error');
+                else addToast('Failed to save product. Please try again.', 'error');
+              }
             }}
             className="h-10 rounded-xl bg-primary text-white text-sm font-bold hover:opacity-90 transition-all mt-2"
           >

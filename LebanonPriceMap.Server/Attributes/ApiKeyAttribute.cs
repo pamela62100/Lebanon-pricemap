@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using LebanonPriceMap.Server.Services;
 using Microsoft.Extensions.DependencyInjection;
-
+ //This is a security filter that protects your API endpoints. It ensures that only requests with a valid API key can access certain endpoints.
 namespace LebanonPriceMap.Server.Attributes;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
@@ -23,7 +23,7 @@ public class ApiKeyAttribute : Attribute, IAsyncActionFilter
         }
 
         var storeService = context.HttpContext.RequestServices.GetRequiredService<StoreService>();
-        var storeId = await storeService.ValidateApiKeyAsync(extractedApiKey);
+        var storeId = await storeService.ValidateApiKeyAsync(extractedApiKey.ToString());
 
         if (storeId == null)
         {

@@ -1,13 +1,10 @@
-using Microsoft.AspNetCore.SignalR;
-using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR; //signalR library
+using System.Security.Claims; //handles user identity , pieces of info 
 
 namespace LebanonPriceMap.Server.Hubs;
 
-/// <summary>
-/// Strongly-typed client interface — every method here is something the server can
-/// invoke on the client. Frontend listens by name (e.g. "NotificationCreated").
-/// </summary>
-public interface ILiveClient
+//signalR hub, manages all websocket connections , everytime a browser opens a websocket connection to our site the hub handles it 
+public interface ILiveClient 
 {
     Task NotificationCreated(object notification);
     Task DiscrepancyReportCreated(object report);
@@ -17,22 +14,17 @@ public interface ILiveClient
     Task PriceVoted(object payload);
     Task PriceChanged(object payload);
 }
+//interface, defines methods taht the server can call on the client
 
-/// <summary>
-/// SignalR hub — single endpoint for all real-time events. Allows anonymous connections;
-/// authenticated users are added to personal groups on connect.
-///
-/// Groups:
-///   user-{userId}     → personal events (notifications, alerts)
-///   store-{storeId}   → store-specific events (catalog edits, incoming reports)
-///   product-{prodId}  → product-specific events (price/vote changes)
-///   admins            → global admin events (new discrepancy reports)
-/// </summary>
+
+//Hub bqw3 class from SignalR,use their strongly typed interface
+//creates  a hub where server calls client methods defined in ILiveClient
+//compiler checks that we only call those methods
 public class LiveHub : Hub<ILiveClient>
 {
-    public override async Task OnConnectedAsync()
+    public override async Task OnConnectedAsync() //when a browser connects and opens a websocket this method runs automatically for every new connection
     {
-        var userId = Context.UserIdentifier;
+        var userId = Context.UserIdentifier; //Context contains info about the current connection
         var role = Context.User?.FindFirst(ClaimTypes.Role)?.Value;
 
         if (!string.IsNullOrEmpty(userId))

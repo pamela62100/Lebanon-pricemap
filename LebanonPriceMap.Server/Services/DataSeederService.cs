@@ -99,8 +99,13 @@ namespace LebanonPriceMap.Server.Services
                 if (!_context.Users.Any())
                 {
                     await SeedRegionsAndDistrictsAsync();
-                    await SeedCategoriesAsync();
                     await SeedUsersAsync();
+                    await _context.SaveChangesAsync();
+                }
+
+                if (!_context.Categories.Any())
+                {
+                    await SeedCategoriesAsync();
                     await _context.SaveChangesAsync();
                 }
 
@@ -616,7 +621,7 @@ namespace LebanonPriceMap.Server.Services
                 Name = name,
                 Role = role,
                 Status = trustScore < 30 ? "suspended" : (trustScore < 50 ? "warned" : "active"),
-                PasswordHash = HashPassword("test123456"),
+                PasswordHash = HashPassword("Test1234!"),
                 AvatarInitials = string.Concat(name.Split(' ').Select(s => s[0])),
                 City = _cities[_random.Next(_cities.Length)],
                 TrustScore = trustScore,
@@ -633,8 +638,7 @@ namespace LebanonPriceMap.Server.Services
 
         private string HashPassword(string password)
         {
-            // Using simple BCrypt hashing - all test users use same hash for "test123456"
-            return "$2b$11$qVHHuAIJnxxUayG26gHv3ehrUmKsMyFNYQq0CtHWgHHRAbGe0hCZ2";
+            return BCrypt.Net.BCrypt.HashPassword(password, 11);
         }
     }
 }

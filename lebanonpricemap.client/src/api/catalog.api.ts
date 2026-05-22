@@ -52,36 +52,3 @@ export const catalogApi = {
     return client.get('/catalog/insights');
   },
 };
-
-// ─── Missing Product Request API ──────────────────────────────────────────────
-export const missingProductApi = {
-  // POST /api/missing-products — shopper submits a missing product request
-  submit: async (data: {
-    storeId: string;
-    productId?: string;
-    productNameFreetext?: string;
-    note?: string;
-  }) => {
-    return client.post('/missing-products', data);
-  },
-
-  // GET /api/missing-products/my — shopper views their own requests
-  getMy: async () => {
-    return client.get('/missing-products/my');
-  },
-
-  // GET /api/missing-products/pending — admin views pending requests
-  getPending: async () => {
-    return client.get('/missing-products/pending');
-  },
-
-  // PATCH /api/missing-products/{id}/approve — admin approves
-  approve: async (id: string, reviewNote?: string) => {
-    return client.patch(`/missing-products/${id}/approve`, { reviewNote });
-  },
-
-  // PATCH /api/missing-products/{id}/reject — admin rejects
-  reject: async (id: string, reviewNote?: string) => {
-    return client.patch(`/missing-products/${id}/reject`, { reviewNote });
-  },
-};

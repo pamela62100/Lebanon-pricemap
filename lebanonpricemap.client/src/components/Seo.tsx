@@ -3,7 +3,8 @@ import { Helmet } from '@dr.pogodin/react-helmet';
 const SITE_NAME = 'WeinArkhass';
 const SITE_URL = 'https://weinarkhass.com';
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
-
+//adds SEO metadeta to our web pages . When we put this component on a page  it automatically adds the right <meta> tags to the <head> section of our html
+//react-helmet  lets react components modify the <head> section 
 interface SeoProps {
   title?: string;
   description?: string;
@@ -12,8 +13,9 @@ interface SeoProps {
   type?: 'website' | 'article' | 'product';
   jsonLd?: Record<string, unknown>;
   noIndex?: boolean;
-}
-
+} //the interface "? means property is optional"
+// "canonical" same page might be reachable at multiple urls this fixes that
+// "og" open graph a protocol created by facebook that tells social media platform how to display link when share
 export function Seo({
   title,
   description,
@@ -31,7 +33,7 @@ export function Seo({
     <Helmet>
       <title>{fullTitle}</title>
       <meta name="description" content={desc} />
-      <link rel="canonical" href={url} />
+      <link rel="canonical" href={url} />            
       {noIndex && <meta name="robots" content="noindex, nofollow" />}
 
       <meta property="og:type" content={type} />
@@ -54,3 +56,4 @@ export function Seo({
     </Helmet>
   );
 }
+////jsonLd most important for google ,structured data tells ggl what ur page content means

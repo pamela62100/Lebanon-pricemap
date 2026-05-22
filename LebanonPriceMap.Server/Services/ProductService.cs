@@ -78,30 +78,6 @@ public class ProductService
         };
     }
 
-    public async Task<ProductResponse?> GetByBarcodeAsync(string barcode)
-    {
-        var p = await _db.Products
-            .Include(p => p.Category)
-            .Include(p => p.Aliases)
-            .FirstOrDefaultAsync(p => p.Barcode == barcode);
-
-        if (p == null) return null;
-
-        return new ProductResponse
-        {
-            Id = p.Id.ToString(),
-            Name = p.Name,
-            NameAr = p.NameAr,
-            Category = p.Category != null ? p.Category.Name : null,
-            Unit = p.Unit,
-            Brand = p.Brand,
-            Barcode = p.Barcode,
-            UploadCount = p.UploadCount,
-            IsArchived = p.IsArchived,
-            Aliases = p.Aliases.Select(a => a.Alias).ToList()
-        };
-    }
-
     /// <summary>
     /// Updates an existing product. Admin only.
     /// </summary>

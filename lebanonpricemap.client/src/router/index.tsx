@@ -24,7 +24,6 @@ import { SearchPage }         from '@/pages/shopper/SearchPage';
 import { MapPage }            from '@/pages/shopper/MapPage';
 import { CartPage }           from '@/pages/shopper/CartPage';
 import { CartOptimizePage }   from '@/pages/shopper/CartOptimizePage';
-import { BarcodeScannerPage } from '@/pages/shopper/BarcodeScannerPage';
 import { ProfilePage }        from '@/pages/shopper/ProfilePage';
 import { PriceDetailPage }    from '@/pages/shopper/PriceDetailPage';
 import { AlertsPage }         from '@/pages/shopper/AlertsPage';
@@ -79,7 +78,6 @@ export function AppRouter() {
           <Route path="map"           element={<MapPage />} />
           <Route path="list"          element={<CartPage />} />
           <Route path="list/optimize" element={<CartOptimizePage />} />
-          <Route path="scan"          element={<BarcodeScannerPage />} />
           <Route path="fuel"          element={<Navigate to="/app" replace />} />
           <Route path="profile"       element={<ProfilePage />} />
           <Route path="price/:id"     element={<PriceDetailPage />} />

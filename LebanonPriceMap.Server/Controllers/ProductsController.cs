@@ -32,20 +32,12 @@ public class ProductsController : ControllerBase
         return Ok(new { success = true, data = result });
     }
 
-    [HttpGet("barcode/{code}")]
-    public async Task<IActionResult> GetByBarcode(string code)
-    {
-        var result = await _productService.GetByBarcodeAsync(code);
-        if (result == null) return NotFound(new { success = false, message = "Product not found" });
-        return Ok(new { success = true, data = result });
-    }
-
     /// <summary>
     /// POST /api/products
     /// Create a new master product in the global dictionary. Admin only.
     /// </summary>
     [HttpPost]
-    [Authorize(Roles = "retailer")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Create([FromBody] CreateProductRequest request)
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -61,7 +53,7 @@ public class ProductsController : ControllerBase
     /// Update an existing product. Admin only.
     /// </summary>
     [HttpPut("{id}")]
-    [Authorize(Roles = "retailer")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Update(string id, [FromBody] UpdateProductRequest request)
     {
         var success = await _productService.UpdateAsync(id, request);
@@ -75,7 +67,7 @@ public class ProductsController : ControllerBase
     /// (catalog items, current prices, price submissions, aliases).
     /// </summary>
     [HttpDelete("{id}")]
-    [Authorize(Roles = "retailer")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> Delete(string id)
     {
         var success = await _productService.DeleteAsync(id);

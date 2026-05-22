@@ -1,12 +1,11 @@
 # --- build stage ------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /app
 
 # copy csproj first (for caching restore)
-COPY *.sln ./
-COPY LebanonPriceMap.Server/*.csproj ./LebanonPriceMap.Server/
+COPY *.csproj ./
 
-RUN dotnet restore
+RUN dotnet restore --disable-parallel
 
 # now copy everything else
 COPY . .
@@ -14,7 +13,7 @@ COPY . .
 RUN dotnet publish -c Release -o out
 
 # --- runtime stage ----------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 COPY --from=build /app/out .
